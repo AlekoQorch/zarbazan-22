@@ -64,9 +64,9 @@ struct HomeView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("NOVA")
-                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .font(.system(size: 36, weight: .heavy, design: .default))
                 .foregroundStyle(Color.novaTextPrimary)
-                .tracking(4)
+                .tracking(6)
             Text(appState.library.songs.isEmpty ? "Your offline music, beautifully simple." : "Listen offline.")
                 .font(.subheadline)
                 .foregroundStyle(Color.novaTextSecondary)
@@ -202,17 +202,25 @@ struct EmptyLibraryOnboarding: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.novaAccent.opacity(0.28), .clear],
-                            center: .center,
-                            startRadius: 10,
-                            endRadius: 140
+                            colors: [
+                                Color.novaAccent.opacity(0.40),
+                                Color.novaAccent.opacity(0.08),
+                                .clear
+                            ],
+                            center: .topLeading,
+                            startRadius: 8,
+                            endRadius: 130
                         )
                     )
-                    .frame(width: 260, height: 260)
+                    .frame(width: 220, height: 220)
+                    .background(
+                        Circle()
+                            .fill(Color.novaSurface)
+                            .frame(width: 148, height: 148)
+                    )
                 Image(systemName: "waveform")
-                    .font(.system(size: 64, weight: .thin))
-                    .foregroundStyle(Color.novaAccent)
-                    .symbolEffect(.variableColor.iterative, options: .repeating)
+                    .font(.system(size: 44, weight: .light))
+                    .foregroundStyle(Color.white.opacity(0.92))
             }
 
             VStack(spacing: NovaTheme.Spacing.sm) {

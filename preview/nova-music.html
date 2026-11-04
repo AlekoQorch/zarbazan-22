@@ -1,247 +1,205 @@
 <!DOCTYPE html>
-<html lang="ka">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>NOVA MUSIC — Preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>NOVA MUSIC</title>
 <style>
   :root {
-    --bg: #0A0A0B;
-    --surface: #161618;
-    --elevated: #1E1E22;
-    --text: #F5F5F7;
-    --muted: #A1A1A6;
-    --accent: #3DDBD9;
-    --sep: rgba(255,255,255,0.08);
+    --bg: #000000;
+    --surface: #121214;
+    --elevated: #1C1C1E;
+    --text: #FFFFFF;
+    --muted: #8E8E93;
+    --accent: #FF3B5C;
+    --accent-soft: rgba(255, 59, 92, 0.16);
+    --sep: rgba(255,255,255,0.10);
+    --safe-b: env(safe-area-inset-bottom, 0px);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
   body {
-    min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(61,219,217,0.12), transparent),
-      #050506;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #0a0a0a;
     color: var(--text);
+    display: grid;
+    place-items: center;
+    min-height: 100%;
+    padding: 24px 12px;
+  }
+
+  /* Outer stage — only the phone is the product */
+  .device {
+    width: min(390px, 100%);
+    height: min(844px, calc(100vh - 48px));
+    max-height: 900px;
+    background: var(--bg);
+    border-radius: 44px;
+    border: 3px solid #2c2c2e;
+    box-shadow:
+      0 0 0 1px #111,
+      0 30px 80px rgba(0,0,0,0.65);
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 32px 16px 64px;
-    gap: 28px;
   }
-  h1 {
-    font-size: 13px;
-    letter-spacing: 0.35em;
+  .island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 50;
+  }
+  .status {
+    height: 54px;
+    padding: 14px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
     font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
+    position: relative;
+    z-index: 40;
   }
-  .title {
-    text-align: center;
+  .status .right { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+
+  .app {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    align-items: center;
+    min-height: 0;
+    position: relative;
+    background: var(--bg);
   }
-  .title strong {
-    font-size: 28px;
-    letter-spacing: 0.2em;
+
+  .page {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 4px 20px 0;
+    overflow: auto;
+    animation: fade .22s ease;
+  }
+  .page.on { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none; } }
+
+  .brand {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    margin-top: 6px;
+  }
+  .headline {
+    font-size: 34px;
     font-weight: 700;
-    color: var(--text);
+    letter-spacing: -0.03em;
+    margin-top: 6px;
   }
-  .title p { color: var(--muted); font-size: 14px; max-width: 420px; line-height: 1.45; }
-  .tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-  }
-  .tabs button {
-    border: 1px solid var(--sep);
-    background: var(--surface);
+  .lede {
     color: var(--muted);
-    padding: 10px 16px;
+    font-size: 15px;
+    margin: 6px 0 18px;
+    line-height: 1.35;
+  }
+
+  .btn {
+    appearance: none;
+    border: 0;
+    border-radius: 14px;
+    padding: 16px 18px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 650;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform .15s ease, opacity .15s ease;
+  }
+  .btn:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+  .btn-secondary { background: var(--elevated); color: var(--text); width: 100%; }
+
+  .section {
+    margin-top: 22px;
+  }
+  .section-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .section-h h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .section-h span { color: var(--accent); font-size: 14px; font-weight: 600; }
+
+  .shelf {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .shelf::-webkit-scrollbar { display: none; }
+
+  .tile { width: 148px; flex-shrink: 0; cursor: pointer; }
+  .cover {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    position: relative;
+  }
+  .tile .t { margin-top: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .u { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    cursor: pointer;
+  }
+  .row .thumb {
+    width: 52px; height: 52px; border-radius: 8px;
+    background-size: cover; background-position: center; flex-shrink: 0;
+  }
+  .row .meta { flex: 1; min-width: 0; }
+  .row .meta .t { font-size: 16px; font-weight: 560; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .meta .t.live { color: var(--accent); }
+  .row .meta .u { font-size: 13px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .dur { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .heart { color: var(--accent); font-size: 12px; margin-right: 6px; }
+
+  .segs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin: 14px 0 8px;
+    scrollbar-width: none;
+  }
+  .segs::-webkit-scrollbar { display: none; }
+  .segs button {
+    border: 0;
+    background: var(--elevated);
+    color: var(--text);
+    padding: 8px 14px;
     border-radius: 999px;
     font: inherit;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
-    transition: 0.2s ease;
   }
-  .tabs button:hover { color: var(--text); border-color: rgba(255,255,255,0.18); }
-  .tabs button.active {
-    background: var(--accent);
-    color: #0A0A0B;
-    border-color: var(--accent);
-    font-weight: 600;
-  }
-  .stage {
-    display: flex;
-    gap: 40px;
-    align-items: flex-start;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: 100%;
-    max-width: 980px;
-  }
-  .phone {
-    width: 340px;
-    height: 700px;
-    border-radius: 44px;
-    background: #111;
-    border: 2px solid #2a2a2e;
-    box-shadow:
-      0 0 0 1px #000,
-      0 40px 80px rgba(0,0,0,0.55);
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .notch {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 108px;
-    height: 28px;
-    background: #000;
-    border-radius: 20px;
-    z-index: 20;
-  }
-  .screen {
-    position: absolute;
-    inset: 0;
-    background: var(--bg);
-    display: none;
-    flex-direction: column;
-    padding: 54px 18px 12px;
-  }
-  .screen.active { display: flex; }
-  .brand {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: 0.22em;
-    margin-bottom: 4px;
-  }
-  .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
-  .cta {
-    background: var(--accent);
-    color: #0A0A0B;
-    border: 0;
-    border-radius: 12px;
-    padding: 14px 16px;
-    font: inherit;
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    width: 100%;
-  }
-  .cta.ghost {
-    background: var(--elevated);
-    color: var(--text);
-  }
-  .section-title {
-    font-size: 17px;
-    font-weight: 600;
-    margin: 18px 0 12px;
-  }
-  .shelf {
-    display: flex;
-    gap: 12px;
-    overflow: hidden;
-  }
-  .card-art {
-    width: 118px;
-    flex-shrink: 0;
-  }
-  .art {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    font-size: 28px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    position: relative;
-    overflow: hidden;
-  }
-  .art::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.35));
-  }
-  .a1 { background: linear-gradient(145deg, #1f4f55, #0d1a1c); }
-  .a2 { background: linear-gradient(145deg, #3a2f55, #12101a); }
-  .a3 { background: linear-gradient(145deg, #254035, #0d1411); }
-  .a4 { background: linear-gradient(145deg, #4a3030, #140e0e); }
-  .card-art .t { margin-top: 8px; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-art .u { font-size: 12px; color: var(--muted); }
-  .song {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    padding: 6px 0;
-  }
-  .song .thumb {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    font-weight: 600;
-    color: rgba(255,255,255,0.75);
-  }
-  .song .meta { flex: 1; min-width: 0; }
-  .song .meta .t { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .song .meta .t.playing { color: var(--accent); }
-  .song .meta .u { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .song .dur { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .segments {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    margin-bottom: 14px;
-  }
-  .segments span {
-    text-align: center;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 8px 0;
-    border-radius: 8px;
-    color: var(--muted);
-    background: transparent;
-    border: 1px solid var(--sep);
-  }
-  .segments span.on {
-    background: var(--elevated);
-    color: var(--text);
-  }
-  .nav {
-    margin-top: auto;
-    border-top: 1px solid var(--sep);
-    padding-top: 10px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 2px;
-  }
-  .nav button {
-    background: none;
-    border: 0;
-    color: var(--muted);
-    font: inherit;
-    font-size: 10px;
-    font-weight: 500;
-    padding: 6px 0 4px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-  .nav button.on { color: var(--accent); font-weight: 600; }
-  .nav .ico { font-size: 16px; line-height: 1; opacity: 0.9; }
+  .segs button.on { background: var(--text); color: #000; }
+
   .empty {
     flex: 1;
     display: flex;
@@ -249,312 +207,496 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+    padding: 0 12px 40px;
     gap: 14px;
-    padding: 0 12px;
   }
-  .wave {
-    width: 120px;
-    height: 120px;
-    border-radius: 999px;
-    display: grid;
-    place-items: center;
-    background: radial-gradient(circle, rgba(61,219,217,0.22), transparent 70%);
-    color: var(--accent);
-    font-size: 42px;
-    font-weight: 200;
+  .orb {
+    width: 148px; height: 148px; border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,59,92,0.45), transparent 55%),
+      radial-gradient(circle at 70% 70%, rgba(255,120,90,0.25), transparent 50%),
+      var(--surface);
+    display: grid; place-items: center;
+    margin-bottom: 8px;
   }
-  .empty h2 { font-size: 20px; font-weight: 600; }
-  .empty p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .orb svg { width: 48px; height: 48px; color: #fff; opacity: 0.92; }
+  .empty h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  .empty p { color: var(--muted); font-size: 15px; line-height: 1.45; max-width: 280px; }
 
-  /* Now Playing */
-  .np { padding-top: 48px; }
+  /* Mini player */
+  .mini {
+    margin: 0 12px 8px;
+    background: var(--elevated);
+    border-radius: 14px;
+    overflow: hidden;
+    display: none;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+  .mini.show { display: block; }
+  .mini .prog { height: 2px; background: rgba(255,255,255,0.08); }
+  .mini .prog i { display: block; height: 100%; width: 34%; background: var(--accent); }
+  .mini .body {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px 8px 8px;
+  }
+  .mini .art {
+    width: 44px; height: 44px; border-radius: 8px;
+    background-size: cover; background-position: center;
+  }
+  .mini .meta { flex: 1; min-width: 0; }
+  .mini .meta .t { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini .meta .u { font-size: 12px; color: var(--muted); }
+  .mini .ctrls { display: flex; gap: 2px; }
+  .mini .ctrls button {
+    width: 40px; height: 40px; border: 0; background: transparent; color: var(--text);
+    font-size: 18px; cursor: pointer; border-radius: 999px;
+  }
+
+  /* Tab bar */
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 4px calc(8px + var(--safe-b));
+    border-top: 1px solid var(--sep);
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(20px);
+  }
+  .tabbar button {
+    border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 10px; font-weight: 500;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 4px 0; cursor: pointer;
+  }
+  .tabbar button.on { color: var(--accent); }
+  .tabbar svg { width: 24px; height: 24px; }
+
+  /* Now Playing sheet */
+  .np {
+    position: absolute; inset: 0; z-index: 60;
+    background: #0b0b0c;
+    display: none;
+    flex-direction: column;
+    padding: 10px 24px 28px;
+    animation: up .32s cubic-bezier(.2,.8,.2,1);
+  }
+  .np.on { display: flex; }
+  @keyframes up { from { transform: translateY(8%); opacity: 0; } to { transform: none; opacity: 1; } }
+  .np-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background-size: cover; background-position: center;
+    filter: blur(48px) saturate(1.2); opacity: 0.35; transform: scale(1.2);
+  }
+  .np-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.92) 70%);
+  }
+  .np > * { position: relative; z-index: 1; }
   .grab {
-    width: 40px; height: 5px; border-radius: 99px;
-    background: rgba(255,255,255,0.28); margin: 0 auto 22px;
+    width: 36px; height: 5px; border-radius: 99px;
+    background: rgba(255,255,255,0.35); margin: 8px auto 18px; cursor: pointer;
   }
   .np-art {
-    width: min(100%, 280px);
-    aspect-ratio: 1;
-    margin: 0 auto;
-    border-radius: 22px;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.45);
+    width: min(100%, 320px); aspect-ratio: 1; margin: 8px auto 0;
+    border-radius: 18px; background-size: cover; background-position: center;
+    box-shadow: 0 28px 60px rgba(0,0,0,0.55);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1);
   }
-  .np-meta { margin-top: 28px; }
-  .np-meta h2 { font-size: 22px; font-weight: 700; }
-  .np-meta .artist { color: var(--muted); font-size: 16px; margin-top: 4px; }
-  .np-meta .album { color: var(--muted); font-size: 13px; margin-top: 2px; opacity: 0.85; }
-  .seek { margin-top: 22px; }
-  .seek .bar {
-    height: 4px; border-radius: 99px; background: var(--sep); position: relative;
+  .np-art.paused { transform: scale(0.92); }
+  .np-info { margin-top: 28px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .np-info h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .np-info .a { color: rgba(255,255,255,0.72); font-size: 18px; margin-top: 4px; }
+  .np-info .al { color: rgba(255,255,255,0.45); font-size: 14px; margin-top: 4px; }
+  .fav {
+    width: 44px; height: 44px; border-radius: 999px; border: 0;
+    background: rgba(255,255,255,0.08); color: var(--accent); font-size: 18px; cursor: pointer;
   }
-  .seek .bar i {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 38%;
-    background: var(--accent); border-radius: 99px;
+  .seek { margin-top: 26px; }
+  .seek .track {
+    height: 4px; border-radius: 99px; background: rgba(255,255,255,0.18); position: relative; cursor: pointer;
   }
-  .seek .bar i::after {
-    content: ""; position: absolute; right: -6px; top: 50%;
-    width: 12px; height: 12px; border-radius: 99px;
-    background: var(--text); transform: translateY(-50%);
+  .seek .track i {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 36%;
+    background: #fff; border-radius: 99px;
   }
-  .seek .times {
-    display: flex; justify-content: space-between;
-    margin-top: 8px; font-size: 12px; color: var(--muted);
-    font-variant-numeric: tabular-nums;
+  .seek .track i::after {
+    content: ""; position: absolute; right: -7px; top: 50%; width: 14px; height: 14px;
+    border-radius: 50%; background: #fff; transform: translateY(-50%);
+  }
+  .times {
+    display: flex; justify-content: space-between; margin-top: 8px;
+    font-size: 12px; color: rgba(255,255,255,0.55); font-variant-numeric: tabular-nums;
   }
   .transport {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: 26px; padding: 0 4px;
-  }
-  .transport .sm { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; font-weight: 600; }
-  .transport .sm.on { color: var(--accent); }
-  .transport .md { background: none; border: 0; color: var(--text); font-size: 22px; cursor: pointer; }
-  .transport .play {
-    width: 72px; height: 72px; border-radius: 999px; border: 0;
-    background: var(--text); color: var(--bg); font-size: 22px; font-weight: 700; cursor: pointer;
-  }
-  .secondary-row {
-    display: flex; justify-content: space-between; margin-top: 22px; padding: 0 4px;
-  }
-  .secondary-row button {
-    background: none; border: 0; color: var(--text); font-size: 18px; cursor: pointer;
-  }
-
-  /* Mini player overlay on library */
-  .mini {
-    border-top: 1px solid var(--sep);
-    background: rgba(22,22,24,0.92);
-    backdrop-filter: blur(12px);
-    margin: 0 -18px;
-    padding: 0 14px;
-  }
-  .mini .prog { height: 2px; background: var(--sep); margin: 0 -14px 0; }
-  .mini .prog i { display: block; height: 100%; width: 42%; background: var(--accent); }
-  .mini .row {
-    display: flex; align-items: center; gap: 10px; padding: 10px 0;
-  }
-  .mini .row .thumb { width: 42px; height: 42px; border-radius: 8px; }
-  .mini .row .meta { flex: 1; min-width: 0; }
-  .mini .row .meta .t { font-size: 13px; font-weight: 600; }
-  .mini .row .meta .u { font-size: 11px; color: var(--muted); }
-  .mini .ctrls { display: flex; gap: 8px; }
-  .mini .ctrls button {
-    background: none; border: 0; color: var(--text); font-size: 16px; width: 36px; height: 36px; cursor: pointer;
-  }
-
-  .side {
-    flex: 1;
-    min-width: 260px;
-    max-width: 380px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-top: 12px;
-  }
-  .side h3 { font-size: 18px; font-weight: 600; }
-  .side p { color: var(--muted); font-size: 14px; line-height: 1.55; }
-  .note {
-    background: var(--surface);
-    border: 1px solid var(--sep);
-    border-radius: 14px;
-    padding: 14px 16px;
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-  .note b { color: var(--text); font-weight: 600; }
-  .link {
-    display: inline-flex;
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.4fr 1fr 1fr;
     align-items: center;
-    gap: 8px;
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
+    gap: 4px;
   }
-  .link:hover { text-decoration: underline; }
+  .transport button {
+    border: 0; background: transparent; color: #fff; cursor: pointer;
+    height: 52px; font-size: 18px; border-radius: 999px;
+  }
+  .transport .play {
+    width: 74px; height: 74px; margin: 0 auto;
+    background: #fff; color: #000; font-size: 26px; font-weight: 700;
+    display: grid; place-items: center;
+  }
+  .transport .accent { color: var(--accent); }
+  .extra {
+    margin-top: auto;
+    display: flex; justify-content: space-between; padding-top: 18px;
+  }
+  .extra button {
+    border: 0; background: transparent; color: #fff; font-size: 20px; cursor: pointer; width: 44px; height: 44px;
+  }
+
+  .search-box {
+    background: var(--elevated);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; gap: 8px; align-items: center;
+    color: var(--muted); margin-bottom: 16px;
+  }
+  .search-box input {
+    flex: 1; border: 0; background: transparent; color: var(--text);
+    font: inherit; font-size: 16px; outline: none;
+  }
+
+  .settings .cell {
+    background: var(--surface);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .settings .item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid var(--sep); font-size: 16px;
+  }
+  .settings .item:last-child { border-bottom: 0; }
+  .settings .item span { color: var(--muted); font-size: 15px; }
+  .toggle {
+    width: 50px; height: 30px; border-radius: 99px; background: #333; position: relative;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px;
+    border-radius: 50%; background: #fff; transition: .2s;
+  }
+  .toggle.on::after { left: 22px; }
+
+  .hint {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    color: #666; font-size: 12px; text-align: center; max-width: 90%;
+    display: none;
+  }
+  @media (min-width: 520px) {
+    .hint { display: block; }
+  }
 </style>
 </head>
 <body>
-  <div class="title">
-    <h1>Interactive preview</h1>
-    <strong>NOVA MUSIC</strong>
-    <p>გახსენი ეს ფაილი ბრაუზერში. ქვემოთ აირჩიე ეკრანი — ასე გამოიყურება აპი iPhone-ზე.</p>
-  </div>
+  <div class="device" id="device">
+    <div class="island"></div>
+    <div class="status">
+      <div>9:41</div>
+      <div class="right">●●●● ▮▮▮ 🔋</div>
+    </div>
 
-  <div class="tabs" id="tabs">
-    <button data-screen="now" class="active">Now Playing</button>
-    <button data-screen="home">Home</button>
-    <button data-screen="empty">Empty Home</button>
-    <button data-screen="library">Library</button>
-    <button data-screen="mini">Mini Player</button>
-  </div>
-
-  <div class="stage">
-    <div class="phone" aria-label="iPhone preview">
-      <div class="notch"></div>
-
-      <!-- NOW PLAYING -->
-      <div class="screen np active" id="screen-now">
-        <div class="grab"></div>
-        <div class="art a1 np-art">M</div>
-        <div class="np-meta">
-          <h2>Midnight Drive</h2>
-          <div class="artist">Northline</div>
-          <div class="album">After Hours</div>
-        </div>
-        <div class="seek">
-          <div class="bar"><i></i></div>
-          <div class="times"><span>1:24</span><span>3:42</span></div>
-        </div>
-        <div class="transport">
-          <button class="sm on">SH</button>
-          <button class="md">◀◀</button>
-          <button class="play">❚❚</button>
-          <button class="md">▶▶</button>
-          <button class="sm">RP</button>
-        </div>
-        <div class="secondary-row">
-          <button>+</button>
-          <button>♡</button>
-          <button>≡</button>
-        </div>
-      </div>
-
+    <div class="app">
       <!-- HOME -->
-      <div class="screen" id="screen-home">
+      <section class="page on" id="page-home">
         <div class="brand">NOVA</div>
-        <div class="sub">Listen offline.</div>
-        <button class="cta">Import Music</button>
-        <div class="section-title">Recently Played</div>
-        <div class="shelf">
-          <div class="card-art"><div class="art a1">M</div><div class="t">Midnight Drive</div><div class="u">Northline</div></div>
-          <div class="card-art"><div class="art a2">G</div><div class="t">Glass Harbor</div><div class="u">Kinetic</div></div>
-          <div class="card-art"><div class="art a3">S</div><div class="t">Soft Static</div><div class="u">Lumen</div></div>
-        </div>
-        <div class="section-title">Favorites</div>
-        <div class="song">
-          <div class="thumb art a3">S</div>
-          <div class="meta"><div class="t playing">Soft Static</div><div class="u">Lumen · Soft Static</div></div>
-          <div class="dur">2:58</div>
-        </div>
-        <nav class="nav">
-          <button class="on" data-jump="home"><span class="ico">⌂</span>Home</button>
-          <button data-jump="library"><span class="ico">♬</span>Library</button>
-          <button><span class="ico">☰</span>Playlists</button>
-          <button><span class="ico">⌕</span>Search</button>
-          <button><span class="ico">⚙</span>Settings</button>
-        </nav>
-      </div>
+        <div class="lede">Listen offline.</div>
+        <button class="btn btn-primary" id="importBtn">↓  Import Music</button>
 
-      <!-- EMPTY -->
-      <div class="screen" id="screen-empty">
-        <div class="brand">NOVA</div>
-        <div class="sub">Your offline music, beautifully simple.</div>
-        <div class="empty">
-          <div class="wave">∿</div>
-          <h2>Import your music</h2>
-          <p>Add MP3, M4A, AAC, WAV from the Files app. Everything stays on your iPhone.</p>
-          <button class="cta" style="width:auto; padding-inline:28px">Import Music</button>
+        <div class="section">
+          <div class="section-h"><h2>Recently Played</h2><span>See All</span></div>
+          <div class="shelf" id="recentShelf"></div>
         </div>
-        <nav class="nav">
-          <button class="on"><span class="ico">⌂</span>Home</button>
-          <button data-jump="library"><span class="ico">♬</span>Library</button>
-          <button><span class="ico">☰</span>Playlists</button>
-          <button><span class="ico">⌕</span>Search</button>
-          <button><span class="ico">⚙</span>Settings</button>
-        </nav>
-      </div>
+        <div class="section">
+          <div class="section-h"><h2>Favorites</h2></div>
+          <div id="favList"></div>
+        </div>
+        <div style="height: 12px"></div>
+      </section>
 
       <!-- LIBRARY -->
-      <div class="screen" id="screen-library">
-        <div class="brand" style="font-size:28px; letter-spacing:0">Library</div>
-        <div class="segments">
-          <span class="on">Songs</span><span>Albums</span><span>Artists</span><span>Favorites</span>
+      <section class="page" id="page-library">
+        <div class="headline">Library</div>
+        <div class="segs">
+          <button class="on">Songs</button>
+          <button>Albums</button>
+          <button>Artists</button>
+          <button>Favorites</button>
         </div>
-        <div class="song"><div class="thumb art a1">M</div><div class="meta"><div class="t playing">Midnight Drive</div><div class="u">Northline · After Hours</div></div><div class="dur">3:42</div></div>
-        <div class="song"><div class="thumb art a2">G</div><div class="meta"><div class="t">Glass Harbor</div><div class="u">Kinetic · Harbor EP</div></div><div class="dur">4:11</div></div>
-        <div class="song"><div class="thumb art a3">S</div><div class="meta"><div class="t">Soft Static</div><div class="u">Lumen · Soft Static</div></div><div class="dur">2:58</div></div>
-        <div class="song"><div class="thumb art a4">L</div><div class="meta"><div class="t">Low Orbit</div><div class="u">NOVA Session · Singles</div></div><div class="dur">3:21</div></div>
-        <nav class="nav">
-          <button data-jump="home"><span class="ico">⌂</span>Home</button>
-          <button class="on"><span class="ico">♬</span>Library</button>
-          <button><span class="ico">☰</span>Playlists</button>
-          <button><span class="ico">⌕</span>Search</button>
-          <button><span class="ico">⚙</span>Settings</button>
-        </nav>
-      </div>
+        <div id="libList"></div>
+      </section>
 
-      <!-- MINI -->
-      <div class="screen" id="screen-mini">
-        <div class="brand" style="font-size:28px; letter-spacing:0">Library</div>
-        <div class="song"><div class="thumb art a1">M</div><div class="meta"><div class="t playing">Midnight Drive</div><div class="u">Northline · After Hours</div></div><div class="dur">3:42</div></div>
-        <div class="song"><div class="thumb art a2">G</div><div class="meta"><div class="t">Glass Harbor</div><div class="u">Kinetic · Harbor EP</div></div><div class="dur">4:11</div></div>
-        <div class="song"><div class="thumb art a3">S</div><div class="meta"><div class="t">Soft Static</div><div class="u">Lumen · Soft Static</div></div><div class="dur">2:58</div></div>
-        <div class="song"><div class="thumb art a4">L</div><div class="meta"><div class="t">Low Orbit</div><div class="u">NOVA Session · Singles</div></div><div class="dur">3:21</div></div>
-        <div style="flex:1"></div>
-        <div class="mini">
-          <div class="prog"><i></i></div>
-          <div class="row">
-            <div class="thumb art a1">M</div>
-            <div class="meta"><div class="t">Midnight Drive</div><div class="u">Northline</div></div>
-            <div class="ctrls">
-              <button>❚❚</button>
-              <button>▶▶</button>
-            </div>
+      <!-- PLAYLISTS -->
+      <section class="page" id="page-playlists">
+        <div class="headline">Playlists</div>
+        <div class="lede">Build your listening nights.</div>
+        <button class="btn btn-secondary" style="margin-bottom:16px">＋ New Playlist</button>
+        <div class="row" data-play="0">
+          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&q=80')"></div>
+          <div class="meta"><div class="t">Late Drive</div><div class="u">12 songs · 48 min</div></div>
+        </div>
+        <div class="row" data-play="1">
+          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&q=80')"></div>
+          <div class="meta"><div class="t">Focus Deep</div><div class="u">8 songs · 31 min</div></div>
+        </div>
+        <div class="row" data-play="2">
+          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1459749411175-04741767548d?w=200&q=80')"></div>
+          <div class="meta"><div class="t">Sunday Vinyl</div><div class="u">15 songs · 1 hr 2 min</div></div>
+        </div>
+      </section>
+
+      <!-- SEARCH -->
+      <section class="page" id="page-search">
+        <div class="headline">Search</div>
+        <div class="lede">Title, artist, or album</div>
+        <div class="search-box">
+          <span>⌕</span>
+          <input id="q" placeholder="Search library" />
+        </div>
+        <div id="searchList"></div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="page settings" id="page-settings">
+        <div class="headline">Settings</div>
+        <div class="lede">Playback & appearance</div>
+        <div class="cell">
+          <div class="item">Appearance <span>Dark</span></div>
+          <div class="item">Resume on Launch <div class="toggle on" data-toggle></div></div>
+          <div class="item">Remember Position <div class="toggle on" data-toggle></div></div>
+        </div>
+        <div class="cell">
+          <div class="item">Equalizer <span>Off</span></div>
+          <div class="item">Sleep Timer <span>Off</span></div>
+        </div>
+        <div class="cell">
+          <div class="item">About <span>NOVA 1.0</span></div>
+        </div>
+      </section>
+
+      <!-- EMPTY (shown via import demo toggle) -->
+      <section class="page" id="page-empty">
+        <div class="brand">NOVA</div>
+        <div class="lede">Your offline music, beautifully simple.</div>
+        <div class="empty">
+          <div class="orb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12c2-4 4-6 6-6s3 4 5 4 4-2 7-2M3 17c2-3 4-4.5 6-4.5s3 3 5 3 4-1.5 7-1.5"/></svg>
+          </div>
+          <h2>Import your music</h2>
+          <p>Add MP3, M4A, AAC, WAV from the Files app. Everything stays on your iPhone.</p>
+          <button class="btn btn-primary" style="width:auto;padding-inline:28px" id="fillLibrary">Import Music</button>
+        </div>
+      </section>
+
+      <div class="mini show" id="mini">
+        <div class="prog"><i id="miniProg"></i></div>
+        <div class="body">
+          <div class="art" id="miniArt"></div>
+          <div class="meta">
+            <div class="t" id="miniTitle">Midnight Drive</div>
+            <div class="u" id="miniArtist">Northline</div>
+          </div>
+          <div class="ctrls">
+            <button id="miniPlay" aria-label="Play">❚❚</button>
+            <button id="miniNext" aria-label="Next">⏭</button>
           </div>
         </div>
-        <nav class="nav">
-          <button data-jump="home"><span class="ico">⌂</span>Home</button>
-          <button class="on"><span class="ico">♬</span>Library</button>
-          <button><span class="ico">☰</span>Playlists</button>
-          <button><span class="ico">⌕</span>Search</button>
-          <button><span class="ico">⚙</span>Settings</button>
-        </nav>
       </div>
+
+      <nav class="tabbar" id="tabs">
+        <button class="on" data-tab="home">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5L12 3z"/></svg>
+          Home
+        </button>
+        <button data-tab="library">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h12v16H4zM18 6h2v14h-2zM21 8h1v12h-1z"/></svg>
+          Library
+        </button>
+        <button data-tab="playlists">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>
+          Playlists
+        </button>
+        <button data-tab="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          Search
+        </button>
+        <button data-tab="settings">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm9.4 4a7.6 7.6 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7.7 7.7 0 0 0-1.7-1L16.8 2h-4l-.4 2.5a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7.7 7.7 0 0 0 1.7 1L12.8 22h4l.4-2.5a7.7 7.7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1z"/></svg>
+          Settings
+        </button>
+      </nav>
     </div>
 
-    <div class="side">
-      <h3 id="caption">Now Playing</h3>
-      <p id="blurb">სრული ეკრანის პლეერი — დიდი artwork, seek bar, shuffle / repeat, queue და favorite.</p>
-      <div class="note">
-        <b>როგორ გახსნა:</b><br />
-        1. გადმოწერე ან გახსენი ფაილი<br />
-        <code style="color:var(--accent)">preview/nova-music.html</code><br />
-        2. ორჯერ დააკლიკე — გაიხსნება Chrome / Safari-ში<br /><br />
-        ნამდვილი iOS აპი: Mac-ზე გახსენი <b>NovaMusic.xcodeproj</b> და დააჭირე Run.
+    <!-- Now Playing -->
+    <div class="np" id="np">
+      <div class="np-bg" id="npBg"></div>
+      <div class="grab" id="npClose"></div>
+      <div class="np-art" id="npArt"></div>
+      <div class="np-info">
+        <div>
+          <h1 id="npTitle">Midnight Drive</h1>
+          <div class="a" id="npArtist">Northline</div>
+          <div class="al" id="npAlbum">After Hours</div>
+        </div>
+        <button class="fav" id="favBtn">♥</button>
       </div>
-      <a class="link" href="https://github.com/AlekoQorch/zarbazan-22/pull/1" target="_blank" rel="noopener">GitHub PR →</a>
+      <div class="seek">
+        <div class="track" id="seek"><i id="seekFill"></i></div>
+        <div class="times"><span id="tCur">1:24</span><span id="tDur">3:42</span></div>
+      </div>
+      <div class="transport">
+        <button class="accent" id="shuffle">⇄</button>
+        <button id="prev">⏮</button>
+        <button class="play" id="play">❚❚</button>
+        <button id="next">⏭</button>
+        <button id="repeat">↻</button>
+      </div>
+      <div class="extra">
+        <button title="Add">＋</button>
+        <button title="Queue">≡</button>
+      </div>
     </div>
   </div>
 
+  <div class="hint">Interactive app preview · tabs + Now Playing work · open full URL on phone for immersive feel</div>
+
 <script>
-  const captions = {
-    now: ["Now Playing", "სრული ეკრანის პლეერი — დიდი artwork, seek bar, shuffle / repeat, queue და favorite."],
-    home: ["Home", "პერსონალური დაფა — Recently Played, Favorites და Import ღილაკი."],
-    empty: ["Empty Home", "როცა ბიბლიოთეკა ცარიელია — ლამაზი onboarding Import Music-ით."],
-    library: ["Library", "სიმღერების სია artwork-ებით, სეგმენტებით: Songs / Albums / Artists / Favorites."],
-    mini: ["Mini Player", "ქვედა mini player — artwork, სათაური, play/pause, next — tab bar-ის ზემოთ."],
-  };
+const songs = [
+  { title: "Midnight Drive", artist: "Northline", album: "After Hours", dur: "3:42", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", fav: true },
+  { title: "Glass Harbor", artist: "Kinetic", album: "Harbor EP", dur: "4:11", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80", fav: false },
+  { title: "Soft Static", artist: "Lumen", album: "Soft Static", dur: "2:58", img: "https://images.unsplash.com/photo-1459749411175-04741767548d?w=800&q=80", fav: true },
+  { title: "Low Orbit", artist: "NOVA Session", album: "Singles", dur: "3:21", img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80", fav: false },
+  { title: "Amber Rooms", artist: "Corridor", album: "Rooms", dur: "5:02", img: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=800&q=80", fav: false },
+];
 
-  function show(id) {
-    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-    document.getElementById("screen-" + id).classList.add("active");
-    document.querySelectorAll(".tabs button").forEach(b => {
-      b.classList.toggle("active", b.dataset.screen === id);
-    });
-    const [title, text] = captions[id];
-    document.getElementById("caption").textContent = title;
-    document.getElementById("blurb").textContent = text;
-  }
+let index = 0;
+let playing = true;
+let progress = 0.36;
 
-  document.getElementById("tabs").addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-screen]");
-    if (btn) show(btn.dataset.screen);
+function rowHTML(s, i) {
+  return `<div class="row" data-i="${i}">
+    <div class="thumb" style="background-image:url('${s.img}')"></div>
+    <div class="meta">
+      <div class="t ${i===index && playing ? 'live':''}">${s.fav?'<span class="heart">♥</span>':''}${s.title}</div>
+      <div class="u">${s.artist} · ${s.album}</div>
+    </div>
+    <div class="dur">${s.dur}</div>
+  </div>`;
+}
+
+function renderLists() {
+  document.getElementById('recentShelf').innerHTML = songs.slice(0,4).map((s,i)=>`
+    <div class="tile" data-i="${i}">
+      <div class="cover" style="background-image:url('${s.img}')"></div>
+      <div class="t">${s.title}</div>
+      <div class="u">${s.artist}</div>
+    </div>`).join('');
+  document.getElementById('favList').innerHTML = songs.filter(s=>s.fav).map((s)=>rowHTML(s, songs.indexOf(s))).join('');
+  document.getElementById('libList').innerHTML = songs.map((s,i)=>rowHTML(s,i)).join('');
+  document.getElementById('searchList').innerHTML = songs.map((s,i)=>rowHTML(s,i)).join('');
+  bindSongClicks();
+}
+
+function bindSongClicks() {
+  document.querySelectorAll('[data-i]').forEach(el => {
+    el.onclick = () => { index = +el.dataset.i; playing = true; syncPlayer(); openNP(); };
   });
+}
 
-  document.querySelectorAll("[data-jump]").forEach(btn => {
-    btn.addEventListener("click", () => show(btn.dataset.jump));
+function syncPlayer() {
+  const s = songs[index];
+  ['miniArt','npArt','npBg'].forEach(id => {
+    document.getElementById(id).style.backgroundImage = `url('${s.img}')`;
   });
+  document.getElementById('miniTitle').textContent = s.title;
+  document.getElementById('miniArtist').textContent = s.artist;
+  document.getElementById('npTitle').textContent = s.title;
+  document.getElementById('npArtist').textContent = s.artist;
+  document.getElementById('npAlbum').textContent = s.album;
+  document.getElementById('tDur').textContent = s.dur;
+  document.getElementById('play').textContent = playing ? '❚❚' : '▶';
+  document.getElementById('miniPlay').textContent = playing ? '❚❚' : '▶';
+  document.getElementById('npArt').classList.toggle('paused', !playing);
+  document.getElementById('seekFill').style.width = (progress*100)+'%';
+  document.getElementById('miniProg').style.width = (progress*100)+'%';
+  document.getElementById('favBtn').style.color = s.fav ? 'var(--accent)' : '#fff';
+  renderLists();
+}
+
+function openNP(){ document.getElementById('np').classList.add('on'); }
+function closeNP(){ document.getElementById('np').classList.remove('on'); }
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab===id));
+  document.getElementById('mini').classList.toggle('show', id !== 'empty');
+}
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]');
+  if (b) showPage(b.dataset.tab);
+});
+
+document.getElementById('mini').onclick = (e) => {
+  if (e.target.closest('#miniPlay')) { playing = !playing; syncPlayer(); e.stopPropagation(); return; }
+  if (e.target.closest('#miniNext')) { index = (index+1)%songs.length; syncPlayer(); e.stopPropagation(); return; }
+  openNP();
+};
+document.getElementById('npClose').onclick = closeNP;
+document.getElementById('play').onclick = () => { playing = !playing; syncPlayer(); };
+document.getElementById('next').onclick = () => { index = (index+1)%songs.length; progress=0.05; syncPlayer(); };
+document.getElementById('prev').onclick = () => { index = (index-1+songs.length)%songs.length; progress=0.05; syncPlayer(); };
+document.getElementById('favBtn').onclick = () => { songs[index].fav = !songs[index].fav; syncPlayer(); };
+document.getElementById('shuffle').onclick = (e) => e.currentTarget.classList.toggle('accent');
+document.getElementById('repeat').onclick = (e) => e.currentTarget.classList.toggle('accent');
+
+document.getElementById('q').oninput = (e) => {
+  const q = e.target.value.toLowerCase();
+  const filtered = songs.map((s,i)=>({s,i})).filter(({s}) =>
+    s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.album.toLowerCase().includes(q)
+  );
+  document.getElementById('searchList').innerHTML = filtered.map(({s,i})=>rowHTML(s,i)).join('');
+  bindSongClicks();
+};
+
+document.querySelectorAll('[data-toggle]').forEach(t => t.onclick = () => t.classList.toggle('on'));
+
+document.getElementById('importBtn').onclick = () => {
+  showPage('empty');
+};
+document.getElementById('fillLibrary').onclick = () => {
+  showPage('home');
+  openNP();
+};
+
+// Fake progress while playing
+setInterval(() => {
+  if (!playing) return;
+  progress = Math.min(0.98, progress + 0.0025);
+  document.getElementById('seekFill').style.width = (progress*100)+'%';
+  document.getElementById('miniProg').style.width = (progress*100)+'%';
+  const total = 222; // ~3:42
+  const cur = Math.floor(total * progress);
+  const m = Math.floor(cur/60), sec = String(cur%60).padStart(2,'0');
+  document.getElementById('tCur').textContent = `${m}:${sec}`;
+}, 400);
+
+renderLists();
+syncPlayer();
+
+// Deep-link helpers
+const params = new URLSearchParams(location.search);
+if (params.get('empty') === '1') showPage('empty');
+if (params.get('np') === '1') openNP();
 </script>
 </body>
 </html>

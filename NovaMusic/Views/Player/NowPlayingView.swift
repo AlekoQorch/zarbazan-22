@@ -128,11 +128,12 @@ struct NowPlayingView: View {
             } else {
                 LinearGradient(
                     colors: [
-                        Color.novaAccent.opacity(0.18),
+                        Color.novaAccent.opacity(0.28),
+                        Color.black.opacity(0.95),
                         Color.novaBackground
                     ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
             }
         }

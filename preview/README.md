@@ -1,25 +1,13 @@
-# NOVA MUSIC — Browser Preview
+# NOVA MUSIC — App Preview
 
-GitHub-ზე ფაილზე კლიკი **კოდს** გაჩვენებს, აპს არა. გახსენი ქვემოთ ერთ-ერთი გზით.
-
-## 1) ერთი კლიკი ბრაუზერში (რეკომენდებული)
-
-გახსენი Chrome ან Safari და ჩასვი ეს ლინკი:
+გახსენი **აპივით** (არა GitHub code view):
 
 https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/nova-music.html
 
-## 2) ლოკალურად Mac-ზე
-
-ტერმინალში რეპოს ფოლდერიდან:
+ან Mac-ზე:
 
 ```bash
-open -a "Safari" preview/nova-music.html
-# ან
-open -a "Google Chrome" preview/nova-music.html
+open -a Safari preview/nova-music.html
 ```
 
-ან: გადმოწერე `nova-music.html` → გადაათრიე Chrome/Safari ფანჯარაში.
-
-## 3) Windows
-
-გადმოწერე ფაილი → მარჯვენა კლიკი → Open with → Chrome / Edge.
+ვიზუალი: შავი ფონი + rose აქცენტი (`#FF3B5C`), მუშა ტაბები, mini player, Now Playing sheet.

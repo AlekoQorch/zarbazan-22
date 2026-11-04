@@ -1,49 +1,27 @@
-# NOVA MUSIC — Design Reference Lock
+# NOVA MUSIC — Design Reference Lock (v2)
 
-## Brief
-Designing a premium offline iOS music player for listeners who own their files.
-Goal: import → play → enjoy with zero friction.
-Tone: quiet luxury, cosmic night, confident and calm.
-Must remember: album art is the hero; chrome stays out of the way.
-Constraints: native SwiftUI, dark default + light mode, no third-party deps.
-Research: Refero/Mobbin unavailable (subscription); locked from Apple Music / Spotify product patterns + craft references.
+## Direction
+Premium offline player that feels native iOS — Apple Music simplicity, vinyl warmth.
 
-## Reference Lock
-**Primary direction:** Dark charcoal full-bleed Now Playing (Apple Music simplicity + Spotify art dominance).
-
-**Preserve:**
-- Near-black canvases, soft charcoal surfaces
-- Large square artwork with subtle depth (soft shadow, gentle scale on play)
-- Minimal chrome; SF Symbols for controls
-- Persistent mini player above tab bar
-- Horizontal “shelf” carousels on Home
-
-**Accent (NOVA identity):** Electric cyan `#3DDBD9` — used sparingly for play state, progress, primary CTAs. Not purple.
-
-**Reject:**
-- Purple/indigo gradients, neon glow stacks, pill-stat strips
-- Card grids in the hero / first viewport of Home when empty
-- Overcrowded player chrome
+**Primary:** True black canvases, soft graphite surfaces, rose accent.
+**Reject:** Cyan/teal tech accents, purple glow, dashboard chrome, marketing side panels in the preview.
 
 ## Tokens
 | Role | Dark | Light |
 |------|------|-------|
-| Background | `#0A0A0B` | `#F7F7F8` |
-| Surface | `#161618` | `#FFFFFF` |
-| Surface elevated | `#1E1E22` | `#F0F0F2` |
-| Text primary | `#F5F5F7` | `#0A0A0B` |
-| Text secondary | `#A1A1A6` | `#6E6E73` |
-| Accent | `#3DDBD9` | `#0A9E9C` |
-| Destructive | `#FF453A` | `#FF3B30` |
-| Separator | white 8% | black 8% |
+| Background | `#000000` | `#F2F2F7` |
+| Surface | `#121214` | `#FFFFFF` |
+| Elevated | `#1C1C1E` | `#EBEBF0` |
+| Text primary | `#FFFFFF` | `#000000` |
+| Text secondary | `#8E8E93` | `#6C6C70` |
+| Accent | `#FF3B5C` | `#E11D48` |
+| Accent soft | `#FF3B5C` @ 16% | — |
+| Separator | white 10% | black 10% |
 
-**Radius:** 10pt rows/controls, 14pt sheets, 16pt artwork thumbs, 24pt large art.
-**Spacing:** 8 / 12 / 16 / 24 / 32.
-**Type:** SF Pro / SF Pro Rounded for brand wordmark “NOVA”; system Dynamic Type.
+## Motion
+- Artwork scales 0.94 ↔ 1.0 on pause/play
+- Tab crossfade 200ms
+- Now Playing present as full-screen sheet
 
-## Screen Patterns
-- **Home:** Personalized shelves; empty → centered import onboarding
-- **Library:** Segmented sections (Songs / Albums / Artists / …)
-- **Now Playing:** Full-screen art, artwork-derived gradient wash, swipe-down dismiss
-- **Mini Player:** 64pt bar, art + title/artist + play + next
-- **Import:** Document picker multi-select + progress sheet
+## Preview
+The browser preview must feel like launching the app — phone frame only, working tabs, mini player, Now Playing sheet. No tutorial chrome inside the device.

@@ -156,12 +156,12 @@ struct ImportProgressOverlay: View {
 struct NovaPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline)
-            .foregroundStyle(Color.black.opacity(0.9))
+            .font(.headline.weight(.semibold))
+            .foregroundStyle(Color.white)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(Color.novaAccent.opacity(configuration.isPressed ? 0.75 : 1))
-            .clipShape(RoundedRectangle(cornerRadius: NovaTheme.Radius.medium, style: .continuous))
+            .padding(.vertical, 15)
+            .background(Color.novaAccent.opacity(configuration.isPressed ? 0.82 : 1))
+            .clipShape(RoundedRectangle(cornerRadius: NovaTheme.Radius.large, style: .continuous))
     }
 }
 
