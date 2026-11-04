@@ -267,6 +267,49 @@
   .ex-card span { font-size: 11px; font-weight: 500; opacity: 0.85; margin-top: 2px; }
   .ex-card .ic { position: absolute; top: 10px; right: 10px; font-size: 22px; opacity: 0.35; }
   .explore-note { color: var(--muted); font-size: 12px; margin: 8px 0 16px; line-height: 1.4; }
+  .seg {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+    background: #282828; border-radius: 10px; padding: 4px; margin: 4px 0 12px;
+  }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px;
+    font-weight: 600; padding: 8px 6px; border-radius: 8px;
+  }
+  .seg button.on { background: #3e3e3e; color: #fff; }
+  .yt-key {
+    background: #181818; border: 1px solid rgba(255,255,255,.1); border-radius: 12px;
+    padding: 12px; margin-bottom: 12px; color: var(--muted); font-size: 13px; line-height: 1.4;
+  }
+  .yt-key b { color: #fff; display: block; margin-bottom: 6px; }
+  .yt-key input {
+    width: 100%; margin-top: 8px; background: #2a2a2a; border: 0; border-radius: 8px;
+    padding: 10px 12px; color: #fff; font: inherit;
+  }
+  .yt-row {
+    display: flex; gap: 12px; padding: 8px 0; cursor: pointer; align-items: flex-start;
+  }
+  .yt-thumb {
+    width: 128px; height: 72px; border-radius: 8px; background: #282828 center/cover no-repeat;
+    position: relative; flex-shrink: 0;
+  }
+  .yt-thumb span {
+    position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff;
+    font-size: 11px; font-weight: 600; padding: 2px 5px; border-radius: 4px;
+  }
+  .yt-row .meta { min-width: 0; }
+  .yt-row .t { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .yt-row .u { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .yt-player {
+    display: none; position: absolute; inset: 0; z-index: 60; background: #000;
+    flex-direction: column; padding: calc(12px + var(--safe-t)) 12px calc(16px + var(--safe-b));
+  }
+  .yt-player.on { display: flex; }
+  .yt-frame-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #111; border-radius: 12px; overflow: hidden; }
+  .yt-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .yt-meta { padding: 14px 4px 0; }
+  .yt-meta h2 { font-size: 18px; line-height: 1.3; margin-bottom: 6px; }
+  .yt-meta .a { color: var(--muted); font-size: 14px; }
+  .yt-legal { color: var(--muted); font-size: 11px; margin: 10px 0 14px; }
   .cell {
     background: var(--elevated); border-radius: 10px; overflow: hidden; margin-bottom: 14px;
   }
@@ -349,18 +392,58 @@
     </section>
 
     <section class="page" id="page-search">
-      <div class="title" style="font-size:26px">Search for everything</div>
-      <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
-      <div id="trendingBlock"></div>
-      <div id="exploreCards" class="explore-grid"></div>
-      <div id="searchList"></div>
-      <p class="explore-note">Search free music online (Audius) and play it here. Also finds tracks in your library.</p>
+      <div class="seg" id="exploreSeg">
+        <button class="on" data-seg="youtube">YouTube</button>
+        <button data-seg="free">Free</button>
+        <button data-seg="library">Library</button>
+      </div>
+      <div id="ytPane">
+        <div class="title" style="font-size:26px">YouTube</div>
+        <div id="ytKeyBox" class="yt-key" style="display:none">
+          <b>YouTube Data API v3 key required</b>
+          <p>Paste your Google Cloud API key (YouTube Data API v3 enabled). Saved only in this browser.</p>
+          <input id="ytKeyInput" type="password" placeholder="AIza…" autocomplete="off" />
+          <button id="ytKeySave" class="btn btn-green" style="width:auto;margin-top:8px;padding:8px 16px">Save key</button>
+        </div>
+        <div class="search"><span>⌕</span><input id="ytq" placeholder="Song, artist, or music keyword…" autocomplete="off" /></div>
+        <div id="ytStatus" class="explore-note"></div>
+        <div id="ytList"></div>
+      </div>
+      <div id="freePane" style="display:none">
+        <div class="title" style="font-size:26px">Free music</div>
+        <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
+        <div id="trendingBlock"></div>
+        <div id="exploreCards" class="explore-grid"></div>
+        <div id="searchList"></div>
+        <p class="explore-note">Audius free streams — not YouTube download.</p>
+      </div>
+      <div id="libPane" style="display:none">
+        <div class="title" style="font-size:26px">Your library</div>
+        <div id="libSearchList"></div>
+      </div>
     </section>
     <audio id="audio" preload="none" crossorigin="anonymous"></audio>
+
+    <div class="yt-player" id="ytPlayerSheet">
+      <div class="yt-frame-wrap">
+        <iframe id="ytFrame" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      <div class="yt-meta">
+        <h2 id="ytTitle"></h2>
+        <div class="a" id="ytChannel"></div>
+        <p class="yt-legal">Official YouTube embedded player — not downloaded.</p>
+        <button class="btn btn-dark" id="ytClose">Close</button>
+      </div>
+    </div>
 
     <section class="page" id="page-settings">
       <div class="title">Settings</div>
       <div class="cell">
+        <div class="item" style="flex-direction:column;align-items:stretch;gap:8px">
+          <span>YouTube Data API key</span>
+          <input id="settingsYtKey" type="password" placeholder="AIza…" style="width:100%;background:#2a2a2a;border:0;border-radius:8px;padding:10px;color:#fff" />
+          <button id="settingsYtSave" class="btn btn-green" style="width:auto;padding:8px 14px">Save</button>
+        </div>
         <div class="item">Appearance <span>Dark</span></div>
         <div class="item">Resume playback <div class="toggle on" data-toggle></div></div>
         <div class="item">Remember position <div class="toggle on" data-toggle></div></div>
@@ -439,6 +522,119 @@
 
 <script>
 const APP = 'NovaMusic';
+const YT_KEY_STORE = 'nova.youtubeDataAPIKey';
+function getYtKey(){ return (localStorage.getItem(YT_KEY_STORE)||'').trim(); }
+function setYtKey(k){ localStorage.setItem(YT_KEY_STORE, (k||'').trim()); }
+function parseISO8601(iso){
+  let body=(iso||'').toUpperCase(); if(body.startsWith('PT')) body=body.slice(2);
+  let total=0, n='';
+  for (const ch of body){
+    if (/\d/.test(ch)){ n+=ch; continue; }
+    const v=parseFloat(n||'0'); n='';
+    if(ch==='H') total+=v*3600; else if(ch==='M') total+=v*60; else if(ch==='S') total+=v;
+  }
+  return total;
+}
+function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
+
+async function youtubeSearch(q){
+  const key=getYtKey();
+  if(!key) throw new Error('missing-key');
+  const base={ part:'snippet', type:'video', videoEmbeddable:'true', maxResults:'20', q, key };
+  let url='https://www.googleapis.com/youtube/v3/search?'+new URLSearchParams({...base, videoCategoryId:'10'});
+  let data=await fetch(url).then(r=>r.json());
+  if(data.error) throw new Error(data.error.message||'API error');
+  let items=data.items||[];
+  if(!items.length){
+    url='https://www.googleapis.com/youtube/v3/search?'+new URLSearchParams(base);
+    data=await fetch(url).then(r=>r.json());
+    if(data.error) throw new Error(data.error.message||'API error');
+    items=data.items||[];
+  }
+  const ids=items.map(i=>i.id&&i.id.videoId).filter(Boolean);
+  let durations={};
+  if(ids.length){
+    const vurl='https://www.googleapis.com/youtube/v3/videos?'+new URLSearchParams({part:'contentDetails', id:ids.join(','), key});
+    const vdata=await fetch(vurl).then(r=>r.json());
+    (vdata.items||[]).forEach(it=>{
+      durations[it.id]=parseISO8601((it.contentDetails||{}).duration||'');
+    });
+  }
+  return items.map(it=>{
+    const id=it.id.videoId;
+    const sn=it.snippet||{};
+    const thumbs=sn.thumbnails||{};
+    const thumb=(thumbs.high||thumbs.medium||thumbs.default||{}).url||'';
+    return { id, title: sn.title||'Untitled', channel: sn.channelTitle||'YouTube', thumb, duration: durations[id]||0 };
+  });
+}
+
+function ytRow(v){
+  return `<div class="yt-row" data-yt="${v.id}">
+    <div class="yt-thumb" style="background-image:url('${v.thumb}')"><span>${fmtDur(v.duration)}</span></div>
+    <div class="meta"><div class="t">${v.title}</div><div class="u">${v.channel}</div></div>
+  </div>`;
+}
+
+function refreshYtKeyUI(){
+  const has=!!getYtKey();
+  ytKeyBox.style.display = has ? 'none' : 'block';
+  settingsYtKey.value = getYtKey();
+  ytStatus.textContent = has ? 'Search uses the official YouTube Data API v3.' : '';
+}
+function openYtPlayer(v){
+  try {
+    const a = document.getElementById('audio');
+    if (a && !a.paused) a.pause();
+  } catch (_) {}
+  playing=false;
+  try { syncUI(); } catch (_) {}
+  ytTitle.textContent=v.title;
+  ytChannel.textContent=v.channel;
+  ytFrame.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?playsinline=1&rel=0&modestbranding=1&autoplay=1&enablejsapi=1`;
+  ytPlayerSheet.classList.add('on');
+}
+function closeYtPlayer(){
+  ytPlayerSheet.classList.remove('on');
+  ytFrame.src='';
+}
+
+let ytTimer=null, lastYtResults=[];
+async function runYtSearch(q){
+  q=(q||'').trim();
+  if(q.length<2){ ytList.innerHTML=''; ytStatus.textContent=getYtKey()?'Search uses the official YouTube Data API v3.':''; return; }
+  if(!getYtKey()){ refreshYtKeyUI(); ytStatus.textContent='Add an API key to search YouTube.'; return; }
+  ytStatus.textContent='Searching YouTube…';
+  try{
+    lastYtResults=await youtubeSearch(q);
+    ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results` : 'No videos found';
+    ytList.innerHTML = lastYtResults.map(ytRow).join('') || '';
+    ytList.querySelectorAll('[data-yt]').forEach(el=>{
+      el.onclick=()=>{
+        const v=lastYtResults.find(x=>x.id===el.dataset.yt);
+        if(v) openYtPlayer(v);
+      };
+    });
+  }catch(e){
+    ytList.innerHTML='';
+    ytStatus.textContent = e.message==='missing-key' ? 'Add an API key to search YouTube.' : ('Search failed: '+e.message);
+  }
+}
+
+document.getElementById('exploreSeg').onclick = e => {
+  const b=e.target.closest('[data-seg]'); if(!b) return;
+  document.querySelectorAll('#exploreSeg button').forEach(x=>x.classList.toggle('on', x===b));
+  ytPane.style.display = b.dataset.seg==='youtube'?'block':'none';
+  freePane.style.display = b.dataset.seg==='free'?'block':'none';
+  libPane.style.display = b.dataset.seg==='library'?'block':'none';
+};
+ytKeySave.onclick = () => { setYtKey(ytKeyInput.value); ytKeyInput.value=''; refreshYtKeyUI(); };
+settingsYtSave.onclick = () => { setYtKey(settingsYtKey.value); refreshYtKeyUI(); alert('YouTube API key saved'); };
+ytq.oninput = e => { clearTimeout(ytTimer); ytTimer=setTimeout(()=>runYtSearch(e.target.value), 320); };
+ytClose.onclick = closeYtPlayer;
+refreshYtKeyUI();
+
 const songs = [
   { title: "Midnight Drive", artist: "Northline", album: "After Hours", dur: "3:42", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", liked: true },
   { title: "Glass Harbor", artist: "Kinetic", album: "Harbor EP", dur: "4:11", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80", liked: false },
@@ -683,6 +879,14 @@ render(); syncUI(); loadTrending();
 if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
 if (new URLSearchParams(location.search).get('np')==='1') openNP();
 if (new URLSearchParams(location.search).get('tab')==='search') show('search');
+// Official embed smoke test: ?embed=VIDEO_ID (no fake search results).
+(function(){
+  const embed=new URLSearchParams(location.search).get('embed');
+  if(embed && /^[\w-]{6,}$/.test(embed)){
+    show('search');
+    openYtPlayer({id:embed, title:'YouTube video '+embed, channel:'Official embedded player'});
+  }
+})();
 
 // iPhone: show Add to Home Screen tip (Safari only; hide if already standalone)
 (function () {

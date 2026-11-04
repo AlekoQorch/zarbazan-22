@@ -22,3 +22,9 @@ xcuserdata/
 
 # Cursor / agent
 .cursor/
+
+# Secrets (API keys) — copy from Secrets.example.plist
+NovaMusic/Secrets.plist
+Secrets.plist
+.env
+.env.*

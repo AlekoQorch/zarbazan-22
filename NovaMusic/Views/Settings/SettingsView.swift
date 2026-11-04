@@ -4,11 +4,43 @@ struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @State private var showSleepTimer = false
     @State private var confirmClearLibrary = false
+    @State private var youtubeAPIKeyDraft = YouTubeConfig.apiKey ?? ""
+    @State private var youtubeKeySaved = false
 
     var body: some View {
         @Bindable var state = appState
         NavigationStack {
             List {
+                Section {
+                    SecureField("YouTube Data API v3 key", text: $youtubeAPIKeyDraft)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    HStack {
+                        Button(youtubeKeySaved ? "Saved" : "Save Key") {
+                            YouTubeConfig.saveUserAPIKey(youtubeAPIKeyDraft)
+                            youtubeKeySaved = true
+                        }
+                        .disabled(youtubeAPIKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        Spacer()
+                        if YouTubeConfig.isConfigured {
+                            Label("Configured", systemImage: "checkmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(Color.novaAccent)
+                        }
+                    }
+                    if YouTubeConfig.isConfigured {
+                        Button("Clear Key", role: .destructive) {
+                            YouTubeConfig.clearUserAPIKey()
+                            youtubeAPIKeyDraft = ""
+                            youtubeKeySaved = false
+                        }
+                    }
+                } header: {
+                    Text("YouTube")
+                } footer: {
+                    Text("Required for real YouTube search. Create a key in Google Cloud → enable YouTube Data API v3. Playback uses the official embedded player only — videos are not downloaded. See docs/YOUTUBE_SETUP.md.")
+                }
+
                 Section("Appearance") {
                     Picker("Theme", selection: $state.settings.appearance) {
                         ForEach(AppearanceMode.allCases) { mode in
@@ -107,6 +139,12 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(Color.novaBackground)
             .navigationTitle("Settings")
+            .onAppear {
+                youtubeAPIKeyDraft = UserDefaults.standard.string(forKey: YouTubeConfig.userDefaultsKey) ?? ""
+            }
+            .onChange(of: youtubeAPIKeyDraft) { _, _ in
+                youtubeKeySaved = false
+            }
             .sheet(isPresented: $showSleepTimer) {
                 SleepTimerSheet()
                     .environment(appState)
