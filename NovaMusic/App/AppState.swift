@@ -70,6 +70,7 @@ enum AppTab: Hashable {
     case home
     case library
     case playlists
+    /// Explore tab (library discovery + search). Tag kept as `search` for stability.
     case search
     case settings
 }

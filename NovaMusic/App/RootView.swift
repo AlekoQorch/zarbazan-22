@@ -20,8 +20,8 @@ struct RootView: View {
                     .tabItem { Label("Playlists", systemImage: "rectangle.stack.fill") }
                     .tag(AppTab.playlists)
 
-                SearchView()
-                    .tabItem { Label("Search", systemImage: "magnifyingglass") }
+                ExploreView()
+                    .tabItem { Label("Explore", systemImage: "safari.fill") }
                     .tag(AppTab.search)
 
                 SettingsView()

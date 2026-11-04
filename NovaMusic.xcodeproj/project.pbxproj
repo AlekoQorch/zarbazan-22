@@ -6,77 +6,79 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EF190E73F9794749980A5DCD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7E0F76664B412199C9E866 /* AppState.swift */; };
-		19BCA62DD1FD40AC8FBBAC5D /* NovaMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADFD2356AC04008AF9E21F5 /* NovaMusicApp.swift */; };
-		EFF2C46E5D324E298770AE0C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BC7189385140619FB85A26 /* RootView.swift */; };
-		681A4A8B79F7418CB1BEE5D4 /* NovaTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8B61A06F3184D94B37005D3 /* NovaTheme.swift */; };
-		D0DAAAA960714FEB8A809516 /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E495098602964B4FA6E9AC56 /* AudioPlayerManager.swift */; };
-		EF21CF2F335D4832B751C0C4 /* ImportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5670FADEB2EC4C8FA65A3C90 /* ImportManager.swift */; };
-		F4B64D6947B342768D524DFD /* MusicLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91D1A91F7D6C424E801D4596 /* MusicLibraryManager.swift */; };
-		D557A36A42114721955F9C68 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20751E201C414AC382E32EB9 /* PersistenceManager.swift */; };
-		A0648267562B416481DC77EC /* PlaylistManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEC7A99EE2BE4484BEDD46F8 /* PlaylistManager.swift */; };
-		07C56D82CB0B4557B151A59E /* SleepTimerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A207B23854F400E977DB40C /* SleepTimerManager.swift */; };
-		1B0E4F8B52CF4A8097B84CE4 /* PlaybackModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 078F687AF0034890A43EE9BC /* PlaybackModels.swift */; };
-		23ED56B3BCF54CF4B68D6AC2 /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE7D7858A9C42429EAE3552 /* Playlist.swift */; };
-		D79D378EE12D4803BAF790BF /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = B394A0B1F81C4F9782AB0443 /* Song.swift */; };
-		C1A1A14958954CBEA55E6B38 /* DurationFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8237F6311314BD6A504E5EC /* DurationFormatter.swift */; };
-		349009EF1525443882BDF93E /* FileStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7CBFCF1E504525AA4B83DB /* FileStorage.swift */; };
-		A8980DC8EB6941C78FF10069 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0CBCA81BB6C403AA38355C3 /* Haptics.swift */; };
-		9B5F3E3A138D46D69E8B0E71 /* MetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7387FBC2161943CFAC4FA04A /* MetadataExtractor.swift */; };
-		331BBBE5B23F44A0BE7804E7 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA3DA604D223494199F08F3A /* HomeView.swift */; };
-		5618F61DFE7D4DF8ABC0F7D8 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C1CC6F8273949FEA5C87D7A /* DocumentPicker.swift */; };
-		A8EB7B6F1DC74A90A8FA8BE2 /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 947934FE5FBD45298BEA641A /* AlbumDetailView.swift */; };
-		9BE5D31909A743F89623DA76 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4906549AABD84A4086A12D1B /* LibraryView.swift */; };
-		9BDD40F4FCD24CF9AB4A5F55 /* MetadataEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C0C8F074E74AE38620B522 /* MetadataEditorView.swift */; };
-		4F64C2E1E3BC4BE181752093 /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D9E8905F974DD79EC548F7 /* MiniPlayerView.swift */; };
-		9C32AA8B47CD4E1B8C4DDA7E /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CA5C67B152C41B9BBB236C8 /* NowPlayingView.swift */; };
-		B719C6C29C694411BAA712EC /* QueueSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9551B630B8344C4EA5B85304 /* QueueSheet.swift */; };
-		76F437FAFE6340C3BB95AA44 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBA3099F15844B591C02DC8 /* PlaylistsView.swift */; };
-		9D10939B974E4D7ABAC16B01 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79772E01425F4EABB6359D45 /* SearchView.swift */; };
-		9F61EA981A7041A1A23B011F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547FA9E500DA4043B81FD0F1 /* SettingsView.swift */; };
-		0406931B7B87414390EE6E15 /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6471CEB410BC4054BD4B0E2F /* ArtworkView.swift */; };
-		4F7109A5F8D8493EB793BB6B /* SongRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F4AE12ADE146269E3C1268 /* SongRowView.swift */; };
-		864E9A725C484B56BC6E367D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B11F43250B44C26984ED1DD /* Assets.xcassets */; };
+		AA155946909543A09A6D632B /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C72C44524274DC582826CF5 /* AppState.swift */; };
+		EE0B798CDE20408A8B38EB4F /* NovaMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07B0A92924F84C929242F4DB /* NovaMusicApp.swift */; };
+		B1E8BFB467634A0B9633090A /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC97AB3919CC466BBFE60212 /* RootView.swift */; };
+		46576DCA41CB4CEA8424D5AB /* NovaTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB1A255ED8B4397AED513E9 /* NovaTheme.swift */; };
+		CA5A441FB66944E7A8E6B337 /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D748BDF0EC43F6B84DBD1E /* AudioPlayerManager.swift */; };
+		D313590E911F4B5C8A6605B4 /* ImportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6086712637F94DABBB0015CB /* ImportManager.swift */; };
+		681579922AC14D2CBC2805D6 /* MusicLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A67DFADDA74B83B7C1D9C4 /* MusicLibraryManager.swift */; };
+		A6B50678BA3F4C54A204B55C /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56F263638BC4D558215F579 /* PersistenceManager.swift */; };
+		29CD075A3B524FF9BA48F041 /* PlaylistManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B3703BDD92D4EF08BAAD18E /* PlaylistManager.swift */; };
+		D0929A2663C74614816A17D2 /* SleepTimerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B92C7FEF6F43F6BCF8BA91 /* SleepTimerManager.swift */; };
+		6E2D306260584015B27F912F /* PlaybackModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D65EB5950084E7DB68EF025 /* PlaybackModels.swift */; };
+		D94DA3F455FE44E8A3CE8D09 /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56865CC98F244708B234A2BC /* Playlist.swift */; };
+		7900D22B1D1040F79526C8C8 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F2DDEBBF77490093E6001A /* Song.swift */; };
+		39020FB3DFE446ABA6EC6B71 /* DurationFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03124EC8C6E045DAA6589BBF /* DurationFormatter.swift */; };
+		45C0B8F9048F4E4EBF1CB641 /* FileStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E018EE33B45475F91C76602 /* FileStorage.swift */; };
+		F3B72F4D3FF24DE6A0A92D6A /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C321DCAE544B67B9567C24 /* Haptics.swift */; };
+		A6C0657274574FC88A651D97 /* MetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0B5F3B15AA4EF189A0E872 /* MetadataExtractor.swift */; };
+		1FE9784C752D4136AD61990B /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D64E624BF9444DADD5D172 /* ExploreView.swift */; };
+		F63385445FA64286B75960F8 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6565AA98D26A416999411DCB /* HomeView.swift */; };
+		1E72127B7ECF426D9E784248 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A493A4204F4A0790D17FD5 /* DocumentPicker.swift */; };
+		3B9DC9A9FB2844C89C7CF97A /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F5E4B791A74BD7938B2922 /* AlbumDetailView.swift */; };
+		525C53578C984617AB2422D8 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DCF095B4E804F13AC348B7A /* LibraryView.swift */; };
+		347DD1C6BC374F2D8ED49E23 /* MetadataEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E71B50391BE40B58011CC4A /* MetadataEditorView.swift */; };
+		EE606A8464B142D4A976168C /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B110602B7EAC433B819FFEEE /* MiniPlayerView.swift */; };
+		0BD5FBCA60EE4F208E739642 /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC1EDD965A74D8EBDAA159C /* NowPlayingView.swift */; };
+		FF9E45CD88E34A80A56E8170 /* QueueSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F435569B384C27B5AC2332 /* QueueSheet.swift */; };
+		2CD7BB94080641748DA95ED5 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0545AF293D884914A1187401 /* PlaylistsView.swift */; };
+		97D2AB5AACCE4B818C213E0C /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B349A575BB9E49E9990034CB /* SearchView.swift */; };
+		BA0A66BED7DD4CAA81C42D11 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45FF5E12FDE48DB9B72B7C2 /* SettingsView.swift */; };
+		682D2CE5407D467B895D175A /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D325E215DB0441159EFEDFCF /* ArtworkView.swift */; };
+		50F82CC597D2480891CBAB8E /* SongRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F446298A3D45E9B0435CC3 /* SongRowView.swift */; };
+		F943788CCF1A4FC7A08B891A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 11DBB0F20D1643068950DB05 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		66A043E9AA304C71BFB53F43 /* NOVA MUSIC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NOVA MUSIC.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		8A7E0F76664B412199C9E866 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		8ADFD2356AC04008AF9E21F5 /* NovaMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NovaMusicApp.swift; sourceTree = "<group>"; };
-		B3BC7189385140619FB85A26 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		F8B61A06F3184D94B37005D3 /* NovaTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NovaTheme.swift; sourceTree = "<group>"; };
-		E495098602964B4FA6E9AC56 /* AudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerManager.swift; sourceTree = "<group>"; };
-		5670FADEB2EC4C8FA65A3C90 /* ImportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportManager.swift; sourceTree = "<group>"; };
-		91D1A91F7D6C424E801D4596 /* MusicLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryManager.swift; sourceTree = "<group>"; };
-		20751E201C414AC382E32EB9 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManager.swift; sourceTree = "<group>"; };
-		FEC7A99EE2BE4484BEDD46F8 /* PlaylistManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistManager.swift; sourceTree = "<group>"; };
-		6A207B23854F400E977DB40C /* SleepTimerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTimerManager.swift; sourceTree = "<group>"; };
-		078F687AF0034890A43EE9BC /* PlaybackModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackModels.swift; sourceTree = "<group>"; };
-		AAE7D7858A9C42429EAE3552 /* Playlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
-		B394A0B1F81C4F9782AB0443 /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
-		C8237F6311314BD6A504E5EC /* DurationFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationFormatter.swift; sourceTree = "<group>"; };
-		BE7CBFCF1E504525AA4B83DB /* FileStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStorage.swift; sourceTree = "<group>"; };
-		A0CBCA81BB6C403AA38355C3 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
-		7387FBC2161943CFAC4FA04A /* MetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataExtractor.swift; sourceTree = "<group>"; };
-		BA3DA604D223494199F08F3A /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		6C1CC6F8273949FEA5C87D7A /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
-		947934FE5FBD45298BEA641A /* AlbumDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumDetailView.swift; sourceTree = "<group>"; };
-		4906549AABD84A4086A12D1B /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
-		49C0C8F074E74AE38620B522 /* MetadataEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataEditorView.swift; sourceTree = "<group>"; };
-		13D9E8905F974DD79EC548F7 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
-		4CA5C67B152C41B9BBB236C8 /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
-		9551B630B8344C4EA5B85304 /* QueueSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueSheet.swift; sourceTree = "<group>"; };
-		5DBA3099F15844B591C02DC8 /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
-		79772E01425F4EABB6359D45 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
-		547FA9E500DA4043B81FD0F1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		6471CEB410BC4054BD4B0E2F /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
-		B9F4AE12ADE146269E3C1268 /* SongRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongRowView.swift; sourceTree = "<group>"; };
-		8B11F43250B44C26984ED1DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		31C50F86A2764F70A3C114A4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E77520943E2A4964B8B8DDCD /* NOVA MUSIC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NOVA MUSIC.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1C72C44524274DC582826CF5 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		07B0A92924F84C929242F4DB /* NovaMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NovaMusicApp.swift; sourceTree = "<group>"; };
+		CC97AB3919CC466BBFE60212 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		9DB1A255ED8B4397AED513E9 /* NovaTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NovaTheme.swift; sourceTree = "<group>"; };
+		D3D748BDF0EC43F6B84DBD1E /* AudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerManager.swift; sourceTree = "<group>"; };
+		6086712637F94DABBB0015CB /* ImportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportManager.swift; sourceTree = "<group>"; };
+		34A67DFADDA74B83B7C1D9C4 /* MusicLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLibraryManager.swift; sourceTree = "<group>"; };
+		A56F263638BC4D558215F579 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManager.swift; sourceTree = "<group>"; };
+		0B3703BDD92D4EF08BAAD18E /* PlaylistManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistManager.swift; sourceTree = "<group>"; };
+		B3B92C7FEF6F43F6BCF8BA91 /* SleepTimerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTimerManager.swift; sourceTree = "<group>"; };
+		5D65EB5950084E7DB68EF025 /* PlaybackModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackModels.swift; sourceTree = "<group>"; };
+		56865CC98F244708B234A2BC /* Playlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
+		65F2DDEBBF77490093E6001A /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
+		03124EC8C6E045DAA6589BBF /* DurationFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationFormatter.swift; sourceTree = "<group>"; };
+		9E018EE33B45475F91C76602 /* FileStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStorage.swift; sourceTree = "<group>"; };
+		32C321DCAE544B67B9567C24 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
+		FA0B5F3B15AA4EF189A0E872 /* MetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataExtractor.swift; sourceTree = "<group>"; };
+		04D64E624BF9444DADD5D172 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		6565AA98D26A416999411DCB /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		05A493A4204F4A0790D17FD5 /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
+		A4F5E4B791A74BD7938B2922 /* AlbumDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumDetailView.swift; sourceTree = "<group>"; };
+		0DCF095B4E804F13AC348B7A /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		6E71B50391BE40B58011CC4A /* MetadataEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataEditorView.swift; sourceTree = "<group>"; };
+		B110602B7EAC433B819FFEEE /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
+		5EC1EDD965A74D8EBDAA159C /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
+		34F435569B384C27B5AC2332 /* QueueSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueSheet.swift; sourceTree = "<group>"; };
+		0545AF293D884914A1187401 /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
+		B349A575BB9E49E9990034CB /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		A45FF5E12FDE48DB9B72B7C2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D325E215DB0441159EFEDFCF /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
+		D1F446298A3D45E9B0435CC3 /* SongRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongRowView.swift; sourceTree = "<group>"; };
+		11DBB0F20D1643068950DB05 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DAA399A1B4B540ADAA9AE1F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		2D3D145A15FD45ACA69F30FF /* Frameworks */ = {
+		2961286A243F463EBD9EF21B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -86,169 +88,178 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		CE2F0E638529492FB67DB718 = {
+		3F024A93E25B4AC7B9F6D1C4 = {
 			isa = PBXGroup;
 			children = (
-				61A13EDC259A43A9AF7DAB6F /* NovaMusic */,
-				DEA0C9720DA04521A7B3666B /* Products */,
+				41A25A0308414A398DED7E07 /* NovaMusic */,
+				745E5928212E47AEABC574FB /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		DEA0C9720DA04521A7B3666B /* Products */ = {
+		745E5928212E47AEABC574FB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				66A043E9AA304C71BFB53F43 /* NOVA MUSIC.app */,
+				E77520943E2A4964B8B8DDCD /* NOVA MUSIC.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		61A13EDC259A43A9AF7DAB6F /* NovaMusic */ = {
+		41A25A0308414A398DED7E07 /* NovaMusic */ = {
 			isa = PBXGroup;
 			children = (
-				E747FACF985B47FDB6DD5153,
-				C0CB77DD35A24830BE0B93C4,
-				FEB27173510A4AD596CC2AC4,
-				A56468B5D9CB433B9BA58C9F,
-				7178F7CB7A8940D1B6311D41,
-				AD8A92230D974D3EA998DFEE,
-				8B11F43250B44C26984ED1DD,
-				31C50F86A2764F70A3C114A4,
+				ABC7BB696F3A48B791FB32FB,
+				75AA67853CD34AFE886B1FF5,
+				A41B4282033E44CD8547E36A,
+				5D7A4EF36F3E41038E7EF673,
+				2AA1AEA2EE6A4BCAA4DACF40,
+				7CE5066EFEB14F518546E305,
+				11DBB0F20D1643068950DB05,
+				DAA399A1B4B540ADAA9AE1F8,
 			);
 			path = NovaMusic;
 			sourceTree = "<group>";
 		};
-		E747FACF985B47FDB6DD5153 /* App */ = {
+		ABC7BB696F3A48B791FB32FB /* App */ = {
 			isa = PBXGroup;
 			children = (
-				8A7E0F76664B412199C9E866,
-				8ADFD2356AC04008AF9E21F5,
-				B3BC7189385140619FB85A26,
+				1C72C44524274DC582826CF5,
+				07B0A92924F84C929242F4DB,
+				CC97AB3919CC466BBFE60212,
 			);
 			path = App;
 			sourceTree = "<group>";
 		};
-		C0CB77DD35A24830BE0B93C4 /* DesignSystem */ = {
+		75AA67853CD34AFE886B1FF5 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
-				F8B61A06F3184D94B37005D3,
+				9DB1A255ED8B4397AED513E9,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
 		};
-		FEB27173510A4AD596CC2AC4 /* Managers */ = {
+		A41B4282033E44CD8547E36A /* Managers */ = {
 			isa = PBXGroup;
 			children = (
-				E495098602964B4FA6E9AC56,
-				5670FADEB2EC4C8FA65A3C90,
-				91D1A91F7D6C424E801D4596,
-				20751E201C414AC382E32EB9,
-				FEC7A99EE2BE4484BEDD46F8,
-				6A207B23854F400E977DB40C,
+				D3D748BDF0EC43F6B84DBD1E,
+				6086712637F94DABBB0015CB,
+				34A67DFADDA74B83B7C1D9C4,
+				A56F263638BC4D558215F579,
+				0B3703BDD92D4EF08BAAD18E,
+				B3B92C7FEF6F43F6BCF8BA91,
 			);
 			path = Managers;
 			sourceTree = "<group>";
 		};
-		A56468B5D9CB433B9BA58C9F /* Models */ = {
+		5D7A4EF36F3E41038E7EF673 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				078F687AF0034890A43EE9BC,
-				AAE7D7858A9C42429EAE3552,
-				B394A0B1F81C4F9782AB0443,
+				5D65EB5950084E7DB68EF025,
+				56865CC98F244708B234A2BC,
+				65F2DDEBBF77490093E6001A,
 			);
 			path = Models;
 			sourceTree = "<group>";
 		};
-		7178F7CB7A8940D1B6311D41 /* Utilities */ = {
+		2AA1AEA2EE6A4BCAA4DACF40 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				C8237F6311314BD6A504E5EC,
-				BE7CBFCF1E504525AA4B83DB,
-				A0CBCA81BB6C403AA38355C3,
-				7387FBC2161943CFAC4FA04A,
+				03124EC8C6E045DAA6589BBF,
+				9E018EE33B45475F91C76602,
+				32C321DCAE544B67B9567C24,
+				FA0B5F3B15AA4EF189A0E872,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
 		};
-		AD8A92230D974D3EA998DFEE /* Views */ = {
+		7CE5066EFEB14F518546E305 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				7DF02B8E0C73498696116EB5,
-				731E87B25AA7413DB86BDED0,
-				671D0BD2D156400FABF999A8,
-				5A95A9A4C46D443A89A27D59,
-				A5AA7C8F17434B4D9F123582,
-				E27304FB34D64C6F86FEE969,
-				44DA982C8CD44C36A4E57332,
-				683064D0206045E2ADD3519B,
+				A6503615ACEF437BABA6EE66,
+				1450E5E54D2A4C2F9992DE1B,
+				4D0B8430C2704C7395432AFE,
+				0D40D6CCEF314A0DB0EDC5F5,
+				2C33F691B4AB424F94EE7F49,
+				8080668499DC4EECA6398F8B,
+				F9ADC98214894143A3BD8DED,
+				36A9D49188C84AB49915E204,
+				9DB74868717046C4971DD0E8,
 			);
 			path = Views;
 			sourceTree = "<group>";
 		};
-		7DF02B8E0C73498696116EB5 /* Home */ = {
+		A6503615ACEF437BABA6EE66 /* Explore */ = {
 			isa = PBXGroup;
 			children = (
-				BA3DA604D223494199F08F3A,
+				04D64E624BF9444DADD5D172,
+			);
+			path = Explore;
+			sourceTree = "<group>";
+		};
+		1450E5E54D2A4C2F9992DE1B /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				6565AA98D26A416999411DCB,
 			);
 			path = Home;
 			sourceTree = "<group>";
 		};
-		731E87B25AA7413DB86BDED0 /* Import */ = {
+		4D0B8430C2704C7395432AFE /* Import */ = {
 			isa = PBXGroup;
 			children = (
-				6C1CC6F8273949FEA5C87D7A,
+				05A493A4204F4A0790D17FD5,
 			);
 			path = Import;
 			sourceTree = "<group>";
 		};
-		671D0BD2D156400FABF999A8 /* Library */ = {
+		0D40D6CCEF314A0DB0EDC5F5 /* Library */ = {
 			isa = PBXGroup;
 			children = (
-				947934FE5FBD45298BEA641A,
-				4906549AABD84A4086A12D1B,
-				49C0C8F074E74AE38620B522,
+				A4F5E4B791A74BD7938B2922,
+				0DCF095B4E804F13AC348B7A,
+				6E71B50391BE40B58011CC4A,
 			);
 			path = Library;
 			sourceTree = "<group>";
 		};
-		5A95A9A4C46D443A89A27D59 /* Player */ = {
+		2C33F691B4AB424F94EE7F49 /* Player */ = {
 			isa = PBXGroup;
 			children = (
-				13D9E8905F974DD79EC548F7,
-				4CA5C67B152C41B9BBB236C8,
-				9551B630B8344C4EA5B85304,
+				B110602B7EAC433B819FFEEE,
+				5EC1EDD965A74D8EBDAA159C,
+				34F435569B384C27B5AC2332,
 			);
 			path = Player;
 			sourceTree = "<group>";
 		};
-		A5AA7C8F17434B4D9F123582 /* Playlists */ = {
+		8080668499DC4EECA6398F8B /* Playlists */ = {
 			isa = PBXGroup;
 			children = (
-				5DBA3099F15844B591C02DC8,
+				0545AF293D884914A1187401,
 			);
 			path = Playlists;
 			sourceTree = "<group>";
 		};
-		E27304FB34D64C6F86FEE969 /* Search */ = {
+		F9ADC98214894143A3BD8DED /* Search */ = {
 			isa = PBXGroup;
 			children = (
-				79772E01425F4EABB6359D45,
+				B349A575BB9E49E9990034CB,
 			);
 			path = Search;
 			sourceTree = "<group>";
 		};
-		44DA982C8CD44C36A4E57332 /* Settings */ = {
+		36A9D49188C84AB49915E204 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				547FA9E500DA4043B81FD0F1,
+				A45FF5E12FDE48DB9B72B7C2,
 			);
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		683064D0206045E2ADD3519B /* Shared */ = {
+		9DB74868717046C4971DD0E8 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				6471CEB410BC4054BD4B0E2F,
-				B9F4AE12ADE146269E3C1268,
+				D325E215DB0441159EFEDFCF,
+				D1F446298A3D45E9B0435CC3,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -256,13 +267,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		54C71938FDDE4B05957C0C0A /* NovaMusic */ = {
+		D8166EC426E445ADBC2DE37F /* NovaMusic */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 53B655FA99EF440994BBACEE /* Build configuration list for PBXNativeTarget "NovaMusic" */;
+			buildConfigurationList = C4718674A3C74E5A9B64EFBF /* Build configuration list for PBXNativeTarget "NovaMusic" */;
 			buildPhases = (
-				514734A9180549B6BEE02258 /* Sources */,
-				2D3D145A15FD45ACA69F30FF /* Frameworks */,
-				0D52CAAC6AEE42939ECCC1AE /* Resources */,
+				4CA171D919F94C8AAAD332B8 /* Sources */,
+				2961286A243F463EBD9EF21B /* Frameworks */,
+				234687EEA754498FADF039FE /* Resources */,
 			);
 			buildRules = (
 			);
@@ -270,25 +281,25 @@
 			);
 			name = NovaMusic;
 			productName = NovaMusic;
-			productReference = 66A043E9AA304C71BFB53F43 /* NOVA MUSIC.app */;
+			productReference = E77520943E2A4964B8B8DDCD /* NOVA MUSIC.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		2B7C680F9F904F599EC0DF15 /* Project object */ = {
+		8B1EE78248DE4BE281D22545 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
-					54C71938FDDE4B05957C0C0A = {
+					D8166EC426E445ADBC2DE37F = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
 			};
-			buildConfigurationList = 1176F91578E948EB89BD3AD4 /* Build configuration list for PBXProject "NovaMusic" */;
+			buildConfigurationList = 81C50E2199BC45988F48FF65 /* Build configuration list for PBXProject "NovaMusic" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -296,69 +307,70 @@
 				en,
 				Base,
 			);
-			mainGroup = CE2F0E638529492FB67DB718;
-			productRefGroup = DEA0C9720DA04521A7B3666B /* Products */;
+			mainGroup = 3F024A93E25B4AC7B9F6D1C4;
+			productRefGroup = 745E5928212E47AEABC574FB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				54C71938FDDE4B05957C0C0A /* NovaMusic */,
+				D8166EC426E445ADBC2DE37F /* NovaMusic */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		0D52CAAC6AEE42939ECCC1AE /* Resources */ = {
+		234687EEA754498FADF039FE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				864E9A725C484B56BC6E367D /* Assets.xcassets in Resources */,
+				F943788CCF1A4FC7A08B891A /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		514734A9180549B6BEE02258 /* Sources */ = {
+		4CA171D919F94C8AAAD332B8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EF190E73F9794749980A5DCD /* AppState.swift in Sources */,
-				19BCA62DD1FD40AC8FBBAC5D /* NovaMusicApp.swift in Sources */,
-				EFF2C46E5D324E298770AE0C /* RootView.swift in Sources */,
-				681A4A8B79F7418CB1BEE5D4 /* NovaTheme.swift in Sources */,
-				D0DAAAA960714FEB8A809516 /* AudioPlayerManager.swift in Sources */,
-				EF21CF2F335D4832B751C0C4 /* ImportManager.swift in Sources */,
-				F4B64D6947B342768D524DFD /* MusicLibraryManager.swift in Sources */,
-				D557A36A42114721955F9C68 /* PersistenceManager.swift in Sources */,
-				A0648267562B416481DC77EC /* PlaylistManager.swift in Sources */,
-				07C56D82CB0B4557B151A59E /* SleepTimerManager.swift in Sources */,
-				1B0E4F8B52CF4A8097B84CE4 /* PlaybackModels.swift in Sources */,
-				23ED56B3BCF54CF4B68D6AC2 /* Playlist.swift in Sources */,
-				D79D378EE12D4803BAF790BF /* Song.swift in Sources */,
-				C1A1A14958954CBEA55E6B38 /* DurationFormatter.swift in Sources */,
-				349009EF1525443882BDF93E /* FileStorage.swift in Sources */,
-				A8980DC8EB6941C78FF10069 /* Haptics.swift in Sources */,
-				9B5F3E3A138D46D69E8B0E71 /* MetadataExtractor.swift in Sources */,
-				331BBBE5B23F44A0BE7804E7 /* HomeView.swift in Sources */,
-				5618F61DFE7D4DF8ABC0F7D8 /* DocumentPicker.swift in Sources */,
-				A8EB7B6F1DC74A90A8FA8BE2 /* AlbumDetailView.swift in Sources */,
-				9BE5D31909A743F89623DA76 /* LibraryView.swift in Sources */,
-				9BDD40F4FCD24CF9AB4A5F55 /* MetadataEditorView.swift in Sources */,
-				4F64C2E1E3BC4BE181752093 /* MiniPlayerView.swift in Sources */,
-				9C32AA8B47CD4E1B8C4DDA7E /* NowPlayingView.swift in Sources */,
-				B719C6C29C694411BAA712EC /* QueueSheet.swift in Sources */,
-				76F437FAFE6340C3BB95AA44 /* PlaylistsView.swift in Sources */,
-				9D10939B974E4D7ABAC16B01 /* SearchView.swift in Sources */,
-				9F61EA981A7041A1A23B011F /* SettingsView.swift in Sources */,
-				0406931B7B87414390EE6E15 /* ArtworkView.swift in Sources */,
-				4F7109A5F8D8493EB793BB6B /* SongRowView.swift in Sources */,
+				AA155946909543A09A6D632B /* AppState.swift in Sources */,
+				EE0B798CDE20408A8B38EB4F /* NovaMusicApp.swift in Sources */,
+				B1E8BFB467634A0B9633090A /* RootView.swift in Sources */,
+				46576DCA41CB4CEA8424D5AB /* NovaTheme.swift in Sources */,
+				CA5A441FB66944E7A8E6B337 /* AudioPlayerManager.swift in Sources */,
+				D313590E911F4B5C8A6605B4 /* ImportManager.swift in Sources */,
+				681579922AC14D2CBC2805D6 /* MusicLibraryManager.swift in Sources */,
+				A6B50678BA3F4C54A204B55C /* PersistenceManager.swift in Sources */,
+				29CD075A3B524FF9BA48F041 /* PlaylistManager.swift in Sources */,
+				D0929A2663C74614816A17D2 /* SleepTimerManager.swift in Sources */,
+				6E2D306260584015B27F912F /* PlaybackModels.swift in Sources */,
+				D94DA3F455FE44E8A3CE8D09 /* Playlist.swift in Sources */,
+				7900D22B1D1040F79526C8C8 /* Song.swift in Sources */,
+				39020FB3DFE446ABA6EC6B71 /* DurationFormatter.swift in Sources */,
+				45C0B8F9048F4E4EBF1CB641 /* FileStorage.swift in Sources */,
+				F3B72F4D3FF24DE6A0A92D6A /* Haptics.swift in Sources */,
+				A6C0657274574FC88A651D97 /* MetadataExtractor.swift in Sources */,
+				1FE9784C752D4136AD61990B /* ExploreView.swift in Sources */,
+				F63385445FA64286B75960F8 /* HomeView.swift in Sources */,
+				1E72127B7ECF426D9E784248 /* DocumentPicker.swift in Sources */,
+				3B9DC9A9FB2844C89C7CF97A /* AlbumDetailView.swift in Sources */,
+				525C53578C984617AB2422D8 /* LibraryView.swift in Sources */,
+				347DD1C6BC374F2D8ED49E23 /* MetadataEditorView.swift in Sources */,
+				EE606A8464B142D4A976168C /* MiniPlayerView.swift in Sources */,
+				0BD5FBCA60EE4F208E739642 /* NowPlayingView.swift in Sources */,
+				FF9E45CD88E34A80A56E8170 /* QueueSheet.swift in Sources */,
+				2CD7BB94080641748DA95ED5 /* PlaylistsView.swift in Sources */,
+				97D2AB5AACCE4B818C213E0C /* SearchView.swift in Sources */,
+				BA0A66BED7DD4CAA81C42D11 /* SettingsView.swift in Sources */,
+				682D2CE5407D467B895D175A /* ArtworkView.swift in Sources */,
+				50F82CC597D2480891CBAB8E /* SongRowView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		527B33331E574757ACD4E492 /* Debug */ = {
+		BF73DA46FAFA4A2D89139FFA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -375,7 +387,7 @@
 			};
 			name = Debug;
 		};
-		14E84734E97D48A1877536E4 /* Release */ = {
+		9E634B8D48894C9AAB7D2506 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -388,7 +400,7 @@
 			};
 			name = Release;
 		};
-		7E69476E8FBC4C8C86808C25 /* Debug */ = {
+		AC6C3CC73A97476D97C00C9F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -413,7 +425,7 @@
 			};
 			name = Debug;
 		};
-		1C4FC02867FA4295A07B0D8C /* Release */ = {
+		8D38EFD4722040B2856431EA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -441,25 +453,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1176F91578E948EB89BD3AD4 /* Build configuration list for PBXProject "NovaMusic" */ = {
+		81C50E2199BC45988F48FF65 /* Build configuration list for PBXProject "NovaMusic" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				527B33331E574757ACD4E492 /* Debug */,
-				14E84734E97D48A1877536E4 /* Release */,
+				BF73DA46FAFA4A2D89139FFA /* Debug */,
+				9E634B8D48894C9AAB7D2506 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		53B655FA99EF440994BBACEE /* Build configuration list for PBXNativeTarget "NovaMusic" */ = {
+		C4718674A3C74E5A9B64EFBF /* Build configuration list for PBXNativeTarget "NovaMusic" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				7E69476E8FBC4C8C86808C25 /* Debug */,
-				1C4FC02867FA4295A07B0D8C /* Release */,
+				AC6C3CC73A97476D97C00C9F /* Debug */,
+				8D38EFD4722040B2856431EA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 2B7C680F9F904F599EC0DF15 /* Project object */;
+	rootObject = 8B1EE78248DE4BE281D22545 /* Project object */;
 }
