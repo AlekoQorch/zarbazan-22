@@ -1,0 +1,18 @@
+{
+  "name": "NOVA MUSIC",
+  "short_name": "NOVA",
+  "description": "Offline-style music player preview",
+  "start_url": "./nova-music.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
