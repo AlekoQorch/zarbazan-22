@@ -251,12 +251,22 @@
   .np-bottom button { border: 0; background: transparent; color: #fff; font-size: 18px; width: 40px; height: 40px; cursor: pointer; }
 
   .search {
-    background: #fff; color: #000; border-radius: 6px; padding: 10px 12px;
+    background: #fff; color: #000; border-radius: 12px; padding: 12px 14px;
     display: flex; gap: 8px; align-items: center; margin-bottom: 14px; font-weight: 600;
   }
   .search input {
     flex: 1; border: 0; outline: none; background: transparent; font: inherit; font-size: 15px; color: #000;
   }
+  .explore-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+  }
+  .ex-card {
+    height: 100px; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; justify-content: flex-end;
+    cursor: pointer; position: relative; overflow: hidden; color: #fff; font-weight: 800; font-size: 15px;
+  }
+  .ex-card span { font-size: 11px; font-weight: 500; opacity: 0.85; margin-top: 2px; }
+  .ex-card .ic { position: absolute; top: 10px; right: 10px; font-size: 22px; opacity: 0.35; }
+  .explore-note { color: var(--muted); font-size: 12px; margin: 8px 0 16px; line-height: 1.4; }
   .cell {
     background: var(--elevated); border-radius: 10px; overflow: hidden; margin-bottom: 14px;
   }
@@ -339,10 +349,14 @@
     </section>
 
     <section class="page" id="page-search">
-      <div class="title">Search</div>
-      <div class="search"><span>⌕</span><input id="q" placeholder="What do you want to listen to?" /></div>
+      <div class="title" style="font-size:26px">Search for everything</div>
+      <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
+      <div id="trendingBlock"></div>
+      <div id="exploreCards" class="explore-grid"></div>
       <div id="searchList"></div>
+      <p class="explore-note">Search free music online (Audius) and play it here. Also finds tracks in your library.</p>
     </section>
+    <audio id="audio" preload="none" crossorigin="anonymous"></audio>
 
     <section class="page" id="page-settings">
       <div class="title">Settings</div>
@@ -383,7 +397,7 @@
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 12h3v9h6v-6h2v6h6v-9h3L12 3z"/></svg>Home
       </button>
       <button data-tab="search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>Search
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>Explore
       </button>
       <button data-tab="library">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h14v16H3zM19 6h2v14h-2z"/></svg>Library
@@ -424,6 +438,7 @@
 </div>
 
 <script>
+const APP = 'NovaMusic';
 const songs = [
   { title: "Midnight Drive", artist: "Northline", album: "After Hours", dur: "3:42", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", liked: true },
   { title: "Glass Harbor", artist: "Kinetic", album: "Harbor EP", dur: "4:11", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80", liked: false },
@@ -431,13 +446,36 @@ const songs = [
   { title: "Low Orbit", artist: "NOVA Session", album: "Singles", dur: "3:21", img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80", liked: false },
   { title: "Amber Rooms", artist: "Corridor", album: "Rooms", dur: "5:02", img: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=800&q=80", liked: false },
 ];
-let index = 0, playing = true, progress = 0.28;
+let index = 0, playing = false, progress = 0;
+let streamQueue = [], streamIndex = 0, mode = 'library'; // library | stream
+let searchTimer = null;
+const audio = document.getElementById('audio');
 
-const row = (s, i) => `<div class="row" data-i="${i}">
-  <div class="thumb" style="background-image:url('${s.img}')"></div>
-  <div class="meta"><div class="t ${i===index?'on':''}">${s.title}</div><div class="u">${s.artist}</div></div>
-  <div class="more">···</div>
+const fmt = s => {
+  s = Math.max(0, Math.floor(s||0));
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+};
+const artOf = t => (t.artwork && (t.artwork['480x480'] || t.artwork['150x150'])) || '';
+const mapTrack = t => ({
+  id: t.id,
+  title: t.title || 'Untitled',
+  artist: (t.user && t.user.name) || 'Unknown',
+  img: artOf(t),
+  dur: fmt(t.duration||0),
+  duration: t.duration||0,
+  stream: `https://api.audius.co/v1/tracks/${t.id}/stream?app_name=${APP}`
+});
+
+const row = (s, i, opts={}) => `<div class="row" data-i="${i}" data-src="${opts.src||'lib'}">
+  <div class="thumb" style="background-image:url('${s.img||''}')"></div>
+  <div class="meta"><div class="t ${opts.on?'on':''}">${s.title}</div><div class="u">${s.artist}</div></div>
+  <div class="more">${s.dur||''}</div>
 </div>`;
+
+function current() {
+  if (mode === 'stream' && streamQueue[streamIndex]) return streamQueue[streamIndex];
+  return songs[index];
+}
 
 function render() {
   document.getElementById('quick').innerHTML = songs.slice(0,4).map((s,i)=>`
@@ -447,25 +485,121 @@ function render() {
     <div class="t">${s.title}</div><div class="u">${s.artist}</div></div>`).join('');
   document.getElementById('liked').innerHTML = songs.filter(s=>s.liked).map(s=>row(s, songs.indexOf(s))).join('');
   document.getElementById('lib').innerHTML = songs.map((s,i)=>row(s,i)).join('');
-  document.getElementById('searchList').innerHTML = songs.map((s,i)=>row(s,i)).join('');
   document.getElementById('pl1').style.backgroundImage = `url('${songs[0].img}')`;
   document.getElementById('pl2').style.backgroundImage = `url('${songs[1].img}')`;
-  document.querySelectorAll('[data-i]').forEach(el => el.onclick = () => {
-    index = +el.dataset.i; playing = true; sync(); openNP();
+  const cards = [
+    ['Top artists', artistsCount() + ' in library', 'linear-gradient(135deg,#1db954,#0a5c2a)', '👥', () => show('library')],
+    ['Recently added', songs.length + ' tracks', 'linear-gradient(135deg,#4c6ef5,#1b2a6b)', '⏱', () => playAt(0)],
+    ['Liked songs', songs.filter(s=>s.liked).length + ' favorites', 'linear-gradient(135deg,#e64980,#6b1d3a)', '♥', () => playAt(songs.findIndex(s=>s.liked))],
+    ['Albums', 'Browse covers', 'linear-gradient(135deg,#fd7e14,#6b3410)', '▤', () => show('library')],
+    ['Most played', 'Your hits', 'linear-gradient(135deg,#20c997,#0b4a3c)', '▮', () => playAt(0)],
+    ['Playlists', 'Your lists', 'linear-gradient(135deg,#7950f2,#2f1a6b)', '☰', () => show('playlists')],
+  ];
+  document.getElementById('exploreCards').innerHTML = cards.map((c,i)=>`
+    <div class="ex-card" data-card="${i}" style="background:${c[2]}"><div class="ic">${c[3]}</div>${c[0]}<span>${c[1]}</span></div>`).join('');
+  document.querySelectorAll('[data-card]').forEach(el => {
+    el.onclick = () => cards[+el.dataset.card][4]();
   });
+  document.querySelectorAll('#page-home [data-i], #page-library [data-i], #page-playlists [data-i]').forEach(el => el.onclick = () => {
+    playAt(+el.dataset.i);
+  });
+  syncUI();
+}
+function artistsCount(){ return new Set(songs.map(s=>s.artist)).size; }
+function playAt(i){
+  if(i<0)i=0;
+  mode='library'; index=i; progress=0;
+  audio.pause(); audio.removeAttribute('src');
+  playing=true; syncUI(); openNP();
 }
 
-function sync() {
-  const s = songs[index];
-  ['miniArt','npArt','npWash'].forEach(id => document.getElementById(id).style.backgroundImage = `url('${s.img}')`);
+function playStreamAt(i){
+  if (!streamQueue.length) return;
+  streamIndex = Math.max(0, Math.min(i, streamQueue.length-1));
+  mode = 'stream';
+  const t = streamQueue[streamIndex];
+  progress = 0;
+  audio.src = t.stream;
+  audio.play().then(()=>{ playing=true; syncUI(); }).catch(()=>{
+    playing=false; syncUI();
+    alert('Could not start playback. Try another track.');
+  });
+  openNP();
+  syncUI();
+}
+
+async function loadTrending(){
+  const box = document.getElementById('trendingBlock');
+  box.innerHTML = '<div style="color:#b3b3b3;font-size:13px;padding:8px 0">Loading music…</div>';
+  try {
+    const res = await fetch(`https://api.audius.co/v1/tracks/trending?limit=12&app_name=${APP}`);
+    const json = await res.json();
+    const list = (json.data||[]).map(mapTrack);
+    streamQueue = list;
+    box.innerHTML = `<div style="font-weight:700;font-size:18px;margin:8px 0 4px">Listen now</div>
+      <div style="color:#b3b3b3;font-size:12px;margin-bottom:10px">Free music — tap to play</div>` +
+      list.map((t,i)=>row(t,i,{src:'stream',on: mode==='stream'&&streamIndex===i})).join('');
+    box.querySelectorAll('[data-src="stream"]').forEach(el => {
+      el.onclick = () => { streamQueue = list; playStreamAt(+el.dataset.i); };
+    });
+  } catch (e) {
+    box.innerHTML = '<div style="color:#b3b3b3;padding:8px 0">Couldn’t load online catalog.</div>';
+  }
+}
+
+async function searchOnline(q){
+  const cards = document.getElementById('exploreCards');
+  const note = document.querySelector('.explore-note');
+  const trend = document.getElementById('trendingBlock');
+  if (!q || q.length < 2) {
+    cards.style.display = 'grid';
+    if (note) note.style.display = 'block';
+    if (trend) trend.style.display = 'block';
+    searchList.innerHTML = '';
+    return;
+  }
+  cards.style.display = 'none';
+  if (note) note.style.display = 'none';
+  if (trend) trend.style.display = 'none';
+  searchList.innerHTML = '<div style="color:#b3b3b3;padding:16px 0">Searching…</div>';
+  try {
+    const res = await fetch(`https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`);
+    const json = await res.json();
+    const online = (json.data||[]).map(mapTrack);
+    const local = songs.map((s,i)=>({s,i})).filter(({s})=>[s.title,s.artist,s.album].join(' ').toLowerCase().includes(q.toLowerCase()));
+    let html = '';
+    if (online.length) {
+      html += `<div style="font-weight:700;margin:8px 0">Online</div>` +
+        online.map((t,i)=>row(t,i,{src:'stream'})).join('');
+    }
+    if (local.length) {
+      html += `<div style="font-weight:700;margin:16px 0 8px">On this phone</div>` +
+        local.map(({s,i})=>row(s,i,{src:'lib'})).join('');
+    }
+    searchList.innerHTML = html || '<div style="color:#b3b3b3;padding:20px 0">No results</div>';
+    searchList.querySelectorAll('[data-src="stream"]').forEach(el => {
+      el.onclick = () => { streamQueue = online; playStreamAt(+el.dataset.i); };
+    });
+    searchList.querySelectorAll('[data-src="lib"]').forEach(el => {
+      el.onclick = () => playAt(+el.dataset.i);
+    });
+  } catch (e) {
+    searchList.innerHTML = '<div style="color:#b3b3b3;padding:20px 0">Search failed — check connection</div>';
+  }
+}
+
+function syncUI() {
+  const s = current();
+  if (!s) return;
+  ['miniArt','npArt','npWash'].forEach(id => document.getElementById(id).style.backgroundImage = s.img ? `url('${s.img}')` : 'none');
   miniTitle.textContent = s.title; miniArtist.textContent = s.artist;
   npTitle.textContent = s.title; npArtist.textContent = s.artist;
-  tDur.textContent = s.dur;
+  tDur.textContent = s.dur || fmt(s.duration);
   play.textContent = playing ? '❚❚' : '▶';
   miniPlay.textContent = playing ? '❚❚' : '▶';
   npArt.classList.toggle('paused', !playing);
   seekFill.style.width = miniBar.style.width = (progress*100)+'%';
-  render();
+  mini.classList.add('show');
 }
 
 function show(id) {
@@ -477,38 +611,78 @@ function show(id) {
 function openNP(){ np.classList.add('on'); }
 function closeNP(){ np.classList.remove('on'); }
 
+function togglePlay(){
+  if (mode === 'stream') {
+    if (!audio.src) { if (streamQueue.length) playStreamAt(streamIndex); return; }
+    if (audio.paused) { audio.play(); playing=true; }
+    else { audio.pause(); playing=false; }
+  } else {
+    playing = !playing;
+  }
+  syncUI();
+}
+function nextTrack(){
+  if (mode === 'stream') {
+    if (streamIndex + 1 < streamQueue.length) playStreamAt(streamIndex+1);
+    else { playing=false; syncUI(); }
+  } else {
+    index=(index+1)%songs.length; progress=.02; playing=true; syncUI();
+  }
+}
+function prevTrack(){
+  if (mode === 'stream') {
+    if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+    if (streamIndex > 0) playStreamAt(streamIndex-1);
+    else { audio.currentTime = 0; }
+  } else {
+    index=(index-1+songs.length)%songs.length; progress=.02; playing=true; syncUI();
+  }
+}
+
 tabs.onclick = e => { const b = e.target.closest('[data-tab]'); if (b) show(b.dataset.tab); };
 mini.onclick = e => {
-  if (e.target.closest('#miniPlay')) { playing=!playing; sync(); e.stopPropagation(); return; }
-  if (e.target.closest('#miniNext')) { index=(index+1)%songs.length; progress=.02; sync(); e.stopPropagation(); return; }
+  if (e.target.closest('#miniPlay')) { togglePlay(); e.stopPropagation(); return; }
+  if (e.target.closest('#miniNext')) { nextTrack(); e.stopPropagation(); return; }
   openNP();
 };
 npClose.onclick = closeNP;
-play.onclick = () => { playing=!playing; sync(); };
-next.onclick = () => { index=(index+1)%songs.length; progress=.02; sync(); };
-prev.onclick = () => { index=(index-1+songs.length)%songs.length; progress=.02; sync(); };
+play.onclick = togglePlay;
+next.onclick = nextTrack;
+prev.onclick = prevTrack;
 shuf.onclick = e => e.currentTarget.classList.toggle('green');
 rep.onclick = e => e.currentTarget.classList.toggle('green');
 importBtn.onclick = () => show('empty');
 fillLib.onclick = () => { show('home'); openNP(); };
 document.querySelectorAll('[data-toggle]').forEach(t => t.onclick = () => t.classList.toggle('on'));
 q.oninput = e => {
-  const v = e.target.value.toLowerCase();
-  searchList.innerHTML = songs.map((s,i)=>({s,i})).filter(({s})=>[s.title,s.artist,s.album].join(' ').toLowerCase().includes(v)).map(({s,i})=>row(s,i)).join('');
-  document.querySelectorAll('#searchList [data-i]').forEach(el => el.onclick = () => { index=+el.dataset.i; playing=true; sync(); openNP(); });
+  clearTimeout(searchTimer);
+  const v = e.target.value.trim();
+  searchTimer = setTimeout(() => searchOnline(v), 320);
 };
 
+audio.addEventListener('timeupdate', () => {
+  if (mode !== 'stream' || !audio.duration) return;
+  progress = audio.currentTime / audio.duration;
+  seekFill.style.width = miniBar.style.width = (progress*100)+'%';
+  tCur.textContent = fmt(audio.currentTime);
+  tDur.textContent = fmt(audio.duration);
+});
+audio.addEventListener('ended', () => nextTrack());
+audio.addEventListener('play', () => { playing=true; syncUI(); });
+audio.addEventListener('pause', () => { if (mode==='stream') { playing=false; syncUI(); } });
+
 setInterval(() => {
-  if (!playing) return;
+  if (!playing || mode === 'stream') return;
   progress = Math.min(.98, progress + 0.002);
   seekFill.style.width = miniBar.style.width = (progress*100)+'%';
   const total=222, cur=Math.floor(total*progress);
   tCur.textContent = `${Math.floor(cur/60)}:${String(cur%60).padStart(2,'0')}`;
 }, 400);
 
-render(); sync();
+render(); syncUI(); loadTrending();
 if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
 if (new URLSearchParams(location.search).get('np')==='1') openNP();
+if (new URLSearchParams(location.search).get('tab')==='search') show('search');
 
 // iPhone: show Add to Home Screen tip (Safari only; hide if already standalone)
 (function () {

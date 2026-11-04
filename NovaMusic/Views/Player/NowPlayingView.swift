@@ -10,11 +10,13 @@ struct NowPlayingView: View {
     @State private var seekValue: Double = 0
     @State private var artworkScale: CGFloat = 1
 
+    private var song: Song? { appState.player.currentSong }
+    private var stream: StreamTrack? { appState.player.currentStream }
+
     var body: some View {
         GeometryReader { geo in
-            let song = appState.player.currentSong
             ZStack {
-                artworkBackground(song: song)
+                artworkBackground
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -23,7 +25,7 @@ struct NowPlayingView: View {
 
                     Spacer(minLength: NovaTheme.Spacing.md)
 
-                    ArtworkView(song: song, cornerRadius: NovaTheme.Radius.artworkLarge)
+                    mainArtwork
                         .frame(width: min(geo.size.width - 48, 360))
                         .scaleEffect(artworkScale)
                         .shadow(color: .black.opacity(0.45), radius: 30, y: 18)
@@ -32,7 +34,7 @@ struct NowPlayingView: View {
 
                     Spacer(minLength: NovaTheme.Spacing.lg)
 
-                    metadata(song: song)
+                    metadata
                         .padding(.horizontal, NovaTheme.Spacing.lg)
 
                     seekBar
@@ -43,7 +45,7 @@ struct NowPlayingView: View {
                         .padding(.top, NovaTheme.Spacing.lg)
                         .padding(.horizontal, NovaTheme.Spacing.md)
 
-                    secondaryControls(song: song)
+                    secondaryControls
                         .padding(.top, NovaTheme.Spacing.lg)
                         .padding(.horizontal, NovaTheme.Spacing.lg)
 
@@ -90,7 +92,7 @@ struct NowPlayingView: View {
                 .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showAddToPlaylist) {
-            if let song = appState.player.currentSong {
+            if let song {
                 AddToPlaylistSheet(songs: [song])
                     .environment(appState)
             }
@@ -104,7 +106,7 @@ struct NowPlayingView: View {
     }
 
     @ViewBuilder
-    private func artworkBackground(song: Song?) -> some View {
+    private var artworkBackground: some View {
         ZStack {
             Color.novaBackground
             if let song,
@@ -125,6 +127,28 @@ struct NowPlayingView: View {
                             endPoint: .bottom
                         )
                     }
+            } else if let stream, let url = stream.artworkURL {
+                AsyncImage(url: url) { phase in
+                    if case .success(let image) = phase {
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .blur(radius: 48)
+                            .opacity(0.45)
+                            .overlay {
+                                LinearGradient(
+                                    colors: [
+                                        Color.novaBackground.opacity(0.35),
+                                        Color.novaBackground.opacity(0.92)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            }
+                    } else {
+                        Color.novaSurface
+                    }
+                }
             } else {
                 Color.novaSurface
             }
@@ -132,21 +156,45 @@ struct NowPlayingView: View {
     }
 
     @ViewBuilder
-    private func metadata(song: Song?) -> some View {
+    private var mainArtwork: some View {
+        if let song {
+            ArtworkView(song: song, cornerRadius: NovaTheme.Radius.artworkLarge)
+        } else if let stream {
+            RemoteArtworkView(
+                url: stream.artworkURL,
+                title: stream.title,
+                artist: stream.artist,
+                cornerRadius: NovaTheme.Radius.artworkLarge
+            )
+        } else {
+            PlaceholderArtwork(title: "Nova", artist: "")
+                .clipShape(RoundedRectangle(cornerRadius: NovaTheme.Radius.artworkLarge, style: .continuous))
+                .aspectRatio(1, contentMode: .fit)
+        }
+    }
+
+    private var metadata: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(song?.title ?? "Not Playing")
+                Text(appState.player.nowPlayingTitle.isEmpty ? "Not Playing" : appState.player.nowPlayingTitle)
                     .font(.title2.weight(.bold))
                     .foregroundStyle(Color.novaTextPrimary)
                     .lineLimit(2)
-                Text(song?.artist ?? "")
+                Text(appState.player.nowPlayingArtist)
                     .font(.title3)
                     .foregroundStyle(Color.novaTextSecondary)
                     .lineLimit(1)
-                Text(song?.album ?? "")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.novaTextSecondary.opacity(0.85))
-                    .lineLimit(1)
+                if let song {
+                    Text(song.album)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.novaTextSecondary.opacity(0.85))
+                        .lineLimit(1)
+                } else if stream != nil {
+                    Text("Streaming · Audius")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.novaTextSecondary.opacity(0.85))
+                        .lineLimit(1)
+                }
             }
             Spacer()
             if let song {
@@ -237,8 +285,7 @@ struct NowPlayingView: View {
         }
     }
 
-    @ViewBuilder
-    private func secondaryControls(song: Song?) -> some View {
+    private var secondaryControls: some View {
         HStack {
             Button {
                 showAddToPlaylist = true
@@ -249,6 +296,7 @@ struct NowPlayingView: View {
                     .frame(width: 44, height: 44)
             }
             .disabled(song == nil)
+            .opacity(song == nil ? 0.35 : 1)
 
             Spacer()
 

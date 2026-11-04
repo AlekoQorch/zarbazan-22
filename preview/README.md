@@ -10,8 +10,13 @@
 
 https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/nova-music.html
 
-3. ქვემოთ Share (**□↑**) → **Add to Home Screen** → **Add**
-4. Home Screen-ზე გამოჩნდება **NOVA** — დააკლიკე როგორც აპს
+ან პირდაპირ Explore (ძებნა + მოსმენა):
+
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/nova-music.html?tab=search
+
+3. **Explore** → მოძებნე სიმღერა ან დააკლიკე **Listen now** — მუსიკა ირთვება
+4. ქვემოთ Share (**□↑**) → **Add to Home Screen** → **Add**
+5. Home Screen-ზე გამოჩნდება **NOVA**
 
 ## სრული native iOS აპი
 

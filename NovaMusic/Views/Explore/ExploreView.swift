@@ -1,10 +1,14 @@
 import SwiftUI
 
-/// Library discovery — Music X–style Explore, for *your* imported music only.
-/// No YouTube / remote download.
+/// Explore — search online catalog (Audius) and play streams, plus local library matches.
 struct ExploreView: View {
     @Environment(AppState.self) private var appState
     @State private var query = ""
+    @State private var onlineResults: [StreamTrack] = []
+    @State private var trending: [StreamTrack] = []
+    @State private var isSearching = false
+    @State private var searchError: String?
+    @State private var searchTask: Task<Void, Never>?
     @FocusState private var searchFocused: Bool
 
     var body: some View {
@@ -15,14 +19,20 @@ struct ExploreView: View {
                     searchField
 
                     if trimmedQuery.isEmpty {
+                        trendingSection
                         discoverGrid
                         if !appState.searchHistory.isEmpty {
                             recentSearches
                         }
-                    } else if filteredSongs.isEmpty && filteredArtists.isEmpty && filteredAlbums.isEmpty {
-                        emptyResults
                     } else {
-                        searchResults
+                        onlineSection
+                        if !filteredSongs.isEmpty || !filteredArtists.isEmpty || !filteredAlbums.isEmpty {
+                            localResults
+                        }
+                        if !isSearching && onlineResults.isEmpty && filteredSongs.isEmpty
+                            && filteredArtists.isEmpty && filteredAlbums.isEmpty {
+                            emptyResults
+                        }
                     }
                 }
                 .padding(.horizontal, NovaTheme.Spacing.md)
@@ -31,6 +41,10 @@ struct ExploreView: View {
             .novaScreen()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
+            .task { await loadTrending() }
+            .onChange(of: query) { _, _ in
+                scheduleOnlineSearch()
+            }
         }
     }
 
@@ -49,17 +63,23 @@ struct ExploreView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(Color.novaTextSecondary)
-            TextField("Music, Artist, Playlist...", text: $query)
+            TextField("Song, artist, mood…", text: $query)
                 .focused($searchFocused)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)
                 .onSubmit {
                     appState.addSearchHistory(trimmedQuery)
+                    scheduleOnlineSearch(immediate: true)
                 }
-            if !query.isEmpty {
+            if isSearching {
+                ProgressView()
+                    .tint(Color.novaAccent)
+            } else if !query.isEmpty {
                 Button {
                     query = ""
+                    onlineResults = []
+                    searchError = nil
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(Color.novaAccent)
@@ -72,9 +92,32 @@ struct ExploreView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
+    @ViewBuilder
+    private var trendingSection: some View {
+        if !trending.isEmpty {
+            VStack(alignment: .leading, spacing: NovaTheme.Spacing.sm) {
+                Text("Listen now")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Color.novaTextPrimary)
+                Text("Free music from Audius — tap to play")
+                    .font(.footnote)
+                    .foregroundStyle(Color.novaTextSecondary)
+
+                ForEach(trending.prefix(12)) { track in
+                    StreamRowView(
+                        track: track,
+                        isPlaying: appState.player.currentStream?.id == track.id && appState.player.isPlaying
+                    ) {
+                        playOnline(track, in: trending)
+                    }
+                }
+            }
+        }
+    }
+
     private var discoverGrid: some View {
         VStack(alignment: .leading, spacing: NovaTheme.Spacing.sm) {
-            Text("Explore your library")
+            Text("Your library")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.novaTextPrimary)
 
@@ -119,31 +162,6 @@ struct ExploreView: View {
                     appState.selectedTab = .library
                     appState.librarySegment = .albums
                 }
-
-                ExploreCard(
-                    title: "Most played",
-                    subtitle: appState.library.mostPlayed.isEmpty ? "Play something" : "Your hits",
-                    systemImage: "chart.bar.fill",
-                    colors: [Color(red: 0.2, green: 0.7, blue: 0.55), Color(red: 0.1, green: 0.3, blue: 0.28)]
-                ) {
-                    playList(appState.library.mostPlayed)
-                }
-
-                ExploreCard(
-                    title: "Playlists",
-                    subtitle: "\(appState.playlists.playlists.count) playlists",
-                    systemImage: "music.note.list",
-                    colors: [Color(red: 0.55, green: 0.35, blue: 0.9), Color(red: 0.25, green: 0.15, blue: 0.4)]
-                ) {
-                    appState.selectedTab = .playlists
-                }
-            }
-
-            if appState.library.songs.isEmpty {
-                Text("Import music first — Explore searches your offline library, not the internet.")
-                    .font(.footnote)
-                    .foregroundStyle(Color.novaTextSecondary)
-                    .padding(.top, 8)
             }
         }
     }
@@ -176,10 +194,43 @@ struct ExploreView: View {
         }
     }
 
-    private var searchResults: some View {
+    @ViewBuilder
+    private var onlineSection: some View {
+        VStack(alignment: .leading, spacing: NovaTheme.Spacing.sm) {
+            HStack {
+                Text("Online")
+                    .font(.headline)
+                    .foregroundStyle(Color.novaTextPrimary)
+                Spacer()
+                if !onlineResults.isEmpty {
+                    Text("\(onlineResults.count)")
+                        .font(.caption)
+                        .foregroundStyle(Color.novaTextSecondary)
+                }
+            }
+
+            if let searchError {
+                Text(searchError)
+                    .font(.footnote)
+                    .foregroundStyle(Color.novaTextSecondary)
+            }
+
+            ForEach(onlineResults) { track in
+                StreamRowView(
+                    track: track,
+                    isPlaying: appState.player.currentStream?.id == track.id && appState.player.isPlaying
+                ) {
+                    appState.addSearchHistory(trimmedQuery)
+                    playOnline(track, in: onlineResults)
+                }
+            }
+        }
+    }
+
+    private var localResults: some View {
         VStack(alignment: .leading, spacing: NovaTheme.Spacing.md) {
             if !filteredSongs.isEmpty {
-                Text("Songs")
+                Text("On this iPhone")
                     .font(.headline)
                 ForEach(filteredSongs, id: \.id) { song in
                     SongRowView(song: song, isPlaying: appState.player.currentSong?.id == song.id) {
@@ -246,7 +297,7 @@ struct ExploreView: View {
                 .foregroundStyle(Color.novaTextSecondary)
             Text("No results for “\(trimmedQuery)”")
                 .foregroundStyle(Color.novaTextPrimary)
-            Text("Try another spelling, or import more music.")
+            Text("Try another spelling or mood.")
                 .font(.footnote)
                 .foregroundStyle(Color.novaTextSecondary)
                 .multilineTextAlignment(.center)
@@ -285,6 +336,84 @@ struct ExploreView: View {
         guard !songs.isEmpty else { return }
         appState.player.play(songs: songs, startAt: 0)
         appState.player.showsNowPlaying = true
+    }
+
+    private func playOnline(_ track: StreamTrack, in context: [StreamTrack]) {
+        appState.player.playStream(track, in: context)
+        appState.player.showsNowPlaying = true
+    }
+
+    private func scheduleOnlineSearch(immediate: Bool = false) {
+        searchTask?.cancel()
+        let q = trimmedQuery
+        guard q.count >= 2 else {
+            onlineResults = []
+            searchError = nil
+            isSearching = false
+            return
+        }
+        isSearching = true
+        searchTask = Task {
+            if !immediate {
+                try? await Task.sleep(nanoseconds: 350_000_000)
+            }
+            guard !Task.isCancelled else { return }
+            do {
+                let results = try await AudiusService.search(query: q)
+                guard !Task.isCancelled else { return }
+                onlineResults = results
+                searchError = results.isEmpty ? nil : nil
+                isSearching = false
+            } catch {
+                guard !Task.isCancelled else { return }
+                onlineResults = []
+                searchError = "Couldn’t reach online catalog. Check connection."
+                isSearching = false
+            }
+        }
+    }
+
+    private func loadTrending() async {
+        do {
+            trending = try await AudiusService.trending(limit: 16)
+        } catch {
+            trending = []
+        }
+    }
+}
+
+struct StreamRowView: View {
+    let track: StreamTrack
+    var isPlaying: Bool = false
+    let onPlay: () -> Void
+
+    var body: some View {
+        Button(action: onPlay) {
+            HStack(spacing: 12) {
+                RemoteArtworkView(url: track.artworkURL, title: track.title, artist: track.artist, cornerRadius: 8)
+                    .frame(width: 52, height: 52)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(track.title)
+                        .font(.body.weight(isPlaying ? .semibold : .regular))
+                        .foregroundStyle(isPlaying ? Color.novaAccent : Color.novaTextPrimary)
+                        .lineLimit(1)
+                    Text(track.artist)
+                        .font(.caption)
+                        .foregroundStyle(Color.novaTextSecondary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 0)
+                Text(DurationFormatter.string(from: track.duration))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(Color.novaTextSecondary)
+                Image(systemName: isPlaying ? "speaker.wave.2.fill" : "play.fill")
+                    .font(.caption)
+                    .foregroundStyle(Color.novaAccent)
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(.plain)
     }
 }
 

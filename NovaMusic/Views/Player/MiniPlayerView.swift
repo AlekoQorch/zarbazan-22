@@ -4,9 +4,8 @@ struct MiniPlayerView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        if let song = appState.player.currentSong {
+        if appState.player.hasSomethingToPlay {
             VStack(spacing: 0) {
-                // Progress hairline
                 GeometryReader { geo in
                     let progress = appState.player.duration > 0
                         ? appState.player.currentTime / appState.player.duration
@@ -26,15 +25,15 @@ struct MiniPlayerView: View {
                         appState.player.showsNowPlaying = true
                     } label: {
                         HStack(spacing: NovaTheme.Spacing.sm) {
-                            ArtworkView(song: song, cornerRadius: 8)
+                            artwork
                                 .frame(width: 44, height: 44)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(song.title)
+                                Text(appState.player.nowPlayingTitle)
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.novaTextPrimary)
                                     .lineLimit(1)
-                                Text(song.artist)
+                                Text(appState.player.nowPlayingArtist)
                                     .font(.caption)
                                     .foregroundStyle(Color.novaTextSecondary)
                                     .lineLimit(1)
@@ -71,6 +70,20 @@ struct MiniPlayerView: View {
                     .fill(Color.novaSeparator)
                     .frame(height: 0.5)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        if let song = appState.player.currentSong {
+            ArtworkView(song: song, cornerRadius: 8)
+        } else if let stream = appState.player.currentStream {
+            RemoteArtworkView(
+                url: stream.artworkURL,
+                title: stream.title,
+                artist: stream.artist,
+                cornerRadius: 8
+            )
         }
     }
 }

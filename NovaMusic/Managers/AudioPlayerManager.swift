@@ -8,6 +8,7 @@ import UIKit
 final class AudioPlayerManager {
     private(set) var isPlaying = false
     private(set) var currentSong: Song?
+    private(set) var currentStream: StreamTrack?
     private(set) var currentTime: Double = 0
     private(set) var duration: Double = 0
     private(set) var queue: [Song] = []
@@ -16,10 +17,27 @@ final class AudioPlayerManager {
     private(set) var repeatMode: RepeatMode = .off
     private(set) var volume: Float = 1.0
     private(set) var isSeeking = false
+    private(set) var streamQueue: [StreamTrack] = []
+    private(set) var streamIndex: Int = 0
 
     var showsNowPlaying = false
 
+    var hasSomethingToPlay: Bool {
+        currentSong != nil || currentStream != nil
+    }
+
+    var nowPlayingTitle: String {
+        currentSong?.title ?? currentStream?.title ?? ""
+    }
+
+    var nowPlayingArtist: String {
+        currentSong?.artist ?? currentStream?.artist ?? ""
+    }
+
     private var player: AVAudioPlayer?
+    private var remotePlayer: AVPlayer?
+    private var remoteTimeObserver: Any?
+    private var remoteEndObserver: NSObjectProtocol?
     private var displayLink: CADisplayLink?
     private var originalQueue: [Song] = []
     private var shuffleOrder: [Int] = []
@@ -123,6 +141,9 @@ final class AudioPlayerManager {
 
     func play(songs: [Song], startAt index: Int = 0) {
         guard !songs.isEmpty else { return }
+        stopRemotePlayback()
+        currentStream = nil
+        streamQueue = []
         originalQueue = songs
         shuffleOrder = Array(songs.indices)
         if shuffleEnabled {
@@ -134,6 +155,26 @@ final class AudioPlayerManager {
             queueIndex = min(max(0, index), songs.count - 1)
         }
         loadAndPlay(queue[queueIndex], resumePosition: 0)
+    }
+
+    /// Stream online catalog tracks (Audius). Legal artist-uploaded music.
+    func playStreams(_ tracks: [StreamTrack], startAt index: Int = 0) {
+        guard !tracks.isEmpty else { return }
+        player?.stop()
+        player = nil
+        currentSong = nil
+        queue = []
+        streamQueue = tracks
+        streamIndex = min(max(0, index), tracks.count - 1)
+        loadAndPlayStream(tracks[streamIndex])
+    }
+
+    func playStream(_ track: StreamTrack, in context: [StreamTrack]? = nil) {
+        if let context, let idx = context.firstIndex(of: track) {
+            playStreams(context, startAt: idx)
+        } else {
+            playStreams([track], startAt: 0)
+        }
     }
 
     func play(song: Song, in context: [Song]? = nil) {
@@ -160,11 +201,19 @@ final class AudioPlayerManager {
 
     func play() {
         configureSession()
+        if let remotePlayer {
+            remotePlayer.play()
+            isPlaying = true
+            updateNowPlayingElapsed()
+            return
+        }
         guard let player else {
             if let song = currentSong {
                 loadAndPlay(song, resumePosition: currentTime)
             } else if let first = queue.first {
                 loadAndPlay(first, resumePosition: 0)
+            } else if let stream = currentStream {
+                loadAndPlayStream(stream)
             }
             return
         }
@@ -176,6 +225,7 @@ final class AudioPlayerManager {
     }
 
     func pause() {
+        remotePlayer?.pause()
         player?.pause()
         isPlaying = false
         stopDisplayLink()
@@ -184,16 +234,31 @@ final class AudioPlayerManager {
     }
 
     func stop() {
+        stopRemotePlayback()
         player?.stop()
         player = nil
         isPlaying = false
         currentTime = 0
+        currentStream = nil
         stopDisplayLink()
         clearNowPlaying()
         persistSnapshot()
     }
 
     func skipNext() {
+        if !streamQueue.isEmpty {
+            let next = streamIndex + 1
+            if next < streamQueue.count {
+                streamIndex = next
+                loadAndPlayStream(streamQueue[streamIndex])
+            } else if repeatMode == .all {
+                streamIndex = 0
+                loadAndPlayStream(streamQueue[streamIndex])
+            } else {
+                pause()
+            }
+            return
+        }
         guard !queue.isEmpty else { return }
         if repeatMode == .one {
             seek(to: 0)
@@ -218,6 +283,19 @@ final class AudioPlayerManager {
             seek(to: 0)
             return
         }
+        if !streamQueue.isEmpty {
+            let prev = streamIndex - 1
+            if prev >= 0 {
+                streamIndex = prev
+                loadAndPlayStream(streamQueue[streamIndex])
+            } else if repeatMode == .all {
+                streamIndex = streamQueue.count - 1
+                loadAndPlayStream(streamQueue[streamIndex])
+            } else {
+                seek(to: 0)
+            }
+            return
+        }
         guard !queue.isEmpty else { return }
         let prev = queueIndex - 1
         if prev >= 0 {
@@ -232,6 +310,13 @@ final class AudioPlayerManager {
     }
 
     func seek(to time: Double) {
+        if let remotePlayer {
+            let clamped = min(max(0, time), duration > 0 ? duration : time)
+            remotePlayer.seek(to: CMTime(seconds: clamped, preferredTimescale: 600))
+            currentTime = clamped
+            updateNowPlayingElapsed()
+            return
+        }
         guard let player else { return }
         let clamped = min(max(0, time), player.duration)
         player.currentTime = clamped
@@ -251,6 +336,7 @@ final class AudioPlayerManager {
     func setVolume(_ value: Float) {
         volume = min(max(0, value), 1)
         player?.volume = volume
+        remotePlayer?.volume = volume
     }
 
     func toggleShuffle() {
@@ -385,6 +471,64 @@ final class AudioPlayerManager {
         }
     }
 
+    private func loadAndPlayStream(_ track: StreamTrack) {
+        stopRemotePlayback()
+        configureSession()
+        currentStream = track
+        currentSong = nil
+        currentTime = 0
+        duration = track.duration
+        didRecordPlayForCurrent = true
+
+        let item = AVPlayerItem(url: track.streamURL)
+        let newPlayer = AVPlayer(playerItem: item)
+        newPlayer.volume = volume
+        remotePlayer = newPlayer
+        newPlayer.play()
+        isPlaying = true
+
+        remoteTimeObserver = newPlayer.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.25, preferredTimescale: 600),
+            queue: .main
+        ) { [weak self] time in
+            Task { @MainActor in
+                guard let self else { return }
+                self.currentTime = time.seconds
+                if let itemDuration = self.remotePlayer?.currentItem?.duration.seconds,
+                   itemDuration.isFinite, itemDuration > 0 {
+                    self.duration = itemDuration
+                }
+                self.isPlaying = self.remotePlayer?.rate ?? 0 > 0
+                self.updateNowPlayingElapsed()
+            }
+        }
+
+        remoteEndObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.skipNext()
+            }
+        }
+
+        publishNowPlaying(stream: track)
+    }
+
+    private func stopRemotePlayback() {
+        if let remoteTimeObserver, let remotePlayer {
+            remotePlayer.removeTimeObserver(remoteTimeObserver)
+        }
+        remoteTimeObserver = nil
+        if let remoteEndObserver {
+            NotificationCenter.default.removeObserver(remoteEndObserver)
+        }
+        remoteEndObserver = nil
+        remotePlayer?.pause()
+        remotePlayer = nil
+    }
+
     func playerDidFinish() {
         if stopAtEndOfTrack {
             stopAtEndOfTrack = false
@@ -509,6 +653,31 @@ final class AudioPlayerManager {
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         MPNowPlayingInfoCenter.default().playbackState = isPlaying ? .playing : .paused
+    }
+
+    private func publishNowPlaying(stream: StreamTrack) {
+        var info: [String: Any] = [
+            MPMediaItemPropertyTitle: stream.title,
+            MPMediaItemPropertyArtist: stream.artist,
+            MPMediaItemPropertyPlaybackDuration: duration,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: currentTime,
+            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0,
+            MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0
+        ]
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        MPNowPlayingInfoCenter.default().playbackState = isPlaying ? .playing : .paused
+
+        guard let artworkURL = stream.artworkURL else { return }
+        Task {
+            guard let (data, _) = try? await URLSession.shared.data(from: artworkURL),
+                  let image = UIImage(data: data) else { return }
+            await MainActor.run {
+                guard self.currentStream?.id == stream.id else { return }
+                var updated = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? info
+                updated[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = updated
+            }
+        }
     }
 
     private func updateNowPlayingElapsed() {

@@ -76,3 +76,37 @@ struct ArtworkImage: View {
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 }
+
+/// Remote (HTTP) artwork for streamed tracks.
+struct RemoteArtworkView: View {
+    let url: URL?
+    let title: String
+    let artist: String
+    var cornerRadius: CGFloat = NovaTheme.Radius.artwork
+
+    var body: some View {
+        Group {
+            if let url {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        PlaceholderArtwork(title: title, artist: artist)
+                    case .empty:
+                        PlaceholderArtwork(title: title, artist: artist)
+                            .overlay { ProgressView().tint(.white) }
+                    @unknown default:
+                        PlaceholderArtwork(title: title, artist: artist)
+                    }
+                }
+            } else {
+                PlaceholderArtwork(title: title, artist: artist)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .aspectRatio(1, contentMode: .fit)
+    }
+}

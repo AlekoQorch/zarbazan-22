@@ -38,6 +38,7 @@
 		682D2CE5407D467B895D175A /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D325E215DB0441159EFEDFCF /* ArtworkView.swift */; };
 		50F82CC597D2480891CBAB8E /* SongRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F446298A3D45E9B0435CC3 /* SongRowView.swift */; };
 		F943788CCF1A4FC7A08B891A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 11DBB0F20D1643068950DB05 /* Assets.xcassets */; };
+		C8E41A2F7B9D4E6A91F0A3D2 /* AudiusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D52E1A4C8F4B3E9A1D6E70 /* AudiusService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +74,7 @@
 		A45FF5E12FDE48DB9B72B7C2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D325E215DB0441159EFEDFCF /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
 		D1F446298A3D45E9B0435CC3 /* SongRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongRowView.swift; sourceTree = "<group>"; };
+		B7D52E1A4C8F4B3E9A1D6E70 /* AudiusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiusService.swift; sourceTree = "<group>"; };
 		11DBB0F20D1643068950DB05 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DAA399A1B4B540ADAA9AE1F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -111,12 +113,21 @@
 				75AA67853CD34AFE886B1FF5,
 				A41B4282033E44CD8547E36A,
 				5D7A4EF36F3E41038E7EF673,
+				E4F91C2B8A6D4F5E9C3B7A10 /* Services */,
 				2AA1AEA2EE6A4BCAA4DACF40,
 				7CE5066EFEB14F518546E305,
 				11DBB0F20D1643068950DB05,
 				DAA399A1B4B540ADAA9AE1F8,
 			);
 			path = NovaMusic;
+			sourceTree = "<group>";
+		};
+		E4F91C2B8A6D4F5E9C3B7A10 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B7D52E1A4C8F4B3E9A1D6E70 /* AudiusService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		ABC7BB696F3A48B791FB32FB /* App */ = {
@@ -364,6 +375,7 @@
 				BA0A66BED7DD4CAA81C42D11 /* SettingsView.swift in Sources */,
 				682D2CE5407D467B895D175A /* ArtworkView.swift in Sources */,
 				50F82CC597D2480891CBAB8E /* SongRowView.swift in Sources */,
+				C8E41A2F7B9D4E6A91F0A3D2 /* AudiusService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

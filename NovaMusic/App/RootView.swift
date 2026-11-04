@@ -29,7 +29,7 @@ struct RootView: View {
                     .tag(AppTab.settings)
             }
             .safeAreaInset(edge: .bottom) {
-                if appState.player.currentSong != nil {
+                if appState.player.hasSomethingToPlay {
                     MiniPlayerView()
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -42,6 +42,7 @@ struct RootView: View {
             }
         }
         .animation(NovaTheme.Motion.gentle, value: appState.player.currentSong?.id)
+        .animation(NovaTheme.Motion.gentle, value: appState.player.currentStream?.id)
         .animation(NovaTheme.Motion.standard, value: appState.importer.showsProgressSheet)
         .fullScreenCover(isPresented: $state.player.showsNowPlaying) {
             NowPlayingView()
