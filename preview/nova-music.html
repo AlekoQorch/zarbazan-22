@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NOVA MUSIC — Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0A0A0B;
+    --surface: #161618;
+    --elevated: #1E1E22;
+    --text: #F5F5F7;
+    --muted: #A1A1A6;
+    --accent: #3DDBD9;
+    --sep: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    font-family: Outfit, system-ui, sans-serif;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(61,219,217,0.12), transparent),
+      #050506;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 64px;
+    gap: 28px;
+  }
+  h1 {
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .title {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .title strong {
+    font-size: 28px;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .title p { color: var(--muted); font-size: 14px; max-width: 420px; line-height: 1.45; }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .tabs button {
+    border: 1px solid var(--sep);
+    background: var(--surface);
+    color: var(--muted);
+    padding: 10px 16px;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  .tabs button:hover { color: var(--text); border-color: rgba(255,255,255,0.18); }
+  .tabs button.active {
+    background: var(--accent);
+    color: #0A0A0B;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .stage {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 980px;
+  }
+  .phone {
+    width: 340px;
+    height: 700px;
+    border-radius: 44px;
+    background: #111;
+    border: 2px solid #2a2a2e;
+    box-shadow:
+      0 0 0 1px #000,
+      0 40px 80px rgba(0,0,0,0.55);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .notch {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 108px;
+    height: 28px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 20;
+  }
+  .screen {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+    padding: 54px 18px 12px;
+  }
+  .screen.active { display: flex; }
+  .brand {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    margin-bottom: 4px;
+  }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  .cta {
+    background: var(--accent);
+    color: #0A0A0B;
+    border: 0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .cta.ghost {
+    background: var(--elevated);
+    color: var(--text);
+  }
+  .section-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 18px 0 12px;
+  }
+  .shelf {
+    display: flex;
+    gap: 12px;
+    overflow: hidden;
+  }
+  .card-art {
+    width: 118px;
+    flex-shrink: 0;
+  }
+  .art {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    position: relative;
+    overflow: hidden;
+  }
+  .art::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.35));
+  }
+  .a1 { background: linear-gradient(145deg, #1f4f55, #0d1a1c); }
+  .a2 { background: linear-gradient(145deg, #3a2f55, #12101a); }
+  .a3 { background: linear-gradient(145deg, #254035, #0d1411); }
+  .a4 { background: linear-gradient(145deg, #4a3030, #140e0e); }
+  .card-art .t { margin-top: 8px; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-art .u { font-size: 12px; color: var(--muted); }
+  .song {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .song .thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+  }
+  .song .meta { flex: 1; min-width: 0; }
+  .song .meta .t { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song .meta .t.playing { color: var(--accent); }
+  .song .meta .u { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song .dur { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .segments {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .segments span {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 8px 0;
+    border-radius: 8px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--sep);
+  }
+  .segments span.on {
+    background: var(--elevated);
+    color: var(--text);
+  }
+  .nav {
+    margin-top: auto;
+    border-top: 1px solid var(--sep);
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+  }
+  .nav button {
+    background: none;
+    border: 0;
+    color: var(--muted);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 6px 0 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .nav button.on { color: var(--accent); font-weight: 600; }
+  .nav .ico { font-size: 16px; line-height: 1; opacity: 0.9; }
+  .empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    padding: 0 12px;
+  }
+  .wave {
+    width: 120px;
+    height: 120px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle, rgba(61,219,217,0.22), transparent 70%);
+    color: var(--accent);
+    font-size: 42px;
+    font-weight: 200;
+  }
+  .empty h2 { font-size: 20px; font-weight: 600; }
+  .empty p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  /* Now Playing */
+  .np { padding-top: 48px; }
+  .grab {
+    width: 40px; height: 5px; border-radius: 99px;
+    background: rgba(255,255,255,0.28); margin: 0 auto 22px;
+  }
+  .np-art {
+    width: min(100%, 280px);
+    aspect-ratio: 1;
+    margin: 0 auto;
+    border-radius: 22px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.45);
+  }
+  .np-meta { margin-top: 28px; }
+  .np-meta h2 { font-size: 22px; font-weight: 700; }
+  .np-meta .artist { color: var(--muted); font-size: 16px; margin-top: 4px; }
+  .np-meta .album { color: var(--muted); font-size: 13px; margin-top: 2px; opacity: 0.85; }
+  .seek { margin-top: 22px; }
+  .seek .bar {
+    height: 4px; border-radius: 99px; background: var(--sep); position: relative;
+  }
+  .seek .bar i {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 38%;
+    background: var(--accent); border-radius: 99px;
+  }
+  .seek .bar i::after {
+    content: ""; position: absolute; right: -6px; top: 50%;
+    width: 12px; height: 12px; border-radius: 99px;
+    background: var(--text); transform: translateY(-50%);
+  }
+  .seek .times {
+    display: flex; justify-content: space-between;
+    margin-top: 8px; font-size: 12px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .transport {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 26px; padding: 0 4px;
+  }
+  .transport .sm { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; font-weight: 600; }
+  .transport .sm.on { color: var(--accent); }
+  .transport .md { background: none; border: 0; color: var(--text); font-size: 22px; cursor: pointer; }
+  .transport .play {
+    width: 72px; height: 72px; border-radius: 999px; border: 0;
+    background: var(--text); color: var(--bg); font-size: 22px; font-weight: 700; cursor: pointer;
+  }
+  .secondary-row {
+    display: flex; justify-content: space-between; margin-top: 22px; padding: 0 4px;
+  }
+  .secondary-row button {
+    background: none; border: 0; color: var(--text); font-size: 18px; cursor: pointer;
+  }
+
+  /* Mini player overlay on library */
+  .mini {
+    border-top: 1px solid var(--sep);
+    background: rgba(22,22,24,0.92);
+    backdrop-filter: blur(12px);
+    margin: 0 -18px;
+    padding: 0 14px;
+  }
+  .mini .prog { height: 2px; background: var(--sep); margin: 0 -14px 0; }
+  .mini .prog i { display: block; height: 100%; width: 42%; background: var(--accent); }
+  .mini .row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0;
+  }
+  .mini .row .thumb { width: 42px; height: 42px; border-radius: 8px; }
+  .mini .row .meta { flex: 1; min-width: 0; }
+  .mini .row .meta .t { font-size: 13px; font-weight: 600; }
+  .mini .row .meta .u { font-size: 11px; color: var(--muted); }
+  .mini .ctrls { display: flex; gap: 8px; }
+  .mini .ctrls button {
+    background: none; border: 0; color: var(--text); font-size: 16px; width: 36px; height: 36px; cursor: pointer;
+  }
+
+  .side {
+    flex: 1;
+    min-width: 260px;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 12px;
+  }
+  .side h3 { font-size: 18px; font-weight: 600; }
+  .side p { color: var(--muted); font-size: 14px; line-height: 1.55; }
+  .note {
+    background: var(--surface);
+    border: 1px solid var(--sep);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .note b { color: var(--text); font-weight: 600; }
+  .link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="title">
+    <h1>Interactive preview</h1>
+    <strong>NOVA MUSIC</strong>
+    <p>გახსენი ეს ფაილი ბრაუზერში. ქვემოთ აირჩიე ეკრანი — ასე გამოიყურება აპი iPhone-ზე.</p>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button data-screen="now" class="active">Now Playing</button>
+    <button data-screen="home">Home</button>
+    <button data-screen="empty">Empty Home</button>
+    <button data-screen="library">Library</button>
+    <button data-screen="mini">Mini Player</button>
+  </div>
+
+  <div class="stage">
+    <div class="phone" aria-label="iPhone preview">
+      <div class="notch"></div>
+
+      <!-- NOW PLAYING -->
+      <div class="screen np active" id="screen-now">
+        <div class="grab"></div>
+        <div class="art a1 np-art">M</div>
+        <div class="np-meta">
+          <h2>Midnight Drive</h2>
+          <div class="artist">Northline</div>
+          <div class="album">After Hours</div>
+        </div>
+        <div class="seek">
+          <div class="bar"><i></i></div>
+          <div class="times"><span>1:24</span><span>3:42</span></div>
+        </div>
+        <div class="transport">
+          <button class="sm on">SH</button>
+          <button class="md">◀◀</button>
+          <button class="play">❚❚</button>
+          <button class="md">▶▶</button>
+          <button class="sm">RP</button>
+        </div>
+        <div class="secondary-row">
+          <button>+</button>
+          <button>♡</button>
+          <button>≡</button>
+        </div>
+      </div>
+
+      <!-- HOME -->
+      <div class="screen" id="screen-home">
+        <div class="brand">NOVA</div>
+        <div class="sub">Listen offline.</div>
+        <button class="cta">Import Music</button>
+        <div class="section-title">Recently Played</div>
+        <div class="shelf">
+          <div class="card-art"><div class="art a1">M</div><div class="t">Midnight Drive</div><div class="u">Northline</div></div>
+          <div class="card-art"><div class="art a2">G</div><div class="t">Glass Harbor</div><div class="u">Kinetic</div></div>
+          <div class="card-art"><div class="art a3">S</div><div class="t">Soft Static</div><div class="u">Lumen</div></div>
+        </div>
+        <div class="section-title">Favorites</div>
+        <div class="song">
+          <div class="thumb art a3">S</div>
+          <div class="meta"><div class="t playing">Soft Static</div><div class="u">Lumen · Soft Static</div></div>
+          <div class="dur">2:58</div>
+        </div>
+        <nav class="nav">
+          <button class="on" data-jump="home"><span class="ico">⌂</span>Home</button>
+          <button data-jump="library"><span class="ico">♬</span>Library</button>
+          <button><span class="ico">☰</span>Playlists</button>
+          <button><span class="ico">⌕</span>Search</button>
+          <button><span class="ico">⚙</span>Settings</button>
+        </nav>
+      </div>
+
+      <!-- EMPTY -->
+      <div class="screen" id="screen-empty">
+        <div class="brand">NOVA</div>
+        <div class="sub">Your offline music, beautifully simple.</div>
+        <div class="empty">
+          <div class="wave">∿</div>
+          <h2>Import your music</h2>
+          <p>Add MP3, M4A, AAC, WAV from the Files app. Everything stays on your iPhone.</p>
+          <button class="cta" style="width:auto; padding-inline:28px">Import Music</button>
+        </div>
+        <nav class="nav">
+          <button class="on"><span class="ico">⌂</span>Home</button>
+          <button data-jump="library"><span class="ico">♬</span>Library</button>
+          <button><span class="ico">☰</span>Playlists</button>
+          <button><span class="ico">⌕</span>Search</button>
+          <button><span class="ico">⚙</span>Settings</button>
+        </nav>
+      </div>
+
+      <!-- LIBRARY -->
+      <div class="screen" id="screen-library">
+        <div class="brand" style="font-size:28px; letter-spacing:0">Library</div>
+        <div class="segments">
+          <span class="on">Songs</span><span>Albums</span><span>Artists</span><span>Favorites</span>
+        </div>
+        <div class="song"><div class="thumb art a1">M</div><div class="meta"><div class="t playing">Midnight Drive</div><div class="u">Northline · After Hours</div></div><div class="dur">3:42</div></div>
+        <div class="song"><div class="thumb art a2">G</div><div class="meta"><div class="t">Glass Harbor</div><div class="u">Kinetic · Harbor EP</div></div><div class="dur">4:11</div></div>
+        <div class="song"><div class="thumb art a3">S</div><div class="meta"><div class="t">Soft Static</div><div class="u">Lumen · Soft Static</div></div><div class="dur">2:58</div></div>
+        <div class="song"><div class="thumb art a4">L</div><div class="meta"><div class="t">Low Orbit</div><div class="u">NOVA Session · Singles</div></div><div class="dur">3:21</div></div>
+        <nav class="nav">
+          <button data-jump="home"><span class="ico">⌂</span>Home</button>
+          <button class="on"><span class="ico">♬</span>Library</button>
+          <button><span class="ico">☰</span>Playlists</button>
+          <button><span class="ico">⌕</span>Search</button>
+          <button><span class="ico">⚙</span>Settings</button>
+        </nav>
+      </div>
+
+      <!-- MINI -->
+      <div class="screen" id="screen-mini">
+        <div class="brand" style="font-size:28px; letter-spacing:0">Library</div>
+        <div class="song"><div class="thumb art a1">M</div><div class="meta"><div class="t playing">Midnight Drive</div><div class="u">Northline · After Hours</div></div><div class="dur">3:42</div></div>
+        <div class="song"><div class="thumb art a2">G</div><div class="meta"><div class="t">Glass Harbor</div><div class="u">Kinetic · Harbor EP</div></div><div class="dur">4:11</div></div>
+        <div class="song"><div class="thumb art a3">S</div><div class="meta"><div class="t">Soft Static</div><div class="u">Lumen · Soft Static</div></div><div class="dur">2:58</div></div>
+        <div class="song"><div class="thumb art a4">L</div><div class="meta"><div class="t">Low Orbit</div><div class="u">NOVA Session · Singles</div></div><div class="dur">3:21</div></div>
+        <div style="flex:1"></div>
+        <div class="mini">
+          <div class="prog"><i></i></div>
+          <div class="row">
+            <div class="thumb art a1">M</div>
+            <div class="meta"><div class="t">Midnight Drive</div><div class="u">Northline</div></div>
+            <div class="ctrls">
+              <button>❚❚</button>
+              <button>▶▶</button>
+            </div>
+          </div>
+        </div>
+        <nav class="nav">
+          <button data-jump="home"><span class="ico">⌂</span>Home</button>
+          <button class="on"><span class="ico">♬</span>Library</button>
+          <button><span class="ico">☰</span>Playlists</button>
+          <button><span class="ico">⌕</span>Search</button>
+          <button><span class="ico">⚙</span>Settings</button>
+        </nav>
+      </div>
+    </div>
+
+    <div class="side">
+      <h3 id="caption">Now Playing</h3>
+      <p id="blurb">სრული ეკრანის პლეერი — დიდი artwork, seek bar, shuffle / repeat, queue და favorite.</p>
+      <div class="note">
+        <b>როგორ გახსნა:</b><br />
+        1. გადმოწერე ან გახსენი ფაილი<br />
+        <code style="color:var(--accent)">preview/nova-music.html</code><br />
+        2. ორჯერ დააკლიკე — გაიხსნება Chrome / Safari-ში<br /><br />
+        ნამდვილი iOS აპი: Mac-ზე გახსენი <b>NovaMusic.xcodeproj</b> და დააჭირე Run.
+      </div>
+      <a class="link" href="https://github.com/AlekoQorch/zarbazan-22/pull/1" target="_blank" rel="noopener">GitHub PR →</a>
+    </div>
+  </div>
+
+<script>
+  const captions = {
+    now: ["Now Playing", "სრული ეკრანის პლეერი — დიდი artwork, seek bar, shuffle / repeat, queue და favorite."],
+    home: ["Home", "პერსონალური დაფა — Recently Played, Favorites და Import ღილაკი."],
+    empty: ["Empty Home", "როცა ბიბლიოთეკა ცარიელია — ლამაზი onboarding Import Music-ით."],
+    library: ["Library", "სიმღერების სია artwork-ებით, სეგმენტებით: Songs / Albums / Artists / Favorites."],
+    mini: ["Mini Player", "ქვედა mini player — artwork, სათაური, play/pause, next — tab bar-ის ზემოთ."],
+  };
+
+  function show(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById("screen-" + id).classList.add("active");
+    document.querySelectorAll(".tabs button").forEach(b => {
+      b.classList.toggle("active", b.dataset.screen === id);
+    });
+    const [title, text] = captions[id];
+    document.getElementById("caption").textContent = title;
+    document.getElementById("blurb").textContent = text;
+  }
+
+  document.getElementById("tabs").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-screen]");
+    if (btn) show(btn.dataset.screen);
+  });
+
+  document.querySelectorAll("[data-jump]").forEach(btn => {
+    btn.addEventListener("click", () => show(btn.dataset.jump));
+  });
+</script>
+</body>
+</html>
