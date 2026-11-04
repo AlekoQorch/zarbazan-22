@@ -6,697 +6,456 @@
 <title>NOVA MUSIC</title>
 <style>
   :root {
-    --bg: #000000;
-    --surface: #121214;
-    --elevated: #1C1C1E;
-    --text: #FFFFFF;
-    --muted: #8E8E93;
-    --accent: #FF3B5C;
-    --accent-soft: rgba(255, 59, 92, 0.16);
-    --sep: rgba(255,255,255,0.10);
+    --bg: #000;
+    --surface: #121212;
+    --elevated: #181818;
+    --chip: #2a2a2a;
+    --text: #fff;
+    --muted: #b3b3b3;
+    --accent: #1db954;
+    --sep: rgba(255,255,255,0.08);
     --safe-b: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #0a0a0a;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: #010101;
     color: var(--text);
     display: grid;
     place-items: center;
     min-height: 100%;
-    padding: 24px 12px;
+    padding: 20px 10px;
   }
-
-  /* Outer stage — only the phone is the product */
   .device {
     width: min(390px, 100%);
-    height: min(844px, calc(100vh - 48px));
-    max-height: 900px;
+    height: min(844px, calc(100vh - 40px));
     background: var(--bg);
-    border-radius: 44px;
-    border: 3px solid #2c2c2e;
-    box-shadow:
-      0 0 0 1px #111,
-      0 30px 80px rgba(0,0,0,0.65);
+    border-radius: 42px;
+    border: 3px solid #222;
+    box-shadow: 0 24px 70px rgba(0,0,0,.6);
     position: relative;
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
   .island {
-    position: absolute;
-    top: 11px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 126px;
-    height: 34px;
-    background: #000;
-    border-radius: 20px;
-    z-index: 50;
+    position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 34px; background: #000; border-radius: 20px; z-index: 40;
   }
   .status {
-    height: 54px;
-    padding: 14px 28px 0;
-    display: flex;
-    justify-content: space-between;
-    font-size: 15px;
-    font-weight: 600;
-    position: relative;
-    z-index: 40;
+    height: 54px; padding: 14px 26px 0;
+    display: flex; justify-content: space-between;
+    font-size: 15px; font-weight: 600; z-index: 30; position: relative;
   }
-  .status .right { display: flex; gap: 6px; align-items: center; font-size: 13px; }
-
-  .app {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    position: relative;
-    background: var(--bg);
-  }
+  .app { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
 
   .page {
-    display: none;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    padding: 4px 20px 0;
-    overflow: auto;
-    animation: fade .22s ease;
+    display: none; flex: 1; min-height: 0; flex-direction: column;
+    padding: 2px 16px 0; overflow: auto; animation: in .2s ease;
   }
   .page.on { display: flex; }
-  @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none; } }
+  @keyframes in { from { opacity: 0; } to { opacity: 1; } }
 
+  .greet { color: var(--muted); font-size: 14px; font-weight: 500; margin-top: 4px; }
   .brand {
-    font-size: 34px;
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    margin-top: 6px;
+    font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 2px 0 14px;
   }
-  .headline {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    margin-top: 6px;
-  }
-  .lede {
-    color: var(--muted);
-    font-size: 15px;
-    margin: 6px 0 18px;
-    line-height: 1.35;
+  .title {
+    font-size: 28px; font-weight: 800; letter-spacing: -0.03em; margin: 2px 0 12px;
   }
 
   .btn {
-    appearance: none;
-    border: 0;
-    border-radius: 14px;
-    padding: 16px 18px;
-    font: inherit;
-    font-size: 16px;
-    font-weight: 650;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: transform .15s ease, opacity .15s ease;
+    border: 0; border-radius: 999px; padding: 14px 20px; font: inherit;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   }
-  .btn:active { transform: scale(0.98); opacity: 0.9; }
-  .btn-primary { background: var(--accent); color: #fff; width: 100%; }
-  .btn-secondary { background: var(--elevated); color: var(--text); width: 100%; }
+  .btn-green { background: var(--accent); color: #000; width: 100%; }
+  .btn-dark { background: transparent; color: var(--text); border: 1px solid #878787; width: 100%; }
+  .btn:active { transform: scale(0.98); }
 
-  .section {
-    margin-top: 22px;
-  }
-  .section-h {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 12px;
-  }
-  .section-h h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
-  .section-h span { color: var(--accent); font-size: 14px; font-weight: 600; }
+  .section { margin-top: 22px; }
+  .section h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 14px; }
 
-  .shelf {
-    display: flex;
-    gap: 14px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-  }
+  .shelf { display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none; }
   .shelf::-webkit-scrollbar { display: none; }
-
-  .tile { width: 148px; flex-shrink: 0; cursor: pointer; }
+  .card { width: 142px; flex-shrink: 0; cursor: pointer; }
   .cover {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 12px;
-    background-size: cover;
-    background-position: center;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
-    position: relative;
+    width: 100%; aspect-ratio: 1; border-radius: 6px;
+    background-size: cover; background-position: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.45);
   }
-  .tile .t { margin-top: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tile .u { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .t { margin-top: 10px; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .u { margin-top: 2px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    cursor: pointer;
+    display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer;
   }
   .row .thumb {
-    width: 52px; height: 52px; border-radius: 8px;
+    width: 48px; height: 48px; border-radius: 4px;
     background-size: cover; background-position: center; flex-shrink: 0;
   }
   .row .meta { flex: 1; min-width: 0; }
-  .row .meta .t { font-size: 16px; font-weight: 560; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .meta .t.live { color: var(--accent); }
+  .row .meta .t { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .meta .t.on { color: var(--accent); }
   .row .meta .u { font-size: 13px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .dur { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-  .heart { color: var(--accent); font-size: 12px; margin-right: 6px; }
+  .row .more { color: var(--muted); font-size: 18px; padding: 8px; }
 
-  .segs {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    margin: 14px 0 8px;
-    scrollbar-width: none;
+  .chips { display: flex; gap: 8px; overflow-x: auto; margin: 8px 0 12px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chips button {
+    border: 0; background: var(--chip); color: var(--text);
+    padding: 8px 14px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
-  .segs::-webkit-scrollbar { display: none; }
-  .segs button {
-    border: 0;
-    background: var(--elevated);
-    color: var(--text);
-    padding: 8px 14px;
-    border-radius: 999px;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-  .segs button.on { background: var(--text); color: #000; }
+  .chips button.on { background: var(--accent); color: #000; }
 
   .empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0 12px 40px;
-    gap: 14px;
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: 12px; padding: 0 20px 48px;
   }
-  .orb {
-    width: 148px; height: 148px; border-radius: 50%;
-    background:
-      radial-gradient(circle at 35% 30%, rgba(255,59,92,0.45), transparent 55%),
-      radial-gradient(circle at 70% 70%, rgba(255,120,90,0.25), transparent 50%),
-      var(--surface);
-    display: grid; place-items: center;
-    margin-bottom: 8px;
+  .empty .icon {
+    width: 72px; height: 72px; border-radius: 50%; background: var(--elevated);
+    display: grid; place-items: center; margin-bottom: 8px; color: var(--muted); font-size: 28px;
   }
-  .orb svg { width: 48px; height: 48px; color: #fff; opacity: 0.92; }
-  .empty h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
-  .empty p { color: var(--muted); font-size: 15px; line-height: 1.45; max-width: 280px; }
+  .empty h2 { font-size: 24px; font-weight: 800; }
+  .empty p { color: var(--muted); font-size: 14px; line-height: 1.45; max-width: 260px; }
 
-  /* Mini player */
   .mini {
-    margin: 0 12px 8px;
-    background: var(--elevated);
-    border-radius: 14px;
-    overflow: hidden;
-    display: none;
-    cursor: pointer;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    display: none; margin: 0 8px 6px; background: #181818; border-radius: 8px;
+    overflow: hidden; cursor: pointer;
   }
   .mini.show { display: block; }
-  .mini .prog { height: 2px; background: rgba(255,255,255,0.08); }
-  .mini .prog i { display: block; height: 100%; width: 34%; background: var(--accent); }
-  .mini .body {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px 8px 8px;
-  }
-  .mini .art {
-    width: 44px; height: 44px; border-radius: 8px;
-    background-size: cover; background-position: center;
-  }
+  .mini .body { display: flex; align-items: center; gap: 10px; padding: 8px; }
+  .mini .art { width: 40px; height: 40px; border-radius: 4px; background-size: cover; background-position: center; }
   .mini .meta { flex: 1; min-width: 0; }
-  .mini .meta .t { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mini .meta .u { font-size: 12px; color: var(--muted); }
-  .mini .ctrls { display: flex; gap: 2px; }
-  .mini .ctrls button {
-    width: 40px; height: 40px; border: 0; background: transparent; color: var(--text);
-    font-size: 18px; cursor: pointer; border-radius: 999px;
-  }
+  .mini .meta .t { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini .meta .u { font-size: 11px; color: var(--muted); }
+  .mini button { border: 0; background: transparent; color: #fff; width: 36px; height: 36px; font-size: 16px; cursor: pointer; }
+  .mini .bar { height: 2px; background: #3e3e3e; }
+  .mini .bar i { display: block; height: 100%; background: #fff; width: 30%; }
 
-  /* Tab bar */
   .tabbar {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    padding: 6px 4px calc(8px + var(--safe-b));
-    border-top: 1px solid var(--sep);
-    background: rgba(0,0,0,0.92);
-    backdrop-filter: blur(20px);
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 8px 2px calc(10px + var(--safe-b));
+    background: #000; border-top: 1px solid var(--sep);
   }
   .tabbar button {
-    border: 0; background: transparent; color: var(--muted);
+    border: 0; background: transparent; color: #b3b3b3;
     font: inherit; font-size: 10px; font-weight: 500;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 4px 0; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
   }
-  .tabbar button.on { color: var(--accent); }
-  .tabbar svg { width: 24px; height: 24px; }
+  .tabbar button.on { color: #fff; }
+  .tabbar svg { width: 22px; height: 22px; }
+  .tabbar button.on svg { fill: #fff; }
 
-  /* Now Playing sheet */
+  /* Now Playing — Spotify-like */
   .np {
-    position: absolute; inset: 0; z-index: 60;
-    background: #0b0b0c;
-    display: none;
-    flex-direction: column;
-    padding: 10px 24px 28px;
-    animation: up .32s cubic-bezier(.2,.8,.2,1);
+    position: absolute; inset: 0; z-index: 50; display: none; flex-direction: column;
+    padding: 12px 24px 28px; background: #121212;
   }
   .np.on { display: flex; }
-  @keyframes up { from { transform: translateY(8%); opacity: 0; } to { transform: none; opacity: 1; } }
-  .np-bg {
+  .np-wash {
     position: absolute; inset: 0; z-index: 0;
     background-size: cover; background-position: center;
-    filter: blur(48px) saturate(1.2); opacity: 0.35; transform: scale(1.2);
+    filter: blur(60px) brightness(0.45); opacity: 0.85; transform: scale(1.3);
   }
-  .np-bg::after {
+  .np-wash::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.92) 70%);
+    background: linear-gradient(180deg, rgba(18,18,18,.2), #121212 72%);
   }
   .np > * { position: relative; z-index: 1; }
   .grab {
-    width: 36px; height: 5px; border-radius: 99px;
-    background: rgba(255,255,255,0.35); margin: 8px auto 18px; cursor: pointer;
+    width: 40px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.35);
+    margin: 6px auto 16px; cursor: pointer;
   }
   .np-art {
-    width: min(100%, 320px); aspect-ratio: 1; margin: 8px auto 0;
-    border-radius: 18px; background-size: cover; background-position: center;
-    box-shadow: 0 28px 60px rgba(0,0,0,0.55);
-    transition: transform .35s cubic-bezier(.2,.8,.2,1);
+    width: min(100%, 320px); aspect-ratio: 1; margin: 12px auto 0;
+    border-radius: 8px; background-size: cover; background-position: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    transition: transform .3s ease;
   }
-  .np-art.paused { transform: scale(0.92); }
-  .np-info { margin-top: 28px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
-  .np-info h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
-  .np-info .a { color: rgba(255,255,255,0.72); font-size: 18px; margin-top: 4px; }
-  .np-info .al { color: rgba(255,255,255,0.45); font-size: 14px; margin-top: 4px; }
-  .fav {
-    width: 44px; height: 44px; border-radius: 999px; border: 0;
-    background: rgba(255,255,255,0.08); color: var(--accent); font-size: 18px; cursor: pointer;
-  }
-  .seek { margin-top: 26px; }
-  .seek .track {
-    height: 4px; border-radius: 99px; background: rgba(255,255,255,0.18); position: relative; cursor: pointer;
-  }
+  .np-art.paused { transform: scale(.94); }
+  .np-meta { margin-top: 28px; }
+  .np-meta h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .np-meta .a { color: var(--muted); font-size: 15px; margin-top: 4px; font-weight: 500; }
+  .seek { margin-top: 22px; }
+  .seek .track { height: 4px; border-radius: 99px; background: rgba(255,255,255,.25); position: relative; }
   .seek .track i {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 36%;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 34%;
     background: #fff; border-radius: 99px;
-  }
-  .seek .track i::after {
-    content: ""; position: absolute; right: -7px; top: 50%; width: 14px; height: 14px;
-    border-radius: 50%; background: #fff; transform: translateY(-50%);
   }
   .times {
     display: flex; justify-content: space-between; margin-top: 8px;
-    font-size: 12px; color: rgba(255,255,255,0.55); font-variant-numeric: tabular-nums;
+    font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums;
   }
-  .transport {
-    margin-top: 28px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1.4fr 1fr 1fr;
-    align-items: center;
-    gap: 4px;
+  .controls {
+    margin-top: 18px;
+    display: grid; grid-template-columns: 1fr 1fr 1.3fr 1fr 1fr;
+    align-items: center; gap: 4px;
   }
-  .transport button {
-    border: 0; background: transparent; color: #fff; cursor: pointer;
-    height: 52px; font-size: 18px; border-radius: 999px;
+  .controls button {
+    border: 0; background: transparent; color: #fff; height: 48px; font-size: 18px; cursor: pointer;
   }
-  .transport .play {
-    width: 74px; height: 74px; margin: 0 auto;
-    background: #fff; color: #000; font-size: 26px; font-weight: 700;
+  .controls .green { color: var(--accent); }
+  .controls .play {
+    width: 64px; height: 64px; margin: 0 auto; border-radius: 50%;
+    background: #fff; color: #000; font-size: 22px; font-weight: 700;
     display: grid; place-items: center;
   }
-  .transport .accent { color: var(--accent); }
-  .extra {
-    margin-top: auto;
-    display: flex; justify-content: space-between; padding-top: 18px;
+  .np-bottom {
+    margin-top: auto; display: flex; justify-content: space-between; padding-top: 12px;
   }
-  .extra button {
-    border: 0; background: transparent; color: #fff; font-size: 20px; cursor: pointer; width: 44px; height: 44px;
-  }
+  .np-bottom button { border: 0; background: transparent; color: #fff; font-size: 18px; width: 40px; height: 40px; cursor: pointer; }
 
-  .search-box {
-    background: var(--elevated);
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: flex; gap: 8px; align-items: center;
-    color: var(--muted); margin-bottom: 16px;
+  .search {
+    background: #fff; color: #000; border-radius: 6px; padding: 10px 12px;
+    display: flex; gap: 8px; align-items: center; margin-bottom: 14px; font-weight: 600;
   }
-  .search-box input {
-    flex: 1; border: 0; background: transparent; color: var(--text);
-    font: inherit; font-size: 16px; outline: none;
+  .search input {
+    flex: 1; border: 0; outline: none; background: transparent; font: inherit; font-size: 15px; color: #000;
   }
-
-  .settings .cell {
-    background: var(--surface);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 16px;
+  .cell {
+    background: var(--elevated); border-radius: 10px; overflow: hidden; margin-bottom: 14px;
   }
-  .settings .item {
+  .item {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 16px; border-bottom: 1px solid var(--sep); font-size: 16px;
+    padding: 14px 14px; border-bottom: 1px solid var(--sep); font-size: 15px;
   }
-  .settings .item:last-child { border-bottom: 0; }
-  .settings .item span { color: var(--muted); font-size: 15px; }
-  .toggle {
-    width: 50px; height: 30px; border-radius: 99px; background: #333; position: relative;
-  }
+  .item:last-child { border-bottom: 0; }
+  .item span { color: var(--muted); }
+  .toggle { width: 46px; height: 28px; border-radius: 99px; background: #555; position: relative; }
   .toggle.on { background: var(--accent); }
   .toggle::after {
-    content: ""; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px;
+    content: ""; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px;
     border-radius: 50%; background: #fff; transition: .2s;
   }
-  .toggle.on::after { left: 22px; }
+  .toggle.on::after { left: 20px; }
 
-  .hint {
-    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-    color: #666; font-size: 12px; text-align: center; max-width: 90%;
-    display: none;
+  .quick {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;
   }
-  @media (min-width: 520px) {
-    .hint { display: block; }
+  .quick .q {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--elevated); border-radius: 6px; overflow: hidden; cursor: pointer;
   }
+  .quick .q .c {
+    width: 54px; height: 54px; background-size: cover; background-position: center; flex-shrink: 0;
+  }
+  .quick .q .n { font-size: 13px; font-weight: 700; padding-right: 8px; line-height: 1.25; }
 </style>
 </head>
 <body>
-  <div class="device" id="device">
-    <div class="island"></div>
-    <div class="status">
-      <div>9:41</div>
-      <div class="right">●●●● ▮▮▮ 🔋</div>
+<div class="device">
+  <div class="island"></div>
+  <div class="status"><div>9:41</div><div>▮▮▮ 🔋</div></div>
+  <div class="app">
+
+    <section class="page on" id="page-home">
+      <div class="greet">Good afternoon</div>
+      <div class="brand">NOVA</div>
+      <div class="quick" id="quick"></div>
+      <button class="btn btn-green" id="importBtn" style="margin:14px 0 4px">Import Music</button>
+      <div class="section">
+        <h2>Recently played</h2>
+        <div class="shelf" id="recent"></div>
+      </div>
+      <div class="section">
+        <h2>Liked songs</h2>
+        <div id="liked"></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <section class="page" id="page-library">
+      <div class="title">Your Library</div>
+      <div class="chips">
+        <button class="on">Songs</button>
+        <button>Albums</button>
+        <button>Artists</button>
+        <button>Playlists</button>
+      </div>
+      <div id="lib"></div>
+    </section>
+
+    <section class="page" id="page-playlists">
+      <div class="title">Playlists</div>
+      <button class="btn btn-dark" style="margin-bottom:14px">Create playlist</button>
+      <div class="row" data-i="0"><div class="thumb" style="background:#282828;display:grid;place-items:center;font-size:20px">♡</div><div class="meta"><div class="t">Liked Songs</div><div class="u">Playlist · 2 songs</div></div></div>
+      <div class="row" data-i="1"><div class="thumb" id="pl1"></div><div class="meta"><div class="t">Late Drive</div><div class="u">Playlist · 12 songs</div></div></div>
+      <div class="row" data-i="2"><div class="thumb" id="pl2"></div><div class="meta"><div class="t">Focus Deep</div><div class="u">Playlist · 8 songs</div></div></div>
+    </section>
+
+    <section class="page" id="page-search">
+      <div class="title">Search</div>
+      <div class="search"><span>⌕</span><input id="q" placeholder="What do you want to listen to?" /></div>
+      <div id="searchList"></div>
+    </section>
+
+    <section class="page" id="page-settings">
+      <div class="title">Settings</div>
+      <div class="cell">
+        <div class="item">Appearance <span>Dark</span></div>
+        <div class="item">Resume playback <div class="toggle on" data-toggle></div></div>
+        <div class="item">Remember position <div class="toggle on" data-toggle></div></div>
+      </div>
+      <div class="cell">
+        <div class="item">Equalizer <span>Off</span></div>
+        <div class="item">Sleep timer <span>Off</span></div>
+      </div>
+      <div class="cell"><div class="item">Version <span>1.0.0</span></div></div>
+    </section>
+
+    <section class="page" id="page-empty">
+      <div class="brand" style="margin-top:8px">NOVA</div>
+      <div class="empty">
+        <div class="icon">♪</div>
+        <h2>Find your music</h2>
+        <p>Import MP3, M4A, AAC or WAV from Files. Your library stays on this iPhone.</p>
+        <button class="btn btn-green" style="width:auto;padding-inline:28px" id="fillLib">Import Music</button>
+      </div>
+    </section>
+
+    <div class="mini show" id="mini">
+      <div class="body">
+        <div class="art" id="miniArt"></div>
+        <div class="meta"><div class="t" id="miniTitle"></div><div class="u" id="miniArtist"></div></div>
+        <button id="miniPlay">❚❚</button>
+        <button id="miniNext">⏭</button>
+      </div>
+      <div class="bar"><i id="miniBar"></i></div>
     </div>
 
-    <div class="app">
-      <!-- HOME -->
-      <section class="page on" id="page-home">
-        <div class="brand">NOVA</div>
-        <div class="lede">Listen offline.</div>
-        <button class="btn btn-primary" id="importBtn">↓  Import Music</button>
-
-        <div class="section">
-          <div class="section-h"><h2>Recently Played</h2><span>See All</span></div>
-          <div class="shelf" id="recentShelf"></div>
-        </div>
-        <div class="section">
-          <div class="section-h"><h2>Favorites</h2></div>
-          <div id="favList"></div>
-        </div>
-        <div style="height: 12px"></div>
-      </section>
-
-      <!-- LIBRARY -->
-      <section class="page" id="page-library">
-        <div class="headline">Library</div>
-        <div class="segs">
-          <button class="on">Songs</button>
-          <button>Albums</button>
-          <button>Artists</button>
-          <button>Favorites</button>
-        </div>
-        <div id="libList"></div>
-      </section>
-
-      <!-- PLAYLISTS -->
-      <section class="page" id="page-playlists">
-        <div class="headline">Playlists</div>
-        <div class="lede">Build your listening nights.</div>
-        <button class="btn btn-secondary" style="margin-bottom:16px">＋ New Playlist</button>
-        <div class="row" data-play="0">
-          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&q=80')"></div>
-          <div class="meta"><div class="t">Late Drive</div><div class="u">12 songs · 48 min</div></div>
-        </div>
-        <div class="row" data-play="1">
-          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&q=80')"></div>
-          <div class="meta"><div class="t">Focus Deep</div><div class="u">8 songs · 31 min</div></div>
-        </div>
-        <div class="row" data-play="2">
-          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1459749411175-04741767548d?w=200&q=80')"></div>
-          <div class="meta"><div class="t">Sunday Vinyl</div><div class="u">15 songs · 1 hr 2 min</div></div>
-        </div>
-      </section>
-
-      <!-- SEARCH -->
-      <section class="page" id="page-search">
-        <div class="headline">Search</div>
-        <div class="lede">Title, artist, or album</div>
-        <div class="search-box">
-          <span>⌕</span>
-          <input id="q" placeholder="Search library" />
-        </div>
-        <div id="searchList"></div>
-      </section>
-
-      <!-- SETTINGS -->
-      <section class="page settings" id="page-settings">
-        <div class="headline">Settings</div>
-        <div class="lede">Playback & appearance</div>
-        <div class="cell">
-          <div class="item">Appearance <span>Dark</span></div>
-          <div class="item">Resume on Launch <div class="toggle on" data-toggle></div></div>
-          <div class="item">Remember Position <div class="toggle on" data-toggle></div></div>
-        </div>
-        <div class="cell">
-          <div class="item">Equalizer <span>Off</span></div>
-          <div class="item">Sleep Timer <span>Off</span></div>
-        </div>
-        <div class="cell">
-          <div class="item">About <span>NOVA 1.0</span></div>
-        </div>
-      </section>
-
-      <!-- EMPTY (shown via import demo toggle) -->
-      <section class="page" id="page-empty">
-        <div class="brand">NOVA</div>
-        <div class="lede">Your offline music, beautifully simple.</div>
-        <div class="empty">
-          <div class="orb">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12c2-4 4-6 6-6s3 4 5 4 4-2 7-2M3 17c2-3 4-4.5 6-4.5s3 3 5 3 4-1.5 7-1.5"/></svg>
-          </div>
-          <h2>Import your music</h2>
-          <p>Add MP3, M4A, AAC, WAV from the Files app. Everything stays on your iPhone.</p>
-          <button class="btn btn-primary" style="width:auto;padding-inline:28px" id="fillLibrary">Import Music</button>
-        </div>
-      </section>
-
-      <div class="mini show" id="mini">
-        <div class="prog"><i id="miniProg"></i></div>
-        <div class="body">
-          <div class="art" id="miniArt"></div>
-          <div class="meta">
-            <div class="t" id="miniTitle">Midnight Drive</div>
-            <div class="u" id="miniArtist">Northline</div>
-          </div>
-          <div class="ctrls">
-            <button id="miniPlay" aria-label="Play">❚❚</button>
-            <button id="miniNext" aria-label="Next">⏭</button>
-          </div>
-        </div>
-      </div>
-
-      <nav class="tabbar" id="tabs">
-        <button class="on" data-tab="home">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5L12 3z"/></svg>
-          Home
-        </button>
-        <button data-tab="library">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h12v16H4zM18 6h2v14h-2zM21 8h1v12h-1z"/></svg>
-          Library
-        </button>
-        <button data-tab="playlists">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>
-          Playlists
-        </button>
-        <button data-tab="search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          Search
-        </button>
-        <button data-tab="settings">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm9.4 4a7.6 7.6 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7.7 7.7 0 0 0-1.7-1L16.8 2h-4l-.4 2.5a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7.7 7.7 0 0 0 1.7 1L12.8 22h4l.4-2.5a7.7 7.7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1z"/></svg>
-          Settings
-        </button>
-      </nav>
-    </div>
-
-    <!-- Now Playing -->
-    <div class="np" id="np">
-      <div class="np-bg" id="npBg"></div>
-      <div class="grab" id="npClose"></div>
-      <div class="np-art" id="npArt"></div>
-      <div class="np-info">
-        <div>
-          <h1 id="npTitle">Midnight Drive</h1>
-          <div class="a" id="npArtist">Northline</div>
-          <div class="al" id="npAlbum">After Hours</div>
-        </div>
-        <button class="fav" id="favBtn">♥</button>
-      </div>
-      <div class="seek">
-        <div class="track" id="seek"><i id="seekFill"></i></div>
-        <div class="times"><span id="tCur">1:24</span><span id="tDur">3:42</span></div>
-      </div>
-      <div class="transport">
-        <button class="accent" id="shuffle">⇄</button>
-        <button id="prev">⏮</button>
-        <button class="play" id="play">❚❚</button>
-        <button id="next">⏭</button>
-        <button id="repeat">↻</button>
-      </div>
-      <div class="extra">
-        <button title="Add">＋</button>
-        <button title="Queue">≡</button>
-      </div>
-    </div>
+    <nav class="tabbar" id="tabs">
+      <button class="on" data-tab="home">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 12h3v9h6v-6h2v6h6v-9h3L12 3z"/></svg>Home
+      </button>
+      <button data-tab="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>Search
+      </button>
+      <button data-tab="library">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h14v16H3zM19 6h2v14h-2z"/></svg>Library
+      </button>
+      <button data-tab="playlists">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h12v2H4z"/></svg>Playlists
+      </button>
+      <button data-tab="settings">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings
+      </button>
+    </nav>
   </div>
 
-  <div class="hint">Interactive app preview · tabs + Now Playing work · open full URL on phone for immersive feel</div>
+  <div class="np" id="np">
+    <div class="np-wash" id="npWash"></div>
+    <div class="grab" id="npClose"></div>
+    <div class="np-art" id="npArt"></div>
+    <div class="np-meta">
+      <h1 id="npTitle"></h1>
+      <div class="a" id="npArtist"></div>
+    </div>
+    <div class="seek">
+      <div class="track"><i id="seekFill"></i></div>
+      <div class="times"><span id="tCur">0:54</span><span id="tDur">3:42</span></div>
+    </div>
+    <div class="controls">
+      <button class="green" id="shuf">⇄</button>
+      <button id="prev">⏮</button>
+      <button class="play" id="play">❚❚</button>
+      <button id="next">⏭</button>
+      <button id="rep">↻</button>
+    </div>
+    <div class="np-bottom">
+      <button>🖥</button>
+      <button>≡</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const songs = [
-  { title: "Midnight Drive", artist: "Northline", album: "After Hours", dur: "3:42", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", fav: true },
-  { title: "Glass Harbor", artist: "Kinetic", album: "Harbor EP", dur: "4:11", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80", fav: false },
-  { title: "Soft Static", artist: "Lumen", album: "Soft Static", dur: "2:58", img: "https://images.unsplash.com/photo-1459749411175-04741767548d?w=800&q=80", fav: true },
-  { title: "Low Orbit", artist: "NOVA Session", album: "Singles", dur: "3:21", img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80", fav: false },
-  { title: "Amber Rooms", artist: "Corridor", album: "Rooms", dur: "5:02", img: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=800&q=80", fav: false },
+  { title: "Midnight Drive", artist: "Northline", album: "After Hours", dur: "3:42", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", liked: true },
+  { title: "Glass Harbor", artist: "Kinetic", album: "Harbor EP", dur: "4:11", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80", liked: false },
+  { title: "Soft Static", artist: "Lumen", album: "Soft Static", dur: "2:58", img: "https://images.unsplash.com/photo-1459749411175-04741767548d?w=800&q=80", liked: true },
+  { title: "Low Orbit", artist: "NOVA Session", album: "Singles", dur: "3:21", img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80", liked: false },
+  { title: "Amber Rooms", artist: "Corridor", album: "Rooms", dur: "5:02", img: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=800&q=80", liked: false },
 ];
+let index = 0, playing = true, progress = 0.28;
 
-let index = 0;
-let playing = true;
-let progress = 0.36;
+const row = (s, i) => `<div class="row" data-i="${i}">
+  <div class="thumb" style="background-image:url('${s.img}')"></div>
+  <div class="meta"><div class="t ${i===index?'on':''}">${s.title}</div><div class="u">${s.artist}</div></div>
+  <div class="more">···</div>
+</div>`;
 
-function rowHTML(s, i) {
-  return `<div class="row" data-i="${i}">
-    <div class="thumb" style="background-image:url('${s.img}')"></div>
-    <div class="meta">
-      <div class="t ${i===index && playing ? 'live':''}">${s.fav?'<span class="heart">♥</span>':''}${s.title}</div>
-      <div class="u">${s.artist} · ${s.album}</div>
-    </div>
-    <div class="dur">${s.dur}</div>
-  </div>`;
-}
-
-function renderLists() {
-  document.getElementById('recentShelf').innerHTML = songs.slice(0,4).map((s,i)=>`
-    <div class="tile" data-i="${i}">
-      <div class="cover" style="background-image:url('${s.img}')"></div>
-      <div class="t">${s.title}</div>
-      <div class="u">${s.artist}</div>
-    </div>`).join('');
-  document.getElementById('favList').innerHTML = songs.filter(s=>s.fav).map((s)=>rowHTML(s, songs.indexOf(s))).join('');
-  document.getElementById('libList').innerHTML = songs.map((s,i)=>rowHTML(s,i)).join('');
-  document.getElementById('searchList').innerHTML = songs.map((s,i)=>rowHTML(s,i)).join('');
-  bindSongClicks();
-}
-
-function bindSongClicks() {
-  document.querySelectorAll('[data-i]').forEach(el => {
-    el.onclick = () => { index = +el.dataset.i; playing = true; syncPlayer(); openNP(); };
+function render() {
+  document.getElementById('quick').innerHTML = songs.slice(0,4).map((s,i)=>`
+    <div class="q" data-i="${i}"><div class="c" style="background-image:url('${s.img}')"></div><div class="n">${s.title}</div></div>`).join('');
+  document.getElementById('recent').innerHTML = songs.map((s,i)=>`
+    <div class="card" data-i="${i}"><div class="cover" style="background-image:url('${s.img}')"></div>
+    <div class="t">${s.title}</div><div class="u">${s.artist}</div></div>`).join('');
+  document.getElementById('liked').innerHTML = songs.filter(s=>s.liked).map(s=>row(s, songs.indexOf(s))).join('');
+  document.getElementById('lib').innerHTML = songs.map((s,i)=>row(s,i)).join('');
+  document.getElementById('searchList').innerHTML = songs.map((s,i)=>row(s,i)).join('');
+  document.getElementById('pl1').style.backgroundImage = `url('${songs[0].img}')`;
+  document.getElementById('pl2').style.backgroundImage = `url('${songs[1].img}')`;
+  document.querySelectorAll('[data-i]').forEach(el => el.onclick = () => {
+    index = +el.dataset.i; playing = true; sync(); openNP();
   });
 }
 
-function syncPlayer() {
+function sync() {
   const s = songs[index];
-  ['miniArt','npArt','npBg'].forEach(id => {
-    document.getElementById(id).style.backgroundImage = `url('${s.img}')`;
-  });
-  document.getElementById('miniTitle').textContent = s.title;
-  document.getElementById('miniArtist').textContent = s.artist;
-  document.getElementById('npTitle').textContent = s.title;
-  document.getElementById('npArtist').textContent = s.artist;
-  document.getElementById('npAlbum').textContent = s.album;
-  document.getElementById('tDur').textContent = s.dur;
-  document.getElementById('play').textContent = playing ? '❚❚' : '▶';
-  document.getElementById('miniPlay').textContent = playing ? '❚❚' : '▶';
-  document.getElementById('npArt').classList.toggle('paused', !playing);
-  document.getElementById('seekFill').style.width = (progress*100)+'%';
-  document.getElementById('miniProg').style.width = (progress*100)+'%';
-  document.getElementById('favBtn').style.color = s.fav ? 'var(--accent)' : '#fff';
-  renderLists();
+  ['miniArt','npArt','npWash'].forEach(id => document.getElementById(id).style.backgroundImage = `url('${s.img}')`);
+  miniTitle.textContent = s.title; miniArtist.textContent = s.artist;
+  npTitle.textContent = s.title; npArtist.textContent = s.artist;
+  tDur.textContent = s.dur;
+  play.textContent = playing ? '❚❚' : '▶';
+  miniPlay.textContent = playing ? '❚❚' : '▶';
+  npArt.classList.toggle('paused', !playing);
+  seekFill.style.width = miniBar.style.width = (progress*100)+'%';
+  render();
 }
 
-function openNP(){ document.getElementById('np').classList.add('on'); }
-function closeNP(){ document.getElementById('np').classList.remove('on'); }
-
-function showPage(id) {
+function show(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab===id));
-  document.getElementById('mini').classList.toggle('show', id !== 'empty');
+  mini.classList.toggle('show', id !== 'empty');
 }
+function openNP(){ np.classList.add('on'); }
+function closeNP(){ np.classList.remove('on'); }
 
-document.getElementById('tabs').addEventListener('click', e => {
-  const b = e.target.closest('button[data-tab]');
-  if (b) showPage(b.dataset.tab);
-});
-
-document.getElementById('mini').onclick = (e) => {
-  if (e.target.closest('#miniPlay')) { playing = !playing; syncPlayer(); e.stopPropagation(); return; }
-  if (e.target.closest('#miniNext')) { index = (index+1)%songs.length; syncPlayer(); e.stopPropagation(); return; }
+tabs.onclick = e => { const b = e.target.closest('[data-tab]'); if (b) show(b.dataset.tab); };
+mini.onclick = e => {
+  if (e.target.closest('#miniPlay')) { playing=!playing; sync(); e.stopPropagation(); return; }
+  if (e.target.closest('#miniNext')) { index=(index+1)%songs.length; progress=.02; sync(); e.stopPropagation(); return; }
   openNP();
 };
-document.getElementById('npClose').onclick = closeNP;
-document.getElementById('play').onclick = () => { playing = !playing; syncPlayer(); };
-document.getElementById('next').onclick = () => { index = (index+1)%songs.length; progress=0.05; syncPlayer(); };
-document.getElementById('prev').onclick = () => { index = (index-1+songs.length)%songs.length; progress=0.05; syncPlayer(); };
-document.getElementById('favBtn').onclick = () => { songs[index].fav = !songs[index].fav; syncPlayer(); };
-document.getElementById('shuffle').onclick = (e) => e.currentTarget.classList.toggle('accent');
-document.getElementById('repeat').onclick = (e) => e.currentTarget.classList.toggle('accent');
-
-document.getElementById('q').oninput = (e) => {
-  const q = e.target.value.toLowerCase();
-  const filtered = songs.map((s,i)=>({s,i})).filter(({s}) =>
-    s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.album.toLowerCase().includes(q)
-  );
-  document.getElementById('searchList').innerHTML = filtered.map(({s,i})=>rowHTML(s,i)).join('');
-  bindSongClicks();
-};
-
+npClose.onclick = closeNP;
+play.onclick = () => { playing=!playing; sync(); };
+next.onclick = () => { index=(index+1)%songs.length; progress=.02; sync(); };
+prev.onclick = () => { index=(index-1+songs.length)%songs.length; progress=.02; sync(); };
+shuf.onclick = e => e.currentTarget.classList.toggle('green');
+rep.onclick = e => e.currentTarget.classList.toggle('green');
+importBtn.onclick = () => show('empty');
+fillLib.onclick = () => { show('home'); openNP(); };
 document.querySelectorAll('[data-toggle]').forEach(t => t.onclick = () => t.classList.toggle('on'));
-
-document.getElementById('importBtn').onclick = () => {
-  showPage('empty');
-};
-document.getElementById('fillLibrary').onclick = () => {
-  showPage('home');
-  openNP();
+q.oninput = e => {
+  const v = e.target.value.toLowerCase();
+  searchList.innerHTML = songs.map((s,i)=>({s,i})).filter(({s})=>[s.title,s.artist,s.album].join(' ').toLowerCase().includes(v)).map(({s,i})=>row(s,i)).join('');
+  document.querySelectorAll('#searchList [data-i]').forEach(el => el.onclick = () => { index=+el.dataset.i; playing=true; sync(); openNP(); });
 };
 
-// Fake progress while playing
 setInterval(() => {
   if (!playing) return;
-  progress = Math.min(0.98, progress + 0.0025);
-  document.getElementById('seekFill').style.width = (progress*100)+'%';
-  document.getElementById('miniProg').style.width = (progress*100)+'%';
-  const total = 222; // ~3:42
-  const cur = Math.floor(total * progress);
-  const m = Math.floor(cur/60), sec = String(cur%60).padStart(2,'0');
-  document.getElementById('tCur').textContent = `${m}:${sec}`;
+  progress = Math.min(.98, progress + 0.002);
+  seekFill.style.width = miniBar.style.width = (progress*100)+'%';
+  const total=222, cur=Math.floor(total*progress);
+  tCur.textContent = `${Math.floor(cur/60)}:${String(cur%60).padStart(2,'0')}`;
 }, 400);
 
-renderLists();
-syncPlayer();
-
-// Deep-link helpers
-const params = new URLSearchParams(location.search);
-if (params.get('empty') === '1') showPage('empty');
-if (params.get('np') === '1') openNP();
+render(); sync();
+if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
+if (new URLSearchParams(location.search).get('np')==='1') openNP();
 </script>
 </body>
 </html>

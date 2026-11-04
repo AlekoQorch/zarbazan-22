@@ -1,27 +1,24 @@
-# NOVA MUSIC — Design Reference Lock (v2)
+# NOVA MUSIC — Design Lock (v3 · Spotify-simple)
 
-## Direction
-Premium offline player that feels native iOS — Apple Music simplicity, vinyl warmth.
+## Intent
+Feel like Spotify: dark, calm, content-first. No flashy custom accents.
 
-**Primary:** True black canvases, soft graphite surfaces, rose accent.
-**Reject:** Cyan/teal tech accents, purple glow, dashboard chrome, marketing side panels in the preview.
+## Palette (restrained)
+| Role | Value |
+|------|--------|
+| Background | `#000000` |
+| Surface | `#121212` |
+| Elevated | `#181818` / `#282828` hover |
+| Text | `#FFFFFF` |
+| Text muted | `#B3B3B3` |
+| Accent | `#1DB954` — play, active tab, primary CTA only |
+| Separator | white ~8% |
 
-## Tokens
-| Role | Dark | Light |
-|------|------|-------|
-| Background | `#000000` | `#F2F2F7` |
-| Surface | `#121214` | `#FFFFFF` |
-| Elevated | `#1C1C1E` | `#EBEBF0` |
-| Text primary | `#FFFFFF` | `#000000` |
-| Text secondary | `#8E8E93` | `#6C6C70` |
-| Accent | `#FF3B5C` | `#E11D48` |
-| Accent soft | `#FF3B5C` @ 16% | — |
-| Separator | white 10% | black 10% |
+No cyan, no rose, no purple glow.
 
-## Motion
-- Artwork scales 0.94 ↔ 1.0 on pause/play
-- Tab crossfade 200ms
-- Now Playing present as full-screen sheet
-
-## Preview
-The browser preview must feel like launching the app — phone frame only, working tabs, mini player, Now Playing sheet. No tutorial chrome inside the device.
+## Patterns
+- Home: horizontal shelves of square covers
+- Rows: 48–56pt thumbs, title + subtitle, duration
+- Now Playing: large cover, white controls, green only on active shuffle/repeat if on
+- Mini player: dark elevated bar above tabs
+- Tabs: muted gray / green when selected

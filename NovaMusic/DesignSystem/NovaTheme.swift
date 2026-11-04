@@ -1,30 +1,30 @@
 import SwiftUI
 
 enum NovaTheme {
+    /// Spotify-simple: black surfaces, muted gray text, green only for active/CTA.
     enum Fallback {
         static let backgroundDark = Color.black
-        static let backgroundLight = Color(red: 0.949, green: 0.949, blue: 0.969)
-        static let surfaceDark = Color(red: 0.071, green: 0.071, blue: 0.078)
-        static let surfaceLight = Color.white
-        static let elevatedDark = Color(red: 0.110, green: 0.110, blue: 0.118)
-        static let elevatedLight = Color(red: 0.922, green: 0.922, blue: 0.941)
+        static let backgroundLight = Color.white
+        static let surfaceDark = Color(red: 0.071, green: 0.071, blue: 0.071) // #121212
+        static let surfaceLight = Color(red: 0.95, green: 0.95, blue: 0.95)
+        static let elevatedDark = Color(red: 0.094, green: 0.094, blue: 0.094) // #181818
+        static let elevatedLight = Color(red: 0.92, green: 0.92, blue: 0.92)
         static let textPrimaryDark = Color.white
         static let textPrimaryLight = Color.black
-        static let textSecondaryDark = Color(red: 0.557, green: 0.557, blue: 0.576)
-        static let textSecondaryLight = Color(red: 0.424, green: 0.424, blue: 0.439)
-        /// Warm rose — music-native, not cyan/tech.
-        static let accentDark = Color(red: 1.0, green: 0.231, blue: 0.361)
-        static let accentLight = Color(red: 0.882, green: 0.114, blue: 0.282)
+        static let textSecondaryDark = Color(red: 0.702, green: 0.702, blue: 0.702) // #B3B3B3
+        static let textSecondaryLight = Color(red: 0.45, green: 0.45, blue: 0.45)
+        static let accentDark = Color(red: 0.114, green: 0.725, blue: 0.329) // #1DB954
+        static let accentLight = Color(red: 0.09, green: 0.60, blue: 0.26)
         static let destructive = Color(red: 1.0, green: 0.271, blue: 0.227)
     }
 
     enum Radius {
-        static let small: CGFloat = 8
-        static let medium: CGFloat = 12
-        static let large: CGFloat = 14
-        static let artwork: CGFloat = 12
-        static let artworkLarge: CGFloat = 18
-        static let sheet: CGFloat = 20
+        static let small: CGFloat = 4
+        static let medium: CGFloat = 8
+        static let large: CGFloat = 12
+        static let artwork: CGFloat = 6
+        static let artworkLarge: CGFloat = 8
+        static let sheet: CGFloat = 16
     }
 
     enum Spacing {

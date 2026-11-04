@@ -126,15 +126,7 @@ struct NowPlayingView: View {
                         )
                     }
             } else {
-                LinearGradient(
-                    colors: [
-                        Color.novaAccent.opacity(0.28),
-                        Color.black.opacity(0.95),
-                        Color.novaBackground
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                Color.novaSurface
             }
         }
     }

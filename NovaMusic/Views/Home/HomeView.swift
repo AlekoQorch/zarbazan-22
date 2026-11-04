@@ -62,17 +62,31 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("NOVA")
-                .font(.system(size: 36, weight: .heavy, design: .default))
-                .foregroundStyle(Color.novaTextPrimary)
-                .tracking(6)
-            Text(appState.library.songs.isEmpty ? "Your offline music, beautifully simple." : "Listen offline.")
-                .font(.subheadline)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(greeting)
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.novaTextSecondary)
+            Text("NOVA")
+                .font(.system(size: 28, weight: .heavy))
+                .foregroundStyle(Color.novaTextPrimary)
+            if appState.library.songs.isEmpty {
+                Text("Your offline music, simply.")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.novaTextSecondary)
+                    .padding(.top, 2)
+            }
         }
         .padding(.top, NovaTheme.Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return "Good morning"
+        case 12..<18: return "Good afternoon"
+        default: return "Good evening"
+        }
     }
 
     private var importCTA: some View {
@@ -200,35 +214,19 @@ struct EmptyLibraryOnboarding: View {
         VStack(spacing: NovaTheme.Spacing.lg) {
             ZStack {
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color.novaAccent.opacity(0.40),
-                                Color.novaAccent.opacity(0.08),
-                                .clear
-                            ],
-                            center: .topLeading,
-                            startRadius: 8,
-                            endRadius: 130
-                        )
-                    )
-                    .frame(width: 220, height: 220)
-                    .background(
-                        Circle()
-                            .fill(Color.novaSurface)
-                            .frame(width: 148, height: 148)
-                    )
-                Image(systemName: "waveform")
-                    .font(.system(size: 44, weight: .light))
-                    .foregroundStyle(Color.white.opacity(0.92))
+                    .fill(Color.novaSurfaceElevated)
+                    .frame(width: 88, height: 88)
+                Image(systemName: "music.note")
+                    .font(.system(size: 32, weight: .regular))
+                    .foregroundStyle(Color.novaTextSecondary)
             }
 
             VStack(spacing: NovaTheme.Spacing.sm) {
-                Text("Import your music")
-                    .font(.title2.weight(.semibold))
+                Text("Find your music")
+                    .font(.title2.weight(.bold))
                     .foregroundStyle(Color.novaTextPrimary)
-                Text("Add MP3, M4A, AAC, WAV and other audio files from the Files app. Everything stays on your iPhone — offline, forever yours.")
-                    .font(.body)
+                Text("Import MP3, M4A, AAC or WAV from Files. Your library stays on this iPhone.")
+                    .font(.subheadline)
                     .foregroundStyle(Color.novaTextSecondary)
                     .multilineTextAlignment(.center)
             }
