@@ -405,7 +405,7 @@
       </div>
       <div id="ytPane">
         <div class="title" style="font-size:26px">YouTube</div>
-        <p class="explore-note" style="margin-top:0">Tap to play. Tries in-app YouTube audio (keeps going when folded); if blocked, opens the YouTube app where fold always works.</p>
+        <p class="explore-note" style="margin-top:0">დაატაპე — აუდიო ჩაკეცვაზეც გრძელდება.</p>
         <div id="ytKeyBox" class="yt-key" style="display:none">
           <b>Optional: YouTube Data API key</b>
           <p>Not required. Paste a Google key only if you want official Data API search.</p>
@@ -430,8 +430,8 @@
       </div>
     </section>
     <audio id="audio" preload="auto" playsinline webkit-playsinline></audio>
-    <!-- Hidden video element for direct audio/muxed streams (background-capable) -->
-    <video id="ytAudio" playsinline webkit-playsinline preload="auto" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-100vw;top:0"></video>
+    <!-- Real HTML5 audio = iOS keeps playing when folded (iframe cannot) -->
+    <audio id="ytAudio" preload="auto" playsinline webkit-playsinline></audio>
     <audio id="keepaliveAudio" preload="auto" loop playsinline webkit-playsinline></audio>
     <div class="yt-loading" id="ytLoading">Starting…</div>
 
@@ -549,9 +549,8 @@ function parseISO8601(iso){
 function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
   return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
 
-const BUILD = '20261105d';
-// Live audio proxy — pipes YouTube audio so iOS can keep playing when folded.
-// (Ephemeral tunnel while the cloud agent is up; falls back to YouTube app.)
+const BUILD = '20261105e';
+// YouTube audio proxy — HTML5 <audio> so fold/lock does NOT pause.
 const YT_STREAM_PROXY = 'https://rabbit-empirical-pixels-mba.trycloudflare.com';
 const PIPED_BASES = [
   'https://api.piped.private.coffee',
@@ -571,43 +570,26 @@ function enableBackgroundAudio(){
   } catch (_) {}
 }
 
-function openYouTubeExternally(videoId){
-  const id = encodeURIComponent(videoId);
-  // Native YouTube / YouTube Music apps continue when the phone is folded.
-  const targets = [
-    `youtube://www.youtube.com/watch?v=${id}`,
-    `youtubemusic://watch?v=${id}`,
-    `https://music.youtube.com/watch?v=${id}`,
-    `https://youtu.be/${id}`
-  ];
-  let i = 0;
-  const go = () => {
-    if (i >= targets.length) return;
-    const href = targets[i++];
-    try { window.location.href = href; } catch (_) {}
-    if (i < targets.length) setTimeout(go, 450);
-  };
-  go();
-}
-
 async function playYouTubeAudioInApp(videoId){
   enableBackgroundAudio();
-  // Fast resolve — avoid long Loading…
-  let proxyPath = `/stream/${encodeURIComponent(videoId)}`;
-  try {
-    const res = await fetchTimeout(`${YT_STREAM_PROXY}/resolve/${encodeURIComponent(videoId)}`, {}, 3500);
-    const data = await res.json();
-    if (!data || !data.ok || !data.proxy) throw new Error(data && data.via || 'unavailable');
-    proxyPath = data.proxy;
-  } catch (e) {
-    throw e;
-  }
   const media = ytMedia();
-  try { media.pause(); } catch (_) {}
-  media.src = YT_STREAM_PROXY + proxyPath;
+  try { media.pause(); media.removeAttribute('src'); media.load(); } catch (_) {}
+  // Direct proxy stream URL (server pipes YouTube audio → fold-safe)
+  media.src = `${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`;
+  const onReady = new Promise((resolve, reject) => {
+    const ok = () => { cleanup(); resolve(); };
+    const bad = () => { cleanup(); reject(new Error('media-error')); };
+    const cleanup = () => {
+      media.removeEventListener('playing', ok);
+      media.removeEventListener('error', bad);
+    };
+    media.addEventListener('playing', ok, { once: true });
+    media.addEventListener('error', bad, { once: true });
+  });
+  const playPromise = media.play();
   await Promise.race([
-    media.play(),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('play-timeout')), 5000))
+    Promise.all([playPromise, onReady]),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
   ]);
   return media.src;
 }
@@ -781,20 +763,19 @@ function stopKeepAliveLoop(){
 
 function forceResumePlayback(){
   if (!wantPlaying) return;
+  enableBackgroundAudio();
   ensureSilentKeepAlive(true);
   if (mode === 'youtube') {
     playing = true;
     ytPlaying = true;
-    if (ytPlayMode === 'embed') {
-      ytCommand('playVideo');
-      setTimeout(() => ytCommand('playVideo'), 200);
-    } else {
-      const v = ytMedia();
-      if (v) v.play().catch(() => {});
+    const v = ytMedia();
+    if (v && v.src) {
+      const p = v.play();
+      if (p && p.catch) p.catch(() => {});
     }
   } else if (mode === 'stream') {
     const a = document.getElementById('audio');
-    if (a) {
+    if (a && a.src) {
       playing = true;
       a.play().catch(() => {});
     }
@@ -827,16 +808,15 @@ function stopYtPlayer(){
 async function openYtPlayer(v){
   const loader = document.getElementById('ytLoading');
   if (loader) {
-    loader.textContent = 'YouTube audio…';
+    loader.textContent = '…';
     loader.classList.add('on');
   }
   currentYt = v;
-  ytStatus.textContent = 'YouTube audio…';
+  ytStatus.textContent = '';
   document.getElementById('ytPlayerSheet')?.classList.remove('on');
   enableBackgroundAudio();
   try { audio.pause(); } catch (_) {}
   try {
-    // 1) In-app YouTube audio via stream proxy → fold/lock keeps playing in NOVA
     await playYouTubeAudioInApp(v.id);
     ytPlayMode = 'audio';
     mode = 'youtube';
@@ -846,15 +826,17 @@ async function openYtPlayer(v){
     progress = 0;
     ensureSilentKeepAlive(true);
     startKeepAliveLoop();
-    requestWakeLock();
     setMediaSession(v.title, v.channel, v.thumb);
     openNP();
     syncUI();
-    ytStatus.textContent = 'YouTube audio · OK when folded';
+    ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results` : '';
   } catch (_) {
-    // 2) YouTube / YouTube Music app — fold always works there
-    ytStatus.textContent = 'Opening YouTube app (fold-safe)…';
-    openYouTubeExternally(v.id);
+    // Stream blocked by YouTube — only remaining fold-safe path is the YouTube app.
+    ytStatus.textContent = 'YouTube აპი…';
+    window.location.href = 'youtube://www.youtube.com/watch?v=' + encodeURIComponent(v.id);
+    setTimeout(() => {
+      window.location.href = 'https://music.youtube.com/watch?v=' + encodeURIComponent(v.id);
+    }, 500);
   } finally {
     if (loader) loader.classList.remove('on');
   }
