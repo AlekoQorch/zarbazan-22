@@ -17,33 +17,45 @@ final class AppState {
     var searchHistory: [String]
     var selectedTab: AppTab = .home
     var librarySegment: LibrarySegment = .songs
-    /// YouTube search works without a Google key (Piped fallback + official embed).
+    /// YouTube search works without a Google key (Piped fallback).
     var exploreSegment: ExploreSegment = .youtube
-    /// Keeps the current YouTube video alive after the full player is dismissed.
+    /// Metadata for the YouTube track currently resolved into AVPlayer.
     var youtubeNowPlaying: YouTubeVideo?
-    var showsYouTubePlayer = false
+    var isResolvingYouTube = false
+    var youtubeResolveError: String?
 
     var hasMiniPlayer: Bool {
         player.hasSomethingToPlay || youtubeNowPlaying != nil
     }
 
     func playYouTube(_ video: YouTubeVideo) {
-        player.pause()
+        youtubeResolveError = nil
+        isResolvingYouTube = true
         youtubeNowPlaying = video
-        showsYouTubePlayer = true
-        BackgroundPlaybackKeeper.shared.setWantPlaying(true)
-    }
-
-    func dismissYouTubePlayer() {
-        // Collapse UI only — embed keep-alive continues in RootView.
-        showsYouTubePlayer = false
-        BackgroundPlaybackKeeper.shared.setWantPlaying(true)
-        BackgroundPlaybackKeeper.shared.forceResume()
+        player.pause()
+        Task { @MainActor in
+            defer { isResolvingYouTube = false }
+            do {
+                let url = try await YouTubeService.resolvePlaybackURL(videoID: video.id)
+                let track = YouTubeService.streamTrack(for: video, url: url)
+                player.playStream(track)
+                player.showsNowPlaying = true
+                BackgroundPlaybackKeeper.shared.setWantPlaying(true)
+            } catch {
+                youtubeResolveError = error.localizedDescription
+                youtubeNowPlaying = nil
+                BackgroundPlaybackKeeper.shared.setWantPlaying(false)
+            }
+        }
     }
 
     func stopYouTube() {
         youtubeNowPlaying = nil
-        showsYouTubePlayer = false
+        youtubeResolveError = nil
+        isResolvingYouTube = false
+        if player.currentStream?.isYouTube == true {
+            player.stop()
+        }
         BackgroundPlaybackKeeper.shared.setWantPlaying(false)
     }
 

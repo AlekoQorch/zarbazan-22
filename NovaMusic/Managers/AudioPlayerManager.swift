@@ -105,6 +105,18 @@ final class AudioPlayerManager {
                 self?.handleRouteChange(notification)
             }
         }
+
+        NotificationCenter.default.addObserver(
+            forName: .novaForceResumePlayback,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                guard BackgroundPlaybackKeeper.shared.wantPlaying else { return }
+                self.play()
+            }
+        }
     }
 
     private func handleInterruption(_ notification: Notification) {

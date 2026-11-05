@@ -6,6 +6,7 @@ enum YouTubeServiceError: LocalizedError {
     case decoding
     case apiMessage(String)
     case noResults
+    case noStream
 
     var errorDescription: String? {
         switch self {
@@ -19,19 +20,22 @@ enum YouTubeServiceError: LocalizedError {
             return message
         case .noResults:
             return "No YouTube videos found."
+        case .noStream:
+            return "Couldn’t get an audio stream for this track. Try another result."
         }
     }
 }
 
-/// YouTube search + official embed playback.
-/// - If a Data API v3 key is configured, uses Google’s official search.
-/// - Otherwise uses public Piped search APIs (video id/metadata only) and plays
-///   via the official YouTube IFrame / embed — no downloading.
+/// YouTube search + direct audio/HLS playback (background-capable via AVPlayer).
+/// - Search: Data API v3 when configured, otherwise Piped.
+/// - Playback: InnerTube audio/HLS first, then Piped stream URLs — never an iframe.
 enum YouTubeService {
     private static let pipedBases = [
         "https://api.piped.private.coffee",
         "https://pipedapi.adminforge.de",
-        "https://pipedapi.reallyaweso.me"
+        "https://pipedapi.reallyaweso.me",
+        "https://pipedapi.ducks.party",
+        "https://pipedapi.leptons.xyz"
     ]
 
     private static let session: URLSession = {
@@ -41,6 +45,12 @@ enum YouTubeService {
             "Accept": "application/json",
             "User-Agent": "NovaMusic/1.0 (iOS; YouTubeSearch)"
         ]
+        return URLSession(configuration: config)
+    }()
+
+    private static let mediaSession: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 25
         return URLSession(configuration: config)
     }()
 
@@ -184,6 +194,209 @@ enum YouTubeService {
             }
         }
         throw lastError
+    }
+
+    // MARK: - Direct audio / HLS (lock-screen capable)
+
+    /// Resolves a playable media URL for AVPlayer. Prefers progressive audio, then HLS, then Piped muxed/audio.
+    static func resolvePlaybackURL(videoID: String) async throws -> URL {
+        let id = videoID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard id.count >= 6 else { throw YouTubeServiceError.noStream }
+
+        if let url = try? await resolveInnerTubeURL(videoID: id) {
+            return url
+        }
+        if let url = try? await resolvePipedStreamURL(videoID: id) {
+            return url
+        }
+        throw YouTubeServiceError.noStream
+    }
+
+    static func streamTrack(for video: YouTubeVideo, url: URL) -> StreamTrack {
+        StreamTrack(
+            id: "yt-\(video.id)",
+            title: video.title,
+            artist: video.channelTitle,
+            duration: video.durationSeconds ?? 0,
+            artworkURL: video.thumbnailURL,
+            genre: "YouTube",
+            streamURLOverride: url
+        )
+    }
+
+    private static func resolveInnerTubeURL(videoID: String) async throws -> URL {
+        let clients: [(name: String, key: String, ua: String, body: [String: Any])] = [
+            (
+                "ANDROID_VR",
+                "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w",
+                "com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+                [
+                    "context": [
+                        "client": [
+                            "clientName": "ANDROID_VR",
+                            "clientVersion": "1.60.19",
+                            "deviceMake": "Oculus",
+                            "deviceModel": "Quest 3",
+                            "androidSdkVersion": 32,
+                            "osName": "Android",
+                            "osVersion": "12L",
+                            "hl": "en",
+                            "gl": "US"
+                        ]
+                    ],
+                    "videoId": videoID,
+                    "contentCheckOk": true,
+                    "racyCheckOk": true
+                ]
+            ),
+            (
+                "IOS",
+                "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc",
+                "com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+                [
+                    "context": [
+                        "client": [
+                            "clientName": "IOS",
+                            "clientVersion": "21.26.4",
+                            "deviceMake": "Apple",
+                            "deviceModel": "iPhone16,2",
+                            "osName": "iPhone",
+                            "osVersion": "18.3.2.22D82",
+                            "hl": "en",
+                            "gl": "US"
+                        ]
+                    ],
+                    "videoId": videoID,
+                    "contentCheckOk": true,
+                    "racyCheckOk": true
+                ]
+            )
+        ]
+
+        var lastError: Error = YouTubeServiceError.noStream
+        for client in clients {
+            do {
+                guard let endpoint = URL(string: "https://www.youtube.com/youtubei/v1/player?key=\(client.key)&prettyPrint=false") else {
+                    continue
+                }
+                var request = URLRequest(url: endpoint)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.setValue(client.ua, forHTTPHeaderField: "User-Agent")
+                request.httpBody = try JSONSerialization.data(withJSONObject: client.body)
+
+                let (data, response) = try await mediaSession.data(for: request)
+                guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                    throw YouTubeServiceError.badResponse((response as? HTTPURLResponse)?.statusCode ?? -1)
+                }
+                guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw YouTubeServiceError.decoding
+                }
+                let status = (json["playabilityStatus"] as? [String: Any])?["status"] as? String
+                guard status == "OK" || status == nil else {
+                    throw YouTubeServiceError.apiMessage(status ?? "UNPLAYABLE")
+                }
+                if let url = pickInnerTubeAudioURL(from: json) {
+                    return url
+                }
+            } catch {
+                lastError = error
+                continue
+            }
+        }
+        throw lastError
+    }
+
+    private static func pickInnerTubeAudioURL(from json: [String: Any]) -> URL? {
+        let streaming = json["streamingData"] as? [String: Any] ?? [:]
+        let adaptive = streaming["adaptiveFormats"] as? [[String: Any]] ?? []
+        let progressive = streaming["formats"] as? [[String: Any]] ?? []
+
+        let audioProgressive = adaptive.filter { format in
+            let mime = (format["mimeType"] as? String ?? "").lowercased()
+            return mime.contains("audio") && format["url"] is String
+        }
+        let ranked = audioProgressive.sorted { a, b in
+            let aMp4 = ((a["mimeType"] as? String) ?? "").contains("mp4")
+            let bMp4 = ((b["mimeType"] as? String) ?? "").contains("mp4")
+            if aMp4 != bMp4 { return aMp4 && !bMp4 }
+            let aBr = a["bitrate"] as? Int ?? 0
+            let bBr = b["bitrate"] as? Int ?? 0
+            return aBr > bBr
+        }
+        if let urlString = ranked.first?["url"] as? String, let url = URL(string: urlString) {
+            return url
+        }
+
+        // Muxed progressive (itag 18 etc.) — mime is video/mp4 but includes an audio track.
+        let muxed = progressive.compactMap { format -> URL? in
+            guard let urlString = format["url"] as? String else { return nil }
+            return URL(string: urlString)
+        }
+        if let first = muxed.first { return first }
+
+        if let hls = streaming["hlsManifestUrl"] as? String, let url = URL(string: hls) {
+            return url
+        }
+        return nil
+    }
+
+    private static func resolvePipedStreamURL(videoID: String) async throws -> URL {
+        var lastError: Error = YouTubeServiceError.noStream
+        for base in pipedBases {
+            do {
+                guard let endpoint = URL(string: "\(base)/streams/\(videoID)") else { continue }
+                var request = URLRequest(url: endpoint)
+                request.setValue("application/json", forHTTPHeaderField: "Accept")
+                request.setValue("NovaMusic/1.0 (iOS)", forHTTPHeaderField: "User-Agent")
+                let (data, response) = try await mediaSession.data(for: request)
+                guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                    throw YouTubeServiceError.badResponse((response as? HTTPURLResponse)?.statusCode ?? -1)
+                }
+                guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw YouTubeServiceError.decoding
+                }
+                if let url = pickPipedAudioURL(from: json) {
+                    return url
+                }
+            } catch {
+                lastError = error
+                continue
+            }
+        }
+        throw lastError
+    }
+
+    private static func pickPipedAudioURL(from json: [String: Any]) -> URL? {
+        let audio = json["audioStreams"] as? [[String: Any]] ?? []
+        let rankedAudio = audio.compactMap { item -> (Int, URL)? in
+            guard let urlString = item["url"] as? String, let url = URL(string: urlString) else { return nil }
+            let mime = (item["mimeType"] as? String ?? "").lowercased()
+            let bitrate = item["bitrate"] as? Int ?? 0
+            let score = (mime.contains("mp4") ? 1_000_000 : 0) + bitrate
+            return (score, url)
+        }
+        .sorted { $0.0 > $1.0 }
+        if let best = rankedAudio.first?.1 { return best }
+
+        let video = json["videoStreams"] as? [[String: Any]] ?? []
+        let muxed = video.compactMap { item -> URL? in
+            if let only = item["videoOnly"] as? Bool, only { return nil }
+            guard let urlString = item["url"] as? String else { return nil }
+            // Prefer real YouTube proxies over unrelated mirrors when both exist
+            return URL(string: urlString)
+        }
+        // Prefer piped/googlevideo proxies
+        if let preferred = muxed.first(where: {
+            let s = $0.absoluteString
+            return s.contains("piped") || s.contains("videoplayback") || s.contains("googlevideo")
+        }) {
+            return preferred
+        }
+        if let hls = json["hls"] as? String, let url = URL(string: hls), !hls.isEmpty {
+            return url
+        }
+        return muxed.first
     }
 
     /// Parses YouTube `PT#H#M#S` durations into seconds.

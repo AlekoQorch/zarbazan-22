@@ -42,7 +42,7 @@ struct YouTubeSearchView: View {
             if segment == .search {
                 Text(YouTubeConfig.isConfigured
                      ? "Official YouTube Data API"
-                     : "Search YouTube — tap a result to play in the official player")
+                     : "Search YouTube — tap to play audio (keeps going when locked)")
                     .font(.footnote)
                     .foregroundStyle(Color.novaTextSecondary)
                 searchField
@@ -103,7 +103,7 @@ struct YouTubeSearchView: View {
             if !appState.searchHistory.isEmpty {
                 recentSearches
             } else {
-                Text("Search YouTube for official music videos. Tap a result to play in the embedded player.")
+                Text("Search YouTube. Tap a result to play audio — continues when the phone is locked or folded.")
                     .font(.footnote)
                     .foregroundStyle(Color.novaTextSecondary)
             }

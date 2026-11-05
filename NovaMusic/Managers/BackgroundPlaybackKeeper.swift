@@ -96,18 +96,6 @@ final class BackgroundPlaybackKeeper {
         guard wantPlaying else { return }
         activateSession()
         startSilentKeepAlive()
-        // Ask YouTube iframe to continue if present.
-        let js = """
-        (function(){
-          try {
-            if (typeof player !== 'undefined' && player && player.playVideo) {
-              player.playVideo();
-            }
-          } catch(e) {}
-          true;
-        })();
-        """
-        youtubeWebView?.evaluateJavaScript(js, completionHandler: nil)
         NotificationCenter.default.post(name: .novaForceResumePlayback, object: nil)
     }
 

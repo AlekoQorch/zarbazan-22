@@ -38,7 +38,7 @@ struct SettingsView: View {
                 } header: {
                     Text("YouTube")
                 } footer: {
-                    Text("Optional. YouTube search works without a key. A Data API v3 key uses Google’s official search when set. Playback is always the official embed — videos are not downloaded.")
+                    Text("Optional. YouTube search works without a key. Playback uses a direct audio stream so music continues in the background.")
                 }
 
                 Section("Appearance") {

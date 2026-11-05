@@ -24,7 +24,7 @@ Background Audio is configured via `UIBackgroundModes = audio` in `Info.plist`. 
 - Full playback engine: play/pause, next/prev, shuffle, repeat, seek, queue, resume
 - Background playback, Lock Screen artwork & remote controls, interruption handling
 - Home, Library, Playlists, Explore (YouTube / Free streams / Library), Settings
-- **YouTube:** real Data API v3 search + official embedded player, favorites, playlists, search history
+- **YouTube:** real search + background audio stream (lock/fold safe), favorites, playlists, search history
 - Mini player + full-screen Now Playing with artwork-driven ambience
 - Favorites, playlists, metadata editor, sleep timer, listening stats, equalizer presets (honest availability messaging)
 
@@ -39,7 +39,7 @@ export YOUTUBE_DATA_API_KEY='your-key'
 python3 scripts/test_youtube_api.py "lofi"
 ```
 
-Videos play only through the official YouTube embed — they are **not** downloaded for offline use.
+YouTube results play as an ephemeral audio/HLS stream in the system player (continues when locked). Nothing is saved for offline use.
 
 ## Architecture
 

@@ -8,7 +8,6 @@ struct MiniPlayerView: View {
             VStack(spacing: 0) {
                 GeometryReader { geo in
                     let progress: Double = {
-                        if appState.youtubeNowPlaying != nil { return 0 }
                         guard appState.player.duration > 0 else { return 0 }
                         return appState.player.currentTime / appState.player.duration
                     }()
@@ -24,11 +23,7 @@ struct MiniPlayerView: View {
 
                 HStack(spacing: NovaTheme.Spacing.sm) {
                     Button {
-                        if appState.youtubeNowPlaying != nil {
-                            appState.showsYouTubePlayer = true
-                        } else {
-                            appState.player.showsNowPlaying = true
-                        }
+                        appState.player.showsNowPlaying = true
                     } label: {
                         HStack(spacing: NovaTheme.Spacing.sm) {
                             artwork
@@ -49,42 +44,26 @@ struct MiniPlayerView: View {
                     }
                     .buttonStyle(.plain)
 
-                    if appState.youtubeNowPlaying == nil {
-                        Button {
-                            appState.player.togglePlayPause()
-                        } label: {
-                            Image(systemName: appState.player.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.title3)
-                                .foregroundStyle(Color.novaTextPrimary)
-                                .frame(width: 40, height: 40)
-                        }
+                    Button {
+                        appState.player.togglePlayPause()
+                    } label: {
+                        Image(systemName: appState.player.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.title3)
+                            .foregroundStyle(Color.novaTextPrimary)
+                            .frame(width: 40, height: 40)
+                    }
 
-                        Button {
-                            appState.player.skipNext()
-                        } label: {
-                            Image(systemName: "forward.fill")
-                                .font(.title3)
-                                .foregroundStyle(Color.novaTextPrimary)
-                                .frame(width: 40, height: 40)
-                        }
-                    } else {
-                        Button {
-                            appState.showsYouTubePlayer = true
-                        } label: {
-                            Image(systemName: "play.rectangle.fill")
-                                .font(.title3)
-                                .foregroundStyle(Color.novaTextPrimary)
-                                .frame(width: 40, height: 40)
-                        }
-
-                        Button {
+                    Button {
+                        if appState.player.currentStream?.isYouTube == true {
                             appState.stopYouTube()
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(Color.novaTextPrimary)
-                                .frame(width: 40, height: 40)
+                        } else {
+                            appState.player.skipNext()
                         }
+                    } label: {
+                        Image(systemName: appState.player.currentStream?.isYouTube == true ? "xmark" : "forward.fill")
+                            .font(.title3)
+                            .foregroundStyle(Color.novaTextPrimary)
+                            .frame(width: 40, height: 40)
                     }
                 }
                 .padding(.horizontal, NovaTheme.Spacing.md)

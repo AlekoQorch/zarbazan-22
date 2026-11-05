@@ -35,23 +35,20 @@ struct RootView: View {
                 }
             }
 
-            // Keep YouTube embed mounted while a video is "now playing",
-            // even after the full-screen UI is dismissed (minimize).
-            if let video = appState.youtubeNowPlaying, !appState.showsYouTubePlayer {
-                YouTubeEmbedWebView(videoID: video.id)
-                    .frame(width: 220, height: 124)
-                    .opacity(0.02)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                    .padding(.leading, 8)
-                    .padding(.bottom, 100)
-            }
-
             if appState.importer.showsProgressSheet {
                 ImportProgressOverlay()
                     .transition(.opacity)
                     .zIndex(2)
+            }
+
+            if appState.isResolvingYouTube {
+                ZStack {
+                    Color.black.opacity(0.35).ignoresSafeArea()
+                    ProgressView("Loading audio…")
+                        .padding(20)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .zIndex(3)
             }
         }
         .animation(NovaTheme.Motion.gentle, value: appState.player.currentSong?.id)
@@ -62,17 +59,32 @@ struct RootView: View {
             NowPlayingView()
                 .environment(appState)
         }
-        .fullScreenCover(isPresented: $state.showsYouTubePlayer) {
-            if let video = appState.youtubeNowPlaying {
-                YouTubePlayerView(video: video) {
-                    appState.dismissYouTubePlayer()
-                }
-                .environment(appState)
-            }
+        .alert(
+            "YouTube",
+            isPresented: Binding(
+                get: { appState.youtubeResolveError != nil },
+                set: { if !$0 { appState.youtubeResolveError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) { appState.youtubeResolveError = nil }
+        } message: {
+            Text(appState.youtubeResolveError ?? "")
         }
         .onChange(of: appState.importer.isImporting) { _, isImporting in
             if !isImporting {
                 appState.refreshAll()
+            }
+        }
+        .onChange(of: appState.player.currentStream?.id) { _, id in
+            if id == nil || appState.player.currentStream?.isYouTube != true {
+                if !appState.isResolvingYouTube {
+                    appState.youtubeNowPlaying = nil
+                }
+            }
+        }
+        .onChange(of: appState.player.currentSong?.id) { _, songID in
+            if songID != nil {
+                appState.youtubeNowPlaying = nil
             }
         }
     }

@@ -18,7 +18,7 @@ struct NovaMusicApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .background || phase == .inactive {
-                        if appState.youtubeNowPlaying != nil || appState.player.isPlaying {
+                        if appState.player.isPlaying || BackgroundPlaybackKeeper.shared.wantPlaying {
                             BackgroundPlaybackKeeper.shared.setWantPlaying(true)
                             BackgroundPlaybackKeeper.shared.forceResume()
                         }

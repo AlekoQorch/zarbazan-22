@@ -14,10 +14,10 @@ https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarb
 
 https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?tab=search
 
-3. **Explore → YouTube** — მოძებნე და უყურე (API key **არ** სჭირდება)  
-   **Free** ტაბი = Audius სტრიმები (ლოქზე ყველაზე საიმედო მოსმენა)
-4. ქვემოთ Share (**□↑**) → **Add to Home Screen** → **Add** (ფონური მოსმენისთვის უკეთესია)
-5. Home Screen-ზე გამოჩნდება **NOVA** — ჩაკეცვისას აპი ცდილობს ავტომატურად გააგრძელოს დაკვრა
+3. **Explore → YouTube** — მოძებნე და დაუკარი **აუდიოდ** (API key **არ** სჭირდება). ჩაკეცვა/ლოქი აღარ აპაუზებს.
+   **Free** ტაბი = Audius სტრიმები
+4. ქვემოთ Share (**□↑**) → **Add to Home Screen** → **Add**
+5. Home Screen-ზე გამოჩნდება **NOVA**
 
 API key setup: `docs/YOUTUBE_SETUP.md`
 

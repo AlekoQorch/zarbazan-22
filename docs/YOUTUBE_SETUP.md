@@ -1,6 +1,6 @@
 # YouTube Data API v3 — setup for NOVA MUSIC
 
-NOVA MUSIC searches **real** YouTube music videos via the official **YouTube Data API v3** and plays them with the official **YouTube IFrame Player** (embedded). Videos are **not** downloaded for offline use.
+NOVA MUSIC searches **real** YouTube music via the official **YouTube Data API v3** (optional) or Piped search, then plays a **direct audio/HLS stream** through AVPlayer / HTML5 audio so playback continues when the phone is locked or folded. Streams are not saved offline.
 
 ## 1. Create a Google Cloud project
 
@@ -53,7 +53,7 @@ Open the preview → Explore → YouTube → enter the same API key (saved in `l
 |--------|-------------------|
 | Search videos | `GET https://www.googleapis.com/youtube/v3/search` (`part=snippet`, `type=video`, `videoEmbeddable=true`, music-biased query) |
 | Durations | `GET https://www.googleapis.com/youtube/v3/videos` (`part=contentDetails`) |
-| Playback | Official embed / IFrame API: `https://www.youtube.com/embed/{videoId}` inside `WKWebView` |
+| Playback | Direct audio/HLS URL → `AVPlayer` / HTML5 `<audio>` (background-capable) |
 
 ## 5. Verify from a terminal
 
@@ -66,6 +66,6 @@ You should see real titles, channel names, thumbnails, and ISO-8601 durations.
 
 ## Compliance
 
-- Search: YouTube Data API v3 only.
-- Play: official embedded player only.
-- No scraping, no unofficial extractors, no audio/video download for offline storage.
+- Search: YouTube Data API v3 when a key is set; otherwise public Piped search metadata.
+- Play: ephemeral audio/HLS stream in the system player (not downloaded for offline storage).
+- Background playback requires a real media URL — iframe embeds pause when iOS suspends the page.
