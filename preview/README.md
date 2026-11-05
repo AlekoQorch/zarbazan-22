@@ -14,8 +14,8 @@ https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarb
 
 https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?tab=search
 
-3. **Explore → Free** — უფასო ძებნა/მოსმენა **API key-ის გარეშე** (Audius)  
-   YouTube ტაბს Google Cloud key სჭირდება (MFA); სანამ არ გაქვს — გამოიყენე **Free**
+3. **Explore → YouTube** — მოძებნე და უყურე (API key **არ** სჭირდება)  
+   **Free** ტაბი = Audius სტრიმები
 4. ქვემოთ Share (**□↑**) → **Add to Home Screen** → **Add**
 5. Home Screen-ზე გამოჩნდება **NOVA**
 

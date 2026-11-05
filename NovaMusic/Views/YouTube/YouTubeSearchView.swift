@@ -40,13 +40,12 @@ struct YouTubeSearchView: View {
             }
             .pickerStyle(.segmented)
 
-            freeAlternativeBanner
-
-            if !YouTubeConfig.isConfigured {
-                apiKeyBanner
-            }
-
             if segment == .search {
+                Text(YouTubeConfig.isConfigured
+                     ? "Official YouTube Data API"
+                     : "Search YouTube — tap a result to play in the official player")
+                    .font(.footnote)
+                    .foregroundStyle(Color.novaTextSecondary)
                 searchField
                 searchBody
             } else if segment == .favorites {
@@ -67,54 +66,6 @@ struct YouTubeSearchView: View {
         .onChange(of: query) { _, _ in
             scheduleSearch()
         }
-    }
-
-    private var freeAlternativeBanner: some View {
-        Button {
-            appState.exploreSegment = .streaming
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "music.note.list")
-                    .font(.title2)
-                    .foregroundStyle(Color.novaAccent)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Listen free — no API key")
-                        .font(.headline)
-                        .foregroundStyle(Color.novaTextPrimary)
-                    Text("Open the Free tab to search & play music now (Audius).")
-                        .font(.footnote)
-                        .foregroundStyle(Color.novaTextSecondary)
-                        .multilineTextAlignment(.leading)
-                }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.novaTextSecondary)
-            }
-            .padding(14)
-            .background(Color.novaSurfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var apiKeyBanner: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("YouTube API key required")
-                .font(.headline)
-                .foregroundStyle(Color.novaTextPrimary)
-            Text("Google Cloud + MFA needed. Until then, use Free. Or add a key in Settings → YouTube.")
-                .font(.footnote)
-                .foregroundStyle(Color.novaTextSecondary)
-            Button("Open Settings") {
-                appState.selectedTab = .settings
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Color.novaAccent)
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.novaSurfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private var searchField: some View {
@@ -348,12 +299,6 @@ struct YouTubeSearchView: View {
         guard q.count >= 2 else {
             results = []
             errorMessage = nil
-            isSearching = false
-            return
-        }
-        guard YouTubeConfig.isConfigured else {
-            errorMessage = YouTubeServiceError.missingAPIKey.localizedDescription
-            results = []
             isSearching = false
             return
         }

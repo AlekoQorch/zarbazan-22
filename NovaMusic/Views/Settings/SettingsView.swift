@@ -38,7 +38,7 @@ struct SettingsView: View {
                 } header: {
                     Text("YouTube")
                 } footer: {
-                    Text("Required for real YouTube search. Create a key in Google Cloud → enable YouTube Data API v3. Playback uses the official embedded player only — videos are not downloaded. See docs/YOUTUBE_SETUP.md.")
+                    Text("Optional. YouTube search works without a key. A Data API v3 key uses Google’s official search when set. Playback is always the official embed — videos are not downloaded.")
                 }
 
                 Section("Appearance") {

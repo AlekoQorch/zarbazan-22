@@ -393,34 +393,30 @@
 
     <section class="page" id="page-search">
       <div class="seg" id="exploreSeg">
-        <button class="on" data-seg="free">Free</button>
-        <button data-seg="youtube">YouTube</button>
+        <button class="on" data-seg="youtube">YouTube</button>
+        <button data-seg="free">Free</button>
         <button data-seg="library">Library</button>
       </div>
-      <div id="freePane">
-        <div class="title" style="font-size:26px">Free music</div>
-        <p class="explore-note" style="margin-top:0">No Google key — search any song and play now.</p>
-        <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
-        <div id="trendingBlock"></div>
-        <div id="exploreCards" class="explore-grid"></div>
-        <div id="searchList"></div>
-      </div>
-      <div id="ytPane" style="display:none">
+      <div id="ytPane">
         <div class="title" style="font-size:26px">YouTube</div>
-        <div class="yt-key">
-          <b>Prefer free?</b>
-          <p>Use the <b style="color:#fff">Free</b> tab — works without Google Cloud / MFA.</p>
-          <button id="goFreeBtn" class="btn btn-green" style="width:auto;margin-top:8px;padding:8px 16px">Open Free tab</button>
-        </div>
+        <p class="explore-note" style="margin-top:0">Search YouTube and play in the official player — no API key needed.</p>
         <div id="ytKeyBox" class="yt-key" style="display:none">
-          <b>YouTube Data API v3 key required</b>
-          <p>Paste your Google Cloud API key (YouTube Data API v3 enabled). Saved only in this browser.</p>
-          <input id="ytKeyInput" type="password" placeholder="AIza…" autocomplete="off" />
+          <b>Optional: YouTube Data API key</b>
+          <p>Not required. Paste a Google key only if you want official Data API search.</p>
+          <input id="ytKeyInput" type="password" placeholder="AIza… (optional)" autocomplete="off" />
           <button id="ytKeySave" class="btn btn-green" style="width:auto;margin-top:8px;padding:8px 16px">Save key</button>
         </div>
         <div class="search"><span>⌕</span><input id="ytq" placeholder="Song, artist, or music keyword…" autocomplete="off" /></div>
         <div id="ytStatus" class="explore-note"></div>
         <div id="ytList"></div>
+      </div>
+      <div id="freePane" style="display:none">
+        <div class="title" style="font-size:26px">Free music</div>
+        <p class="explore-note" style="margin-top:0">Audius streams — separate free catalog.</p>
+        <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
+        <div id="trendingBlock"></div>
+        <div id="exploreCards" class="explore-grid"></div>
+        <div id="searchList"></div>
       </div>
       <div id="libPane" style="display:none">
         <div class="title" style="font-size:26px">Your library</div>
@@ -543,9 +539,13 @@ function parseISO8601(iso){
 function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
   return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
 
-async function youtubeSearch(q){
-  const key=getYtKey();
-  if(!key) throw new Error('missing-key');
+const PIPED_BASES = [
+  'https://api.piped.private.coffee',
+  'https://pipedapi.adminforge.de',
+  'https://pipedapi.reallyaweso.me'
+];
+
+async function youtubeSearchOfficial(q, key){
   const base={ part:'snippet', type:'video', videoEmbeddable:'true', maxResults:'20', q, key };
   let url='https://www.googleapis.com/youtube/v3/search?'+new URLSearchParams({...base, videoCategoryId:'10'});
   let data=await fetch(url).then(r=>r.json());
@@ -575,6 +575,45 @@ async function youtubeSearch(q){
   });
 }
 
+async function youtubeSearchPiped(q){
+  let lastErr = new Error('YouTube search unavailable');
+  for (const base of PIPED_BASES) {
+    try {
+      const url = base + '/search?' + new URLSearchParams({ q, filter: 'videos' });
+      const data = await fetch(url).then(r => {
+        if (!r.ok) throw new Error('HTTP '+r.status);
+        return r.json();
+      });
+      const items = (data.items || []).filter(it => !it.type || it.type === 'stream');
+      const mapped = items.map(it => {
+        const m = String(it.url || '').match(/[?&]v=([\w-]{6,})/);
+        const id = m && m[1];
+        if (!id) return null;
+        return {
+          id,
+          title: it.title || 'Untitled',
+          channel: it.uploaderName || 'YouTube',
+          thumb: 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg',
+          duration: it.duration || 0
+        };
+      }).filter(Boolean);
+      if (mapped.length) return mapped;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+async function youtubeSearch(q){
+  const key = getYtKey();
+  if (key) {
+    try {
+      const official = await youtubeSearchOfficial(q, key);
+      if (official.length) return official;
+    } catch (_) { /* fall through */ }
+  }
+  return youtubeSearchPiped(q);
+}
+
 function ytRow(v){
   return `<div class="yt-row" data-yt="${v.id}">
     <div class="yt-thumb" style="background-image:url('${v.thumb}')"><span>${fmtDur(v.duration)}</span></div>
@@ -584,9 +623,12 @@ function ytRow(v){
 
 function refreshYtKeyUI(){
   const has=!!getYtKey();
-  ytKeyBox.style.display = has ? 'none' : 'block';
+  // Optional advanced key — keep collapsed unless user opens Settings.
+  ytKeyBox.style.display = 'none';
   settingsYtKey.value = getYtKey();
-  ytStatus.textContent = has ? 'Search uses the official YouTube Data API v3.' : '';
+  ytStatus.textContent = has
+    ? 'Using your YouTube Data API key when possible.'
+    : 'Type to search YouTube. Playback uses the official embed.';
 }
 function openYtPlayer(v){
   try {
@@ -608,8 +650,11 @@ function closeYtPlayer(){
 let ytTimer=null, lastYtResults=[];
 async function runYtSearch(q){
   q=(q||'').trim();
-  if(q.length<2){ ytList.innerHTML=''; ytStatus.textContent=getYtKey()?'Search uses the official YouTube Data API v3.':''; return; }
-  if(!getYtKey()){ refreshYtKeyUI(); ytStatus.textContent='Add an API key to search YouTube.'; return; }
+  if(q.length<2){
+    ytList.innerHTML='';
+    ytStatus.textContent='Type to search YouTube. Playback uses the official embed.';
+    return;
+  }
   ytStatus.textContent='Searching YouTube…';
   try{
     lastYtResults=await youtubeSearch(q);
@@ -623,7 +668,7 @@ async function runYtSearch(q){
     });
   }catch(e){
     ytList.innerHTML='';
-    ytStatus.textContent = e.message==='missing-key' ? 'Add an API key to search YouTube.' : ('Search failed: '+e.message);
+    ytStatus.textContent = 'Search failed: ' + (e.message || e);
   }
 }
 
@@ -637,7 +682,6 @@ document.getElementById('exploreSeg').onclick = e => {
   const b=e.target.closest('[data-seg]'); if(!b) return;
   setExploreSeg(b.dataset.seg);
 };
-document.getElementById('goFreeBtn').onclick = () => setExploreSeg('free');
 ytKeySave.onclick = () => { setYtKey(ytKeyInput.value); ytKeyInput.value=''; refreshYtKeyUI(); };
 settingsYtSave.onclick = () => { setYtKey(settingsYtKey.value); refreshYtKeyUI(); alert('YouTube API key saved'); };
 ytq.oninput = e => { clearTimeout(ytTimer); ytTimer=setTimeout(()=>runYtSearch(e.target.value), 320); };

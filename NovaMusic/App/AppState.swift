@@ -17,8 +17,8 @@ final class AppState {
     var searchHistory: [String]
     var selectedTab: AppTab = .home
     var librarySegment: LibrarySegment = .songs
-    /// Free (Audius) works with no API key; YouTube needs a Google Cloud key.
-    var exploreSegment: ExploreSegment = .streaming
+    /// YouTube search works without a Google key (Piped fallback + official embed).
+    var exploreSegment: ExploreSegment = .youtube
 
     init() {
         let persistence = PersistenceManager.shared
@@ -80,16 +80,16 @@ enum AppTab: Hashable {
 }
 
 enum ExploreSegment: String, CaseIterable, Identifiable {
-    case streaming
     case youtube
+    case streaming
     case library
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .streaming: return "Free"
         case .youtube: return "YouTube"
+        case .streaming: return "Free"
         case .library: return "Library"
         }
     }
