@@ -48,6 +48,7 @@
 		A6E6BD597FD0D77F46547FE0 /* YouTubePlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F2E37DAA143142DAE29F05 /* YouTubePlayerView.swift */; };
 		1D21ECCE80AFF91A08145DBB /* AddToYouTubePlaylistSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92420926D91C710DD5DE617 /* AddToYouTubePlaylistSheet.swift */; };
 		A54168631D162017F6AC53B5 /* StreamRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F750A02D46E7F9E6266E3AE7 /* StreamRowView.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* BackgroundPlaybackKeeper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C4A3B2C1D0E9F876543210 /* BackgroundPlaybackKeeper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +87,7 @@
 		B7D52E1A4C8F4B3E9A1D6E70 /* AudiusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiusService.swift; sourceTree = "<group>"; };
 		11DBB0F20D1643068950DB05 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DAA399A1B4B540ADAA9AE1F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B5C4A3B2C1D0E9F876543210 /* BackgroundPlaybackKeeper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundPlaybackKeeper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +171,7 @@
 				0B3703BDD92D4EF08BAAD18E,
 				B3B92C7FEF6F43F6BCF8BA91,
 				5E49D344C117DEB86DDC0859 /* YouTubeLibraryManager.swift */,
+				B5C4A3B2C1D0E9F876543210 /* BackgroundPlaybackKeeper.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -420,6 +423,7 @@
 				A6E6BD597FD0D77F46547FE0 /* YouTubePlayerView.swift in Sources */,
 				1D21ECCE80AFF91A08145DBB /* AddToYouTubePlaylistSheet.swift in Sources */,
 				A54168631D162017F6AC53B5 /* StreamRowView.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* BackgroundPlaybackKeeper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

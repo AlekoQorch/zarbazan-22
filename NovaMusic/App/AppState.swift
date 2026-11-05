@@ -31,16 +31,20 @@ final class AppState {
         player.pause()
         youtubeNowPlaying = video
         showsYouTubePlayer = true
+        BackgroundPlaybackKeeper.shared.setWantPlaying(true)
     }
 
     func dismissYouTubePlayer() {
         // Collapse UI only — embed keep-alive continues in RootView.
         showsYouTubePlayer = false
+        BackgroundPlaybackKeeper.shared.setWantPlaying(true)
+        BackgroundPlaybackKeeper.shared.forceResume()
     }
 
     func stopYouTube() {
         youtubeNowPlaying = nil
         showsYouTubePlayer = false
+        BackgroundPlaybackKeeper.shared.setWantPlaying(false)
     }
 
     init() {

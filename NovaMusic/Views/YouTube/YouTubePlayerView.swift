@@ -36,7 +36,7 @@ struct YouTubePlayerView: View {
                     .font(.caption)
                     .foregroundStyle(Color.novaTextSecondary)
 
-                    Text("Playback uses the official YouTube player. Videos are not downloaded.")
+                    Text("Minimize keeps playing. Lock-screen continue is best-effort for embeds.")
                         .font(.caption2)
                         .foregroundStyle(Color.novaTextSecondary.opacity(0.85))
                         .padding(.top, 4)
@@ -75,7 +75,8 @@ struct YouTubePlayerView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Minimize") {
-                        // Keep audio/video session alive in RootView keep-alive embed.
+                        BackgroundPlaybackKeeper.shared.setWantPlaying(true)
+                        BackgroundPlaybackKeeper.shared.forceResume()
                         onClose?()
                         dismiss()
                     }
@@ -93,8 +94,8 @@ struct YouTubePlayerView: View {
                     .presentationDetents([.medium, .large])
             }
             .onAppear {
-                // Pause local/Audius audio so it doesn’t overlap the embed.
                 appState.player.pause()
+                BackgroundPlaybackKeeper.shared.setWantPlaying(true)
             }
         }
     }
@@ -103,10 +104,16 @@ struct YouTubePlayerView: View {
 struct YouTubeEmbedWebView: UIViewRepresentable {
     let videoID: String
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator(videoID: videoID)
+    }
+
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
+        config.allowsAirPlayForMediaPlayback = true
+        config.allowsPictureInPictureMediaPlayback = true
         if #available(iOS 15.4, *) {
             config.preferences.isElementFullscreenEnabled = true
         }
@@ -115,25 +122,75 @@ struct YouTubeEmbedWebView: UIViewRepresentable {
         webView.backgroundColor = .black
         webView.scrollView.isScrollEnabled = false
         webView.navigationDelegate = context.coordinator
+        context.coordinator.webView = webView
+        BackgroundPlaybackKeeper.shared.bindYouTubeWebView(webView)
+        BackgroundPlaybackKeeper.shared.activateSession()
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        guard context.coordinator.loadedID != videoID else { return }
+        BackgroundPlaybackKeeper.shared.bindYouTubeWebView(webView)
+        guard context.coordinator.loadedID != videoID else {
+            context.coordinator.resumeIfNeeded()
+            return
+        }
         context.coordinator.loadedID = videoID
+        context.coordinator.videoID = videoID
         let html = Self.embedHTML(videoID: videoID)
         webView.loadHTMLString(html, baseURL: URL(string: "https://www.youtube-nocookie.com")!)
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
+    static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+        if BackgroundPlaybackKeeper.shared.youtubeWebView === uiView {
+            BackgroundPlaybackKeeper.shared.bindYouTubeWebView(nil)
+        }
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
         var loadedID: String?
+        var videoID: String
+        weak var webView: WKWebView?
+        private var resumeObserver: NSObjectProtocol?
+
+        init(videoID: String) {
+            self.videoID = videoID
+            super.init()
+            resumeObserver = NotificationCenter.default.addObserver(
+                forName: .novaForceResumePlayback,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.resumeIfNeeded()
+            }
+        }
+
+        deinit {
+            if let resumeObserver {
+                NotificationCenter.default.removeObserver(resumeObserver)
+            }
+        }
+
+        func resumeIfNeeded() {
+            let js = """
+            (function(){
+              try {
+                if (typeof player !== 'undefined' && player && player.playVideo) {
+                  player.playVideo();
+                }
+              } catch (e) {}
+              true;
+            })();
+            """
+            webView?.evaluateJavaScript(js, completionHandler: nil)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            resumeIfNeeded()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.resumeIfNeeded() }
+        }
     }
 
-    /// Official IFrame Player API bootstrap.
+    /// Official IFrame Player API bootstrap with auto-resume on pause.
     private static func embedHTML(videoID: String) -> String {
         """
         <!DOCTYPE html>
@@ -150,6 +207,7 @@ struct YouTubeEmbedWebView: UIViewRepresentable {
           <script src="https://www.youtube.com/iframe_api"></script>
           <script>
             var player;
+            var wantPlay = true;
             function onYouTubeIframeAPIReady() {
               player = new YT.Player('player', {
                 height: '100%',
@@ -162,9 +220,31 @@ struct YouTubeEmbedWebView: UIViewRepresentable {
                   autoplay: 1,
                   fs: 1,
                   origin: 'https://www.youtube-nocookie.com'
+                },
+                events: {
+                  onReady: function() { try { player.playVideo(); } catch(e) {} },
+                  onStateChange: function(e) {
+                    // 2 = paused — if we still want audio, resume (fold/lock often triggers this)
+                    if (wantPlay && e.data === 2) {
+                      setTimeout(function(){ try { player.playVideo(); } catch(err) {} }, 120);
+                      setTimeout(function(){ try { player.playVideo(); } catch(err) {} }, 500);
+                    }
+                  }
                 }
               });
             }
+            document.addEventListener('visibilitychange', function() {
+              if (wantPlay) {
+                try { player && player.playVideo && player.playVideo(); } catch(e) {}
+              }
+            });
+            setInterval(function(){
+              if (!wantPlay || !player || !player.getPlayerState) return;
+              try {
+                var s = player.getPlayerState();
+                if (s === 2 || s === -1) player.playVideo();
+              } catch(e) {}
+            }, 1000);
           </script>
         </body>
         </html>

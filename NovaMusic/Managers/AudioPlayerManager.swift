@@ -201,6 +201,7 @@ final class AudioPlayerManager {
 
     func play() {
         configureSession()
+        BackgroundPlaybackKeeper.shared.setWantPlaying(true)
         if let remotePlayer {
             remotePlayer.play()
             isPlaying = true
@@ -225,6 +226,7 @@ final class AudioPlayerManager {
     }
 
     func pause() {
+        BackgroundPlaybackKeeper.shared.setWantPlaying(false)
         remotePlayer?.pause()
         player?.pause()
         isPlaying = false
@@ -234,6 +236,7 @@ final class AudioPlayerManager {
     }
 
     func stop() {
+        BackgroundPlaybackKeeper.shared.setWantPlaying(false)
         stopRemotePlayback()
         player?.stop()
         player = nil
@@ -456,6 +459,7 @@ final class AudioPlayerManager {
             player = newPlayer
             newPlayer.play()
             isPlaying = true
+            BackgroundPlaybackKeeper.shared.setWantPlaying(true)
             startDisplayLink()
             publishNowPlaying(for: song)
             persistSnapshot()
@@ -486,6 +490,7 @@ final class AudioPlayerManager {
         remotePlayer = newPlayer
         newPlayer.play()
         isPlaying = true
+        BackgroundPlaybackKeeper.shared.setWantPlaying(true)
 
         remoteTimeObserver = newPlayer.addPeriodicTimeObserver(
             forInterval: CMTime(seconds: 0.25, preferredTimescale: 600),

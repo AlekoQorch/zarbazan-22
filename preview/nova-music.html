@@ -431,6 +431,8 @@
       </div>
     </section>
     <audio id="audio" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></audio>
+    <!-- Near-silent loop keeps the iOS media session alive when the screen locks -->
+    <audio id="keepaliveAudio" preload="auto" loop playsinline webkit-playsinline></audio>
 
     <!-- Keeps YouTube audio alive when the full player is collapsed -->
     <div id="ytKeepAlive" class="yt-keep" aria-hidden="true"></div>
@@ -642,13 +644,98 @@ function refreshYtKeyUI(){
 }
 let currentYt = null;
 let ytPlaying = false;
+let wantPlaying = false; // user intent — auto-resume if system pauses on fold/lock
+let keepAliveTimer = null;
+let audioCtx = null;
+let silentNode = null;
+let wakeLock = null;
+
+// Tiny silent WAV (keeps media session / audio route alive on iOS)
+const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
 function ytCommand(func, args){
   try {
-    const win = ytFrame.contentWindow;
+    const win = ytFrame && ytFrame.contentWindow;
     if (!win) return;
     win.postMessage(JSON.stringify({ event: 'command', func, args: args || [] }), '*');
   } catch (_) {}
+}
+
+function ensureSilentKeepAlive(on){
+  const ka = document.getElementById('keepaliveAudio');
+  if (!ka) return;
+  if (on) {
+    if (!ka.src) ka.src = SILENT_WAV;
+    ka.volume = 0.01;
+    const p = ka.play();
+    if (p && p.catch) p.catch(() => {});
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!silentNode) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        gain.gain.value = 0.0001;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        silentNode = { osc, gain };
+      }
+    } catch (_) {}
+  } else {
+    try { ka.pause(); } catch (_) {}
+  }
+}
+
+async function requestWakeLock(){
+  try {
+    if ('wakeLock' in navigator && wantPlaying) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch (_) {}
+}
+
+function startKeepAliveLoop(){
+  stopKeepAliveLoop();
+  keepAliveTimer = setInterval(() => {
+    if (!wantPlaying) return;
+    if (mode === 'youtube' && ytPlaying) {
+      ytCommand('playVideo');
+      ensureSilentKeepAlive(true);
+    }
+    if (mode === 'stream' && playing) {
+      const a = document.getElementById('audio');
+      if (a && a.paused) a.play().catch(() => {});
+      ensureSilentKeepAlive(true);
+    }
+  }, 800);
+}
+
+function stopKeepAliveLoop(){
+  if (keepAliveTimer) { clearInterval(keepAliveTimer); keepAliveTimer = null; }
+}
+
+function forceResumePlayback(){
+  if (!wantPlaying) return;
+  ensureSilentKeepAlive(true);
+  if (mode === 'youtube') {
+    ytPlaying = true;
+    playing = true;
+    ytCommand('unMute');
+    ytCommand('playVideo');
+    // Burst resumes — iOS often needs several attempts after unlock/fold
+    setTimeout(() => ytCommand('playVideo'), 120);
+    setTimeout(() => ytCommand('playVideo'), 400);
+    setTimeout(() => ytCommand('playVideo'), 1000);
+  } else if (mode === 'stream') {
+    const a = document.getElementById('audio');
+    if (a) {
+      playing = true;
+      a.play().catch(() => {});
+    }
+  }
+  syncUI();
 }
 
 function parkYtFrame(toKeepAlive){
@@ -659,10 +746,24 @@ function parkYtFrame(toKeepAlive){
   if (toKeepAlive) {
     keep.appendChild(frame);
     keep.classList.add('has-player');
+    // Slightly larger off-DOM footprint helps some WebKit media pipelines
+    keep.style.width = '220px';
+    keep.style.height = '124px';
   } else {
     wrap.appendChild(frame);
     keep.classList.remove('has-player');
   }
+}
+
+async function tryPictureInPicture(){
+  try {
+    const frame = document.getElementById('ytFrame');
+    // PiP for iframe video is limited; try document PiP / video element if present
+    if (document.pictureInPictureEnabled && frame) {
+      // Best-effort: request on any video child after load via postMessage API isn't available;
+      // rely on YouTube's own PiP button + our keep-alive.
+    }
+  } catch (_) {}
 }
 
 function openYtPlayer(v){
@@ -674,35 +775,50 @@ function openYtPlayer(v){
   currentYt = v;
   ytPlaying = true;
   playing = true;
+  wantPlaying = true;
   ytTitle.textContent = v.title;
   ytChannel.textContent = v.channel;
   parkYtFrame(false);
-  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?playsinline=1&rel=0&modestbranding=1&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+  const origin = encodeURIComponent(location.origin || 'https://htmlpreview.github.io');
+  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?playsinline=1&rel=0&modestbranding=1&autoplay=1&enablejsapi=1&fs=1&origin=${origin}`;
   if (!ytFrame.src || !ytFrame.src.includes(v.id)) {
     ytFrame.src = src;
   } else {
     ytCommand('playVideo');
   }
   ytPlayerSheet.classList.add('on');
+  ensureSilentKeepAlive(true);
+  startKeepAliveLoop();
+  requestWakeLock();
   syncUI();
   setMediaSession(v.title, v.channel, v.thumb);
+  tryPictureInPicture();
 }
 function closeYtPlayer(){
-  // Collapse UI only — keep official embed playing in the background host.
+  // Collapse UI only — keep official embed playing + aggressive resume loop.
   ytPlayerSheet.classList.remove('on');
   parkYtFrame(true);
   ytPlaying = true;
   playing = true;
+  wantPlaying = true;
   mode = 'youtube';
+  ensureSilentKeepAlive(true);
+  startKeepAliveLoop();
+  forceResumePlayback();
   syncUI();
 }
 function stopYtPlayer(){
+  wantPlaying = false;
+  stopKeepAliveLoop();
+  ensureSilentKeepAlive(false);
   ytPlayerSheet.classList.remove('on');
   parkYtFrame(false);
   ytFrame.src = '';
   currentYt = null;
   ytPlaying = false;
   document.getElementById('ytKeepAlive').classList.remove('has-player');
+  try { if (wakeLock) wakeLock.release(); } catch (_) {}
+  wakeLock = null;
 }
 
 function setMediaSession(title, artist, art){
@@ -711,15 +827,69 @@ function setMediaSession(title, artist, art){
     navigator.mediaSession.metadata = new MediaMetadata({
       title: title || 'NOVA MUSIC',
       artist: artist || '',
-      artwork: art ? [{ src: art, sizes: '512x512', type: 'image/jpeg' }] : []
+      artwork: art ? [
+        { src: art, sizes: '96x96', type: 'image/jpeg' },
+        { src: art, sizes: '256x256', type: 'image/jpeg' },
+        { src: art, sizes: '512x512', type: 'image/jpeg' }
+      ] : []
     });
-    navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
-    navigator.mediaSession.setActionHandler('play', () => { if (mode==='youtube') { ytCommand('playVideo'); ytPlaying=playing=true; } else togglePlay(); syncUI(); });
-    navigator.mediaSession.setActionHandler('pause', () => { if (mode==='youtube') { ytCommand('pauseVideo'); ytPlaying=playing=false; } else togglePlay(); syncUI(); });
+    navigator.mediaSession.playbackState = wantPlaying ? 'playing' : 'paused';
+    navigator.mediaSession.setActionHandler('play', () => {
+      wantPlaying = true;
+      if (mode==='youtube') { ytCommand('playVideo'); ytPlaying=playing=true; startKeepAliveLoop(); }
+      else { playing=true; audio.play().catch(()=>{}); }
+      syncUI();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      // If user paused from Control Center intentionally, stop auto-resume.
+      wantPlaying = false;
+      stopKeepAliveLoop();
+      if (mode==='youtube') { ytCommand('pauseVideo'); ytPlaying=playing=false; }
+      else { playing=false; audio.pause(); }
+      syncUI();
+    });
     navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
     navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+    navigator.mediaSession.setActionHandler('stop', () => {
+      wantPlaying = false;
+      if (mode==='youtube') stopYtPlayer();
+      else { audio.pause(); playing=false; }
+      syncUI();
+    });
   } catch (_) {}
 }
+
+// YouTube iframe → parent: if it pauses while user still wants music, resume.
+window.addEventListener('message', (event) => {
+  let data = event.data;
+  try { if (typeof data === 'string') data = JSON.parse(data); } catch (_) { return; }
+  if (!data || !wantPlaying) return;
+  // IFrame API infoDelivery playerState: 1 playing, 2 paused, 3 buffering
+  const info = data.info || data;
+  const state = info.playerState;
+  if (state === 2 && mode === 'youtube') {
+    forceResumePlayback();
+  }
+});
+
+['visibilitychange','pageshow','focus','resume','orientationchange'].forEach(evt => {
+  window.addEventListener(evt, () => {
+    if (wantPlaying) forceResumePlayback();
+  });
+});
+document.addEventListener('visibilitychange', () => {
+  if (wantPlaying) {
+    // When folding/locking, WebKit often pauses — fight it immediately.
+    forceResumePlayback();
+    startKeepAliveLoop();
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (wantPlaying) forceResumePlayback();
+});
+document.addEventListener('freeze', () => {
+  if (wantPlaying) forceResumePlayback();
+});
 
 let ytTimer=null, lastYtResults=[];
 async function runYtSearch(q){
@@ -842,11 +1012,14 @@ function playStreamAt(i){
   if (mode === 'youtube') stopYtPlayer();
   streamIndex = Math.max(0, Math.min(i, streamQueue.length-1));
   mode = 'stream';
+  wantPlaying = true;
   const t = streamQueue[streamIndex];
   progress = 0;
   audio.src = t.stream;
   audio.play().then(()=>{
     playing=true;
+    ensureSilentKeepAlive(true);
+    startKeepAliveLoop();
     setMediaSession(t.title, t.artist, t.img);
     syncUI();
   }).catch(()=>{
@@ -946,14 +1119,35 @@ function closeNP(){ np.classList.remove('on'); }
 
 function togglePlay(){
   if (mode === 'youtube') {
-    if (ytPlaying) { ytCommand('pauseVideo'); ytPlaying = playing = false; }
-    else { ytCommand('playVideo'); ytPlaying = playing = true; }
+    if (ytPlaying) {
+      wantPlaying = false;
+      stopKeepAliveLoop();
+      ytCommand('pauseVideo');
+      ytPlaying = playing = false;
+    } else {
+      wantPlaying = true;
+      ytCommand('playVideo');
+      ytPlaying = playing = true;
+      ensureSilentKeepAlive(true);
+      startKeepAliveLoop();
+    }
   } else if (mode === 'stream') {
     if (!audio.src) { if (streamQueue.length) playStreamAt(streamIndex); return; }
-    if (audio.paused) { audio.play(); playing=true; }
-    else { audio.pause(); playing=false; }
+    if (audio.paused) {
+      wantPlaying = true;
+      audio.play();
+      playing=true;
+      ensureSilentKeepAlive(true);
+      startKeepAliveLoop();
+    } else {
+      wantPlaying = false;
+      stopKeepAliveLoop();
+      audio.pause();
+      playing=false;
+    }
   } else {
     playing = !playing;
+    wantPlaying = playing;
   }
   syncUI();
 }
@@ -1037,17 +1231,6 @@ audio.addEventListener('play', () => {
   syncUI();
 });
 audio.addEventListener('pause', () => { if (mode==='stream') { playing=false; syncUI(); } });
-
-// Keep streaming when the phone is locked / tab backgrounded (best-effort on iOS).
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
-  if (mode === 'stream' && playing && audio.paused) {
-    audio.play().catch(() => {});
-  }
-  if (mode === 'youtube' && ytPlaying) {
-    ytCommand('playVideo');
-  }
-});
 
 setInterval(() => {
   if (!playing || mode === 'stream') return;
