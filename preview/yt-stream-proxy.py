@@ -7,13 +7,23 @@ Extracts a stream via InnerTube on THIS server, then pipes bytes to the client
 from __future__ import annotations
 
 import json
+import mimetypes
+import os
 import re
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 PORT = 8787
+ROOT = Path(__file__).resolve().parent
 VIDEO_RE = re.compile(r"^[A-Za-z0-9_-]{6,15}$")
+STATIC_NAMES = {
+    "/app": "nova-music.html",
+    "/nova-music.html": "nova-music.html",
+    "/manifest.webmanifest": "manifest.webmanifest",
+    "/icon.svg": "icon.svg",
+}
 
 CLIENTS = [
     {
@@ -261,17 +271,55 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         self._handle(head_only=False)
 
+    def _send_bytes(self, status: int, body: bytes, content_type: str, head_only: bool) -> None:
+        self.send_response(status)
+        self._cors()
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(body)
+
     def _handle(self, head_only: bool) -> None:
         path = self.path.split("?", 1)[0]
-        if path in ("/", "/health"):
+        if path == "/health":
             body = b'{"ok":true,"service":"nova-yt-proxy"}'
-            self.send_response(200)
-            self._cors()
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            if not head_only:
-                self.wfile.write(body)
+            self._send_bytes(200, body, "application/json", head_only)
+            return
+
+        if path in ("/", "/app", "/nova-music.html", "/manifest.webmanifest", "/icon.svg"):
+            if path == "/":
+                self.send_response(302)
+                self._cors()
+                self.send_header("Location", "/app")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            name = STATIC_NAMES.get(path, "nova-music.html")
+            file_path = ROOT / name
+            if not file_path.is_file():
+                self.send_error(404, "missing app")
+                return
+            raw = file_path.read_bytes()
+            # Force same-origin proxy when served from this tunnel.
+            if name == "nova-music.html":
+                raw = re.sub(
+                    rb"(?:const|let) YT_STREAM_PROXY = '[^']*';",
+                    b"let YT_STREAM_PROXY = '';",
+                    raw,
+                    count=1,
+                )
+                raw = re.sub(
+                    rb"const BUILD = '[^']*';",
+                    b"const BUILD = 'live-tunnel';",
+                    raw,
+                    count=1,
+                )
+            ctype = mimetypes.guess_type(name)[0] or "application/octet-stream"
+            if name.endswith(".html"):
+                ctype = "text/html; charset=utf-8"
+            self._send_bytes(200, raw, ctype, head_only)
             return
 
         if path.startswith("/resolve/"):

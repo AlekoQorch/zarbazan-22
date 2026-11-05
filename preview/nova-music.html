@@ -529,18 +529,48 @@ function parseISO8601(iso){
 function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
   return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
 
-const BUILD = '20261105h';
+const BUILD = '20261105i';
 // In-app YouTube audio proxy (HTML5 <audio> → fold does not pause). Never leaves NOVA.
-const YT_STREAM_PROXY = 'https://rabbit-empirical-pixels-mba.trycloudflare.com';
+// Empty string = same origin (when opened via live tunnel /app).
+let YT_STREAM_PROXY = 'https://vocals-determines-known-known.trycloudflare.com';
+const YT_PROXY_FALLBACKS = [
+  'https://vocals-determines-known-known.trycloudflare.com'
+];
 const YT_SAVED_KEY = 'nova.yt.saved';
 const YT_RECENT_KEY = 'nova.yt.recent';
 const PIPED_BASES = [
   'https://api.piped.private.coffee',
   'https://pipedapi.ducks.party',
-  'https://pipedapi.adminforge.de',
-  'https://pipedapi.reallyaweso.me',
-  'https://pipedapi.darkness.services'
+  'https://pipedapi.adminforge.de'
 ];
+
+function proxyBase(){
+  if (YT_STREAM_PROXY === '') return location.origin;
+  return YT_STREAM_PROXY.replace(/\/$/, '');
+}
+
+async function ensureLiveProxy(){
+  // Prefer same-origin when this page is served by the tunnel itself.
+  if (/trycloudflare\.com$/i.test(location.hostname) || /:(8787)$/.test(location.host)) {
+    YT_STREAM_PROXY = '';
+  }
+  const candidates = [];
+  if (YT_STREAM_PROXY === '') candidates.push(location.origin);
+  else candidates.push(YT_STREAM_PROXY);
+  for (const b of YT_PROXY_FALLBACKS) if (!candidates.includes(b)) candidates.push(b);
+  for (const base of candidates) {
+    try {
+      const r = await fetchTimeout(base.replace(/\/$/, '') + '/health', {}, 1800);
+      if (!r.ok) continue;
+      const j = await r.json().catch(() => ({}));
+      if (j && j.ok) {
+        YT_STREAM_PROXY = (base === location.origin) ? '' : base.replace(/\/$/, '');
+        return proxyBase();
+      }
+    } catch (_) {}
+  }
+  return proxyBase();
+}
 
 function loadSavedYt(){
   try { return JSON.parse(localStorage.getItem(YT_SAVED_KEY) || '[]') || []; }
@@ -607,7 +637,8 @@ async function putCachedYtBlob(id, blob){
   });
 }
 async function cacheYtFromProxy(videoId){
-  const res = await fetchTimeout(`${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`, {}, 45000);
+  await ensureLiveProxy();
+  const res = await fetchTimeout(`${proxyBase()}/stream/${encodeURIComponent(videoId)}`, {}, 45000);
   if (!res.ok) throw new Error('cache-fail');
   const blob = await res.blob();
   if (!blob || blob.size < 8000) throw new Error('cache-empty');
@@ -665,58 +696,44 @@ async function playYouTubeAudioInApp(videoId){
     const blob = await getCachedYtBlob(videoId);
     if (blob) {
       const obj = URL.createObjectURL(blob);
-      await playUrlInElement(media, obj, 6000);
+      await playUrlInElement(media, obj, 4000);
       return 'cache';
     }
   } catch (_) {}
-  // 1) Piped from the phone (still in-app <audio>)
-  for (const base of PIPED_BASES) {
+
+  // 1) Live proxy FIRST (fail-fast). Old path tried Piped for ~60s before proxy.
+  const base = await ensureLiveProxy();
+  try {
+    const info = await fetchTimeout(`${base}/resolve/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 3500)
+      .then(async r => {
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) throw new Error(j.via || 'unavail');
+        return j;
+      });
+    if (info && info.ok) {
+      await playUrlInElement(media, `${base}/stream/${encodeURIComponent(videoId)}`, 5000);
+      return 'proxy';
+    }
+  } catch (_) {}
+
+  // 2) Quick Piped race (max ~4s total) — only if proxy could not start
+  const pipedUrls = [];
+  await Promise.all(PIPED_BASES.map(async (pb) => {
     try {
-      const res = await fetchTimeout(`${base}/streams/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 4000);
-      if (!res.ok) continue;
+      const res = await fetchTimeout(`${pb}/streams/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 2500);
+      if (!res.ok) return;
       const data = await res.json();
       const audio = (data.audioStreams || []).slice().sort((a,b)=>(b.bitrate||0)-(a.bitrate||0));
-      const muxed = (data.videoStreams || []).filter(v => v && !v.videoOnly && v.url);
-      const candidates = [
-        ...audio.map(a => a && a.url),
-        ...(muxed.find(v=>/piped|videoplayback/i.test(v.url||'')) ? [muxed.find(v=>/piped|videoplayback/i.test(v.url||'')).url] : []),
-        ...(muxed[0] ? [muxed[0].url] : [])
-      ].filter(Boolean);
-      for (const url of candidates.slice(0, 3)) {
-        try {
-          await playUrlInElement(media, url, 6500);
-          return 'piped';
-        } catch (_) {}
-      }
+      if (audio[0] && audio[0].url) pipedUrls.push(audio[0].url);
     } catch (_) {}
-  }
-  // 2) Our audio proxy (pipes YouTube → stays in NOVA, fold-safe)
-  try {
-    await playUrlInElement(media, `${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`, 9000);
-    return 'proxy';
-  } catch (_) {}
-  // 3) Invidious from the phone (some instances work on residential IPs)
-  const inv = [
-    'https://inv.nadeko.net',
-    'https://yewtu.be',
-    'https://invidious.nerdvpn.de'
-  ];
-  for (const base of inv) {
+  }));
+  for (const url of pipedUrls.slice(0, 2)) {
     try {
-      const res = await fetchTimeout(`${base}/api/v1/videos/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 4500);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const formats = [...(data.adaptiveFormats||[]), ...(data.formatStreams||[])];
-      const audio = formats.filter(f => /audio/i.test(String(f.type||f.mimeType||'')) && f.url)
-        .sort((a,b)=>(parseInt(b.bitrate||0,10)||0)-(parseInt(a.bitrate||0,10)||0));
-      for (const a of audio.slice(0, 2)) {
-        try {
-          await playUrlInElement(media, a.url, 6500);
-          return 'invidious';
-        } catch (_) {}
-      }
+      await playUrlInElement(media, url, 3500);
+      return 'piped';
     } catch (_) {}
   }
+
   throw new Error('no-stream');
 }
 
@@ -1027,35 +1044,41 @@ function stopYtPlayer(){
 async function openYtPlayer(v){
   const loader = document.getElementById('ytLoading');
   if (loader) {
-    loader.textContent = 'იტვირთება…';
+    loader.textContent = 'რთავს…';
     loader.classList.add('on');
   }
   currentYt = v;
-  ytStatus.textContent = '';
+  ytStatus.textContent = 'რთავს…';
   enableBackgroundAudio();
   try { audio.pause(); } catch (_) {}
+  // Show player immediately so user isn't stuck on a blank loader.
+  mode = 'youtube';
+  ytPlayMode = 'audio';
+  progress = 0;
+  openNP();
+  syncUI();
+  refreshSaveButtons();
   try {
     // Always stay inside NOVA — never open YouTube / YouTube Music apps.
     const via = await playYouTubeAudioInApp(v.id);
-    ytPlayMode = 'audio';
-    mode = 'youtube';
     wantPlaying = true;
     ytPlaying = true;
     playing = true;
-    progress = 0;
     pushRecentYt(v);
     ensureSilentKeepAlive(true);
     startKeepAliveLoop();
     setMediaSession(v.title, v.channel, v.thumb);
-    openNP();
     syncUI();
-    refreshSaveButtons();
     renderSavedUI();
     ytStatus.textContent = via === 'cache'
       ? 'ოფლაინ · ჩაკეცვაზეც ისმის'
-      : 'უკრავს NOVA-ში · ჩაკეცვაზეც ისმის';
+      : 'უკრავს · ჩაკეცვაზეც ისმის';
   } catch (_) {
-    ytStatus.textContent = 'ამ ვიდეოზე სტრიმი ვერ გაიხსნა — სხვა სიმღერა სცადე (აპში რჩები)';
+    wantPlaying = false;
+    ytPlaying = false;
+    playing = false;
+    syncUI();
+    ytStatus.textContent = 'ვერ ჩაირთო — სხვა სიმღერა დაატაპე';
   } finally {
     if (loader) loader.classList.remove('on');
   }
