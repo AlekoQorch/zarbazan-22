@@ -304,6 +304,17 @@
     align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 600;
   }
   .yt-loading.on { display: flex; }
+  .yt-player {
+    display: none; position: absolute; inset: 0; z-index: 60; background: #000;
+    flex-direction: column; padding: calc(12px + var(--safe-t)) 12px calc(16px + var(--safe-b));
+  }
+  .yt-player.on { display: flex; }
+  .yt-frame-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #111; border-radius: 12px; overflow: hidden; }
+  .yt-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .yt-meta { padding: 14px 4px 0; }
+  .yt-meta h2 { font-size: 18px; line-height: 1.3; margin-bottom: 6px; }
+  .yt-meta .a { color: var(--muted); font-size: 14px; }
+  .yt-legal { color: var(--muted); font-size: 11px; margin: 10px 0 14px; }
   .cell {
     background: var(--elevated); border-radius: 10px; overflow: hidden; margin-bottom: 14px;
   }
@@ -393,7 +404,7 @@
       </div>
       <div id="ytPane">
         <div class="title" style="font-size:26px">YouTube</div>
-        <p class="explore-note" style="margin-top:0">Search YouTube and play as audio — keeps going when you fold or lock the phone.</p>
+        <p class="explore-note" style="margin-top:0">Search YouTube. Prefers background audio; falls back to the player if needed.</p>
         <div id="ytKeyBox" class="yt-key" style="display:none">
           <b>Optional: YouTube Data API key</b>
           <p>Not required. Paste a Google key only if you want official Data API search.</p>
@@ -418,11 +429,22 @@
       </div>
     </section>
     <audio id="audio" preload="auto" playsinline webkit-playsinline></audio>
-    <!-- Hidden video element: Piped often returns muxed MP4 which iOS <audio> rejects -->
+    <!-- Hidden video element for direct audio/muxed streams (background-capable) -->
     <video id="ytAudio" playsinline webkit-playsinline preload="auto" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-100vw;top:0"></video>
-    <!-- Near-silent loop helps keep the iOS media session warm -->
     <audio id="keepaliveAudio" preload="auto" loop playsinline webkit-playsinline></audio>
     <div class="yt-loading" id="ytLoading">Loading audio…</div>
+
+    <div class="yt-player" id="ytPlayerSheet">
+      <div class="yt-frame-wrap" id="ytFrameWrap">
+        <iframe id="ytFrame" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      <div class="yt-meta">
+        <h2 id="ytTitle"></h2>
+        <div class="a" id="ytChannel"></div>
+        <p class="yt-legal" id="ytLegal">Playing via YouTube player.</p>
+        <button class="btn btn-dark" id="ytClose">Minimize</button>
+      </div>
+    </div>
 
     <section class="page" id="page-settings">
       <div class="title">Settings</div>
@@ -528,11 +550,21 @@ function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), 
 
 const PIPED_BASES = [
   'https://api.piped.private.coffee',
-  'https://pipedapi.adminforge.de',
-  'https://pipedapi.reallyaweso.me',
-  'https://pipedapi.ducks.party',
-  'https://pipedapi.leptons.xyz'
+  'https://pipedapi.ducks.party'
 ];
+
+const INVIDIOUS_LATEST = [
+  'https://yewtu.be',
+  'https://invidious.slipfox.xyz',
+  'https://inv.nadeko.net',
+  'https://invidious.protokolla.fi'
+];
+
+function fetchTimeout(url, opts={}, ms=3500){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
 
 function pickPipedAudioURL(data){
   const audio = (data.audioStreams || []).slice().sort((a,b)=>{
@@ -550,21 +582,97 @@ function pickPipedAudioURL(data){
   return '';
 }
 
-async function resolveYouTubeStream(videoId){
-  let lastErr = new Error('No audio stream');
+async function resolvePipedStream(videoId){
   for (const base of PIPED_BASES) {
     try {
-      const res = await fetch(base + '/streams/' + encodeURIComponent(videoId), {
+      const res = await fetchTimeout(base + '/streams/' + encodeURIComponent(videoId), {
         headers: { 'Accept': 'application/json' }
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      }, 3500);
+      if (!res.ok) continue;
       const data = await res.json();
       const url = pickPipedAudioURL(data);
       if (url) return url;
-      throw new Error('Empty streams');
-    } catch (e) { lastErr = e; }
+    } catch (_) {}
   }
-  throw lastErr;
+  return '';
+}
+
+function invidiousStreamCandidates(videoId){
+  const itags = [140, 251, 139, 18];
+  const urls = [];
+  for (const host of INVIDIOUS_LATEST) {
+    for (const itag of itags) {
+      urls.push(`${host}/latest_version?id=${encodeURIComponent(videoId)}&itag=${itag}`);
+    }
+  }
+  return urls;
+}
+
+async function tryPlayMediaUrl(url, ms=5000){
+  const media = ytMedia();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const done = (ok, err) => {
+      if (settled) return;
+      settled = true;
+      media.removeEventListener('loadeddata', onOk);
+      media.removeEventListener('canplay', onOk);
+      media.removeEventListener('error', onErr);
+      clearTimeout(timer);
+      ok ? resolve(url) : reject(err || new Error('play failed'));
+    };
+    const onOk = () => {
+      media.play().then(() => done(true)).catch(e => done(false, e));
+    };
+    const onErr = () => done(false, new Error('media error'));
+    const timer = setTimeout(() => done(false, new Error('timeout')), ms);
+    media.addEventListener('loadeddata', onOk);
+    media.addEventListener('canplay', onOk);
+    media.addEventListener('error', onErr);
+    try {
+      media.pause();
+      media.src = url;
+      media.load();
+      // Some WebKits fire play before loadeddata for proxied streams
+      media.play().then(() => done(true)).catch(() => {});
+    } catch (e) {
+      done(false, e);
+    }
+  });
+}
+
+async function resolveAndPlayYouTubeAudio(videoId){
+  const piped = await resolvePipedStream(videoId);
+  if (piped) {
+    try { await tryPlayMediaUrl(piped, 5000); return { url: piped, via: 'stream' }; }
+    catch (_) {}
+  }
+  // Race a few Invidious redirects — first one that actually plays wins (max ~5s).
+  const candidates = invidiousStreamCandidates(videoId).slice(0, 6);
+  try {
+    const url = await Promise.any(candidates.map(u => tryPlayMediaUrl(u, 5000)));
+    return { url, via: 'stream' };
+  } catch (_) {}
+  throw new Error('No playable audio stream');
+}
+
+async function tryAudiusMatch(title){
+  const q = String(title || '').replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ')
+    .replace(/official|video|audio|lyrics|hd|4k/ig, ' ').replace(/\s+/g, ' ').trim();
+  if (q.length < 2) return null;
+  try {
+    const res = await fetchTimeout(
+      `https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`,
+      {},
+      5000
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const list = (json.data || []).map(mapTrack);
+    return list[0] || null;
+  } catch (_) {
+    return null;
+  }
 }
 
 async function youtubeSearchOfficial(q, key){
@@ -650,7 +758,7 @@ function refreshYtKeyUI(){
   settingsYtKey.value = getYtKey();
   ytStatus.textContent = has
     ? 'Using your YouTube Data API key when possible.'
-    : 'Type to search YouTube. Audio keeps playing when folded or locked.';
+    : 'Type to search YouTube, then tap a result to play.';
 }
 let currentYt = null;
 let ytPlaying = false;
@@ -699,14 +807,27 @@ async function requestWakeLock(){
 }
 
 function ytMedia(){ return document.getElementById('ytAudio'); }
+let ytPlayMode = 'audio'; // 'audio' | 'embed'
+
+function ytCommand(func, args){
+  try {
+    const frame = document.getElementById('ytFrame');
+    const win = frame && frame.contentWindow;
+    if (!win) return;
+    win.postMessage(JSON.stringify({ event: 'command', func, args: args || [] }), '*');
+  } catch (_) {}
+}
 
 function startKeepAliveLoop(){
   stopKeepAliveLoop();
   keepAliveTimer = setInterval(() => {
     if (!wantPlaying) return;
     if (mode === 'youtube' && playing) {
-      const v = ytMedia();
-      if (v && v.paused) v.play().catch(() => {});
+      if (ytPlayMode === 'embed') ytCommand('playVideo');
+      else {
+        const v = ytMedia();
+        if (v && v.paused) v.play().catch(() => {});
+      }
       ensureSilentKeepAlive(true);
     }
     if (mode === 'stream' && playing) {
@@ -725,11 +846,14 @@ function forceResumePlayback(){
   if (!wantPlaying) return;
   ensureSilentKeepAlive(true);
   if (mode === 'youtube') {
-    const v = ytMedia();
-    if (v) {
-      playing = true;
-      ytPlaying = true;
-      v.play().catch(() => {});
+    playing = true;
+    ytPlaying = true;
+    if (ytPlayMode === 'embed') {
+      ytCommand('playVideo');
+      setTimeout(() => ytCommand('playVideo'), 200);
+    } else {
+      const v = ytMedia();
+      if (v) v.play().catch(() => {});
     }
   } else if (mode === 'stream') {
     const a = document.getElementById('audio');
@@ -747,6 +871,11 @@ function stopYtPlayer(){
   ensureSilentKeepAlive(false);
   currentYt = null;
   ytPlaying = false;
+  ytPlayMode = 'audio';
+  const sheet = document.getElementById('ytPlayerSheet');
+  if (sheet) sheet.classList.remove('on');
+  const frame = document.getElementById('ytFrame');
+  if (frame) frame.src = '';
   if (mode === 'youtube') {
     const v = ytMedia();
     try { if (v) { v.pause(); v.removeAttribute('src'); v.load(); } } catch (_) {}
@@ -758,48 +887,96 @@ function stopYtPlayer(){
   if (loader) loader.classList.remove('on');
 }
 
+function startYtEmbedFallback(v){
+  ytPlayMode = 'embed';
+  mode = 'youtube';
+  currentYt = v;
+  wantPlaying = true;
+  ytPlaying = true;
+  playing = true;
+  const vEl = ytMedia();
+  try { if (vEl) { vEl.pause(); vEl.removeAttribute('src'); vEl.load(); } } catch (_) {}
+  document.getElementById('ytTitle').textContent = v.title;
+  document.getElementById('ytChannel').textContent = v.channel;
+  document.getElementById('ytLegal').textContent =
+    'Direct audio unavailable — using YouTube player. Fold/lock may pause this one.';
+  const origin = encodeURIComponent(location.origin || 'https://htmlpreview.github.io');
+  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?playsinline=1&rel=0&modestbranding=1&autoplay=1&enablejsapi=1&origin=${origin}`;
+  const frame = document.getElementById('ytFrame');
+  frame.src = src;
+  document.getElementById('ytPlayerSheet').classList.add('on');
+  ensureSilentKeepAlive(true);
+  startKeepAliveLoop();
+  requestWakeLock();
+  setMediaSession(v.title, v.channel, v.thumb);
+  syncUI();
+  ytStatus.textContent = (lastYtResults.length ? `${lastYtResults.length} results · ` : '') + 'YouTube player';
+}
+
 async function openYtPlayer(v){
   const loader = document.getElementById('ytLoading');
-  if (loader) loader.classList.add('on');
+  if (loader) {
+    loader.textContent = 'Loading audio…';
+    loader.classList.add('on');
+  }
   currentYt = v;
   ytStatus.textContent = 'Loading audio…';
+  document.getElementById('ytPlayerSheet')?.classList.remove('on');
   try {
     try { audio.pause(); } catch (_) {}
-    const streamURL = await resolveYouTubeStream(v.id);
-    streamQueue = lastYtResults.map(item => ({
-      id: 'yt-' + item.id,
-      title: item.title,
-      artist: item.channel,
-      img: item.thumb,
-      dur: fmtDur(item.duration || 0),
-      duration: item.duration || 0,
-      stream: item.id === v.id ? streamURL : '',
-      youtube: true,
-      videoId: item.id
-    }));
-    streamIndex = Math.max(0, streamQueue.findIndex(t => t.videoId === v.id));
-    mode = 'youtube';
-    wantPlaying = true;
-    ytPlaying = true;
-    progress = 0;
-    const media = ytMedia();
-    media.src = streamURL;
-    await media.play();
-    playing = true;
-    ensureSilentKeepAlive(true);
-    startKeepAliveLoop();
-    requestWakeLock();
-    setMediaSession(v.title, v.channel, v.thumb);
-    openNP();
-    syncUI();
-    ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results · audio` : '';
+    // 1) Direct stream (background-safe)
+    try {
+      const played = await resolveAndPlayYouTubeAudio(v.id);
+      ytPlayMode = 'audio';
+      mode = 'youtube';
+      wantPlaying = true;
+      ytPlaying = true;
+      playing = true;
+      progress = 0;
+      ensureSilentKeepAlive(true);
+      startKeepAliveLoop();
+      requestWakeLock();
+      setMediaSession(v.title, v.channel, v.thumb);
+      openNP();
+      syncUI();
+      ytStatus.textContent = lastYtResults.length
+        ? `${lastYtResults.length} results · background audio`
+        : 'Background audio';
+      return;
+    } catch (_) {}
+
+    // 2) Free catalog match (also background-safe)
+    if (loader) loader.textContent = 'Trying Free match…';
+    const match = await tryAudiusMatch(v.title + ' ' + (v.channel || ''));
+    if (match) {
+      ytPlayMode = 'audio';
+      currentYt = { ...v, title: match.title, channel: match.artist + ' · Free match', thumb: match.img };
+      streamQueue = [match];
+      streamIndex = 0;
+      mode = 'stream';
+      wantPlaying = true;
+      ytPlaying = false;
+      progress = 0;
+      audio.src = match.stream;
+      await audio.play();
+      playing = true;
+      ensureSilentKeepAlive(true);
+      startKeepAliveLoop();
+      setMediaSession(match.title, match.artist, match.img);
+      openNP();
+      syncUI();
+      ytStatus.textContent = 'Playing Free audio match (background OK)';
+      return;
+    }
+
+    // 3) Official embed — plays now; lock may still pause
+    startYtEmbedFallback(v);
   } catch (e) {
     ytPlaying = false;
     playing = false;
     wantPlaying = false;
     currentYt = null;
-    ytStatus.textContent = 'Couldn’t load audio for this track. Try another result.';
-    alert('Couldn’t start audio for this track. Try another result.');
+    ytStatus.textContent = 'Couldn’t start this track. Try another, or use Free.';
   } finally {
     if (loader) loader.classList.remove('on');
   }
@@ -822,7 +999,8 @@ function setMediaSession(title, artist, art){
       wantPlaying = true;
       playing = true;
       ytPlaying = mode === 'youtube';
-      if (mode === 'youtube') ytMedia().play().catch(()=>{});
+      if (mode === 'youtube' && ytPlayMode === 'embed') ytCommand('playVideo');
+      else if (mode === 'youtube') ytMedia().play().catch(()=>{});
       else audio.play().catch(()=>{});
       startKeepAliveLoop();
       syncUI();
@@ -832,7 +1010,8 @@ function setMediaSession(title, artist, art){
       stopKeepAliveLoop();
       playing = false;
       ytPlaying = false;
-      if (mode === 'youtube') ytMedia().pause();
+      if (mode === 'youtube' && ytPlayMode === 'embed') ytCommand('pauseVideo');
+      else if (mode === 'youtube') ytMedia().pause();
       else audio.pause();
       syncUI();
     });
@@ -903,6 +1082,14 @@ document.getElementById('exploreSeg').onclick = e => {
 ytKeySave.onclick = () => { setYtKey(ytKeyInput.value); ytKeyInput.value=''; refreshYtKeyUI(); };
 settingsYtSave.onclick = () => { setYtKey(settingsYtKey.value); refreshYtKeyUI(); alert('YouTube API key saved'); };
 ytq.oninput = e => { clearTimeout(ytTimer); ytTimer=setTimeout(()=>runYtSearch(e.target.value), 320); };
+document.getElementById('ytClose').onclick = () => {
+  document.getElementById('ytPlayerSheet').classList.remove('on');
+  wantPlaying = true;
+  ytPlaying = playing = true;
+  startKeepAliveLoop();
+  forceResumePlayback();
+  syncUI();
+};
 refreshYtKeyUI();
 
 const songs = [
@@ -1092,6 +1279,22 @@ function closeNP(){ np.classList.remove('on'); }
 
 function togglePlay(){
   if (mode === 'youtube') {
+    if (ytPlayMode === 'embed') {
+      if (ytPlaying) {
+        wantPlaying = false;
+        stopKeepAliveLoop();
+        ytCommand('pauseVideo');
+        ytPlaying = playing = false;
+      } else {
+        wantPlaying = true;
+        ytCommand('playVideo');
+        ytPlaying = playing = true;
+        ensureSilentKeepAlive(true);
+        startKeepAliveLoop();
+      }
+      syncUI();
+      return;
+    }
     const media = ytMedia();
     if (!media || !media.src) {
       if (currentYt) openYtPlayer(currentYt);

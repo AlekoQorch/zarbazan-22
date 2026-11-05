@@ -50,9 +50,17 @@ enum YouTubeService {
 
     private static let mediaSession: URLSession = {
         let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = 25
+        config.timeoutIntervalForRequest = 8
+        config.timeoutIntervalForResource = 12
         return URLSession(configuration: config)
     }()
+
+    private static let invidiousBases = [
+        "https://yewtu.be",
+        "https://invidious.slipfox.xyz",
+        "https://inv.nadeko.net",
+        "https://invidious.protokolla.fi"
+    ]
 
     static func search(query: String, maxResults: Int = 25) async throws -> [YouTubeVideo] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -198,7 +206,7 @@ enum YouTubeService {
 
     // MARK: - Direct audio / HLS (lock-screen capable)
 
-    /// Resolves a playable media URL for AVPlayer. Prefers progressive audio, then HLS, then Piped muxed/audio.
+    /// Resolves a playable media URL for AVPlayer. Prefers progressive audio, then HLS, then Piped / Invidious.
     static func resolvePlaybackURL(videoID: String) async throws -> URL {
         let id = videoID.trimmingCharacters(in: .whitespacesAndNewlines)
         guard id.count >= 6 else { throw YouTubeServiceError.noStream }
@@ -209,7 +217,22 @@ enum YouTubeService {
         if let url = try? await resolvePipedStreamURL(videoID: id) {
             return url
         }
+        if let url = resolveInvidiousLatestURL(videoID: id) {
+            return url
+        }
         throw YouTubeServiceError.noStream
+    }
+
+    /// Invidious redirects `/latest_version` to a googlevideo URL — AVPlayer can follow it.
+    private static func resolveInvidiousLatestURL(videoID: String) -> URL? {
+        for base in invidiousBases {
+            for itag in [140, 251, 139, 18] {
+                if let url = URL(string: "\(base)/latest_version?id=\(videoID)&itag=\(itag)") {
+                    return url
+                }
+            }
+        }
+        return nil
     }
 
     static func streamTrack(for video: YouTubeVideo, url: URL) -> StreamTrack {
