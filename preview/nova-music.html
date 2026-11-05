@@ -269,7 +269,7 @@
   .ex-card .ic { position: absolute; top: 10px; right: 10px; font-size: 22px; opacity: 0.35; }
   .explore-note { color: var(--muted); font-size: 12px; margin: 8px 0 16px; line-height: 1.4; }
   .seg {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
     background: #282828; border-radius: 10px; padding: 4px; margin: 4px 0 12px;
   }
   .seg button {
@@ -277,6 +277,12 @@
     font-weight: 600; padding: 8px 6px; border-radius: 8px;
   }
   .seg button.on { background: #3e3e3e; color: #fff; }
+  .yt-row .save {
+    border: 0; background: transparent; color: var(--muted); font-size: 20px;
+    width: 36px; height: 36px; flex-shrink: 0; cursor: pointer; margin-top: 16px;
+  }
+  .yt-row .save.on { color: var(--accent); }
+  .np-bottom .save-btn.on { color: var(--accent); }
   .yt-key {
     background: #181818; border: 1px solid rgba(255,255,255,.1); border-radius: 12px;
     padding: 12px; margin-bottom: 12px; color: var(--muted); font-size: 13px; line-height: 1.4;
@@ -363,69 +369,55 @@
   <div class="app">
 
     <section class="page on" id="page-home">
-      <div class="greet">Good afternoon</div>
+      <div class="greet">გამარჯობა</div>
       <div class="brand">NOVA</div>
+      <p class="explore-note" style="margin-top:-6px">YouTube ძებნა · ჩაწერა · ჩაკეცვაზეც ისმის</p>
       <div class="quick" id="quick"></div>
-      <button class="btn btn-green" id="importBtn" style="margin:14px 0 4px">Import Music</button>
+      <button class="btn btn-green" id="goExplore" style="margin:14px 0 4px">ძებნა YouTube-ზე</button>
       <div class="section">
-        <h2>Recently played</h2>
-        <div class="shelf" id="recent"></div>
+        <h2>ჩაწერილი</h2>
+        <div id="liked"></div>
       </div>
       <div class="section">
-        <h2>Liked songs</h2>
-        <div id="liked"></div>
+        <h2>ბოლოს მოსმენილი</h2>
+        <div class="shelf" id="recent"></div>
       </div>
       <div style="height:8px"></div>
     </section>
 
     <section class="page" id="page-library">
-      <div class="title">Your Library</div>
-      <div class="chips">
-        <button class="on">Songs</button>
-        <button>Albums</button>
-        <button>Artists</button>
-        <button>Playlists</button>
-      </div>
+      <div class="title">ჩაწერილი</div>
+      <p class="explore-note" style="margin-top:0">შენახული YouTube სიმღერები ამ ტელეფონზე</p>
       <div id="lib"></div>
     </section>
 
     <section class="page" id="page-playlists">
       <div class="title">Playlists</div>
-      <button class="btn btn-dark" style="margin-bottom:14px">Create playlist</button>
-      <div class="row" data-i="0"><div class="thumb" style="background:#282828;display:grid;place-items:center;font-size:20px">♡</div><div class="meta"><div class="t">Liked Songs</div><div class="u">Playlist · 2 songs</div></div></div>
-      <div class="row" data-i="1"><div class="thumb" id="pl1"></div><div class="meta"><div class="t">Late Drive</div><div class="u">Playlist · 12 songs</div></div></div>
-      <div class="row" data-i="2"><div class="thumb" id="pl2"></div><div class="meta"><div class="t">Focus Deep</div><div class="u">Playlist · 8 songs</div></div></div>
+      <p class="explore-note">ჩაწერილი სიმღერებიდან შექმნი სიებს Explore-ში.</p>
+      <div id="plSaved"></div>
     </section>
 
     <section class="page" id="page-search">
       <div class="seg" id="exploreSeg">
-        <button class="on" data-seg="free">Music</button>
-        <button data-seg="youtube">YouTube</button>
-        <button data-seg="library">Library</button>
+        <button class="on" data-seg="youtube">YouTube</button>
+        <button data-seg="saved">ჩაწერილი</button>
       </div>
-      <div id="ytPane" style="display:none">
+      <div id="ytPane">
         <div class="title" style="font-size:26px">YouTube</div>
-        <p class="explore-note" style="margin-top:0">დაატაპე — უკრავს აქვე (არ გადაგიყვანს სხვა აპში). ჩაკეცვაზეც ისმის.</p>
+        <p class="explore-note" style="margin-top:0">იპოვე სიმღერა → უკრავს აქვე → ჩაწერე. ჩაკეცვაზეც გაგრძელდება.</p>
         <div id="ytKeyBox" class="yt-key" style="display:none">
           <b>Optional: YouTube Data API key</b>
           <p>Not required. Paste a Google key only if you want official Data API search.</p>
           <input id="ytKeyInput" type="password" placeholder="AIza… (optional)" autocomplete="off" />
           <button id="ytKeySave" class="btn btn-green" style="width:auto;margin-top:8px;padding:8px 16px">Save key</button>
         </div>
-        <div class="search"><span>⌕</span><input id="ytq" placeholder="Song, artist, or music keyword…" autocomplete="off" /></div>
+        <div class="search"><span>⌕</span><input id="ytq" placeholder="სიმღერა, არტისტი…" autocomplete="off" /></div>
         <div id="ytStatus" class="explore-note"></div>
         <div id="ytList"></div>
       </div>
-      <div id="freePane">
-        <div class="title" style="font-size:26px">Music</div>
-        <p class="explore-note" style="margin-top:0">დაატაპე სიმღერას — ჩაკეცვაზეც გაგრძელდება. სხვა აპში არ გადაგიყვანს.</p>
-        <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
-        <div id="trendingBlock"></div>
-        <div id="exploreCards" class="explore-grid"></div>
-        <div id="searchList"></div>
-      </div>
+      <div id="freePane" style="display:none"></div>
       <div id="libPane" style="display:none">
-        <div class="title" style="font-size:26px">Your library</div>
+        <div class="title" style="font-size:26px">ჩაწერილი</div>
         <div id="libSearchList"></div>
       </div>
     </section>
@@ -513,8 +505,8 @@
       <button id="rep">↻</button>
     </div>
     <div class="np-bottom">
-      <button>🖥</button>
-      <button>≡</button>
+      <button id="npSave" class="save-btn" title="ჩაწერა">♡</button>
+      <button id="npCache" title="ოფლაინ" style="font-size:12px;font-weight:700;width:auto;padding:0 8px">ჩაწერა</button>
     </div>
   </div>
 </div>
@@ -537,14 +529,94 @@ function parseISO8601(iso){
 function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
   return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
 
-const BUILD = '20261105g';
+const BUILD = '20261105h';
 // In-app YouTube audio proxy (HTML5 <audio> → fold does not pause). Never leaves NOVA.
 const YT_STREAM_PROXY = 'https://rabbit-empirical-pixels-mba.trycloudflare.com';
+const YT_SAVED_KEY = 'nova.yt.saved';
+const YT_RECENT_KEY = 'nova.yt.recent';
 const PIPED_BASES = [
   'https://api.piped.private.coffee',
   'https://pipedapi.ducks.party',
-  'https://pipedapi.adminforge.de'
+  'https://pipedapi.adminforge.de',
+  'https://pipedapi.reallyaweso.me',
+  'https://pipedapi.darkness.services'
 ];
+
+function loadSavedYt(){
+  try { return JSON.parse(localStorage.getItem(YT_SAVED_KEY) || '[]') || []; }
+  catch (_) { return []; }
+}
+function persistSavedYt(list){
+  localStorage.setItem(YT_SAVED_KEY, JSON.stringify(list.slice(0, 200)));
+}
+function isSavedYt(id){
+  return loadSavedYt().some(v => v.id === id);
+}
+function toggleSavedYt(v){
+  const list = loadSavedYt();
+  const i = list.findIndex(x => x.id === v.id);
+  if (i >= 0) { list.splice(i, 1); persistSavedYt(list); return false; }
+  list.unshift({
+    id: v.id, title: v.title, channel: v.channel, thumb: v.thumb,
+    duration: v.duration || 0, savedAt: Date.now(), cached: !!v.cached
+  });
+  persistSavedYt(list);
+  return true;
+}
+function loadRecentYt(){
+  try { return JSON.parse(localStorage.getItem(YT_RECENT_KEY) || '[]') || []; }
+  catch (_) { return []; }
+}
+function pushRecentYt(v){
+  const list = loadRecentYt().filter(x => x.id !== v.id);
+  list.unshift({ id: v.id, title: v.title, channel: v.channel, thumb: v.thumb, duration: v.duration || 0 });
+  localStorage.setItem(YT_RECENT_KEY, JSON.stringify(list.slice(0, 24)));
+}
+
+const ytCacheDB = { db: null };
+function openYtCache(){
+  return new Promise((resolve, reject) => {
+    if (ytCacheDB.db) return resolve(ytCacheDB.db);
+    const req = indexedDB.open('nova-yt-cache', 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('audio')) db.createObjectStore('audio');
+    };
+    req.onsuccess = () => { ytCacheDB.db = req.result; resolve(ytCacheDB.db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+async function getCachedYtBlob(id){
+  try {
+    const db = await openYtCache();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction('audio', 'readonly');
+      const r = tx.objectStore('audio').get(id);
+      r.onsuccess = () => resolve(r.result || null);
+      r.onerror = () => reject(r.error);
+    });
+  } catch (_) { return null; }
+}
+async function putCachedYtBlob(id, blob){
+  const db = await openYtCache();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('audio', 'readwrite');
+    tx.objectStore('audio').put(blob, id);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function cacheYtFromProxy(videoId){
+  const res = await fetchTimeout(`${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`, {}, 45000);
+  if (!res.ok) throw new Error('cache-fail');
+  const blob = await res.blob();
+  if (!blob || blob.size < 8000) throw new Error('cache-empty');
+  await putCachedYtBlob(videoId, blob);
+  const list = loadSavedYt();
+  const i = list.findIndex(x => x.id === videoId);
+  if (i >= 0) { list[i].cached = true; persistSavedYt(list); }
+  return blob;
+}
 
 function fetchTimeout(url, opts={}, ms=3500){
   const ctrl = new AbortController();
@@ -588,41 +660,64 @@ function playUrlInElement(el, url, ms=8000){
 async function playYouTubeAudioInApp(videoId){
   enableBackgroundAudio();
   const media = ytMedia();
-  // 1) Our audio proxy (pipes YouTube → stays in NOVA, fold-safe)
+  // 0) Cached offline blob (fold-safe, no network)
   try {
-    await playUrlInElement(media, `${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`, 7000);
-    return 'proxy';
+    const blob = await getCachedYtBlob(videoId);
+    if (blob) {
+      const obj = URL.createObjectURL(blob);
+      await playUrlInElement(media, obj, 6000);
+      return 'cache';
+    }
   } catch (_) {}
-  // 2) Piped stream URLs (still in-app <audio>, never leave NOVA)
+  // 1) Piped from the phone (still in-app <audio>)
   for (const base of PIPED_BASES) {
     try {
-      const res = await fetchTimeout(`${base}/streams/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 3500);
+      const res = await fetchTimeout(`${base}/streams/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 4000);
       if (!res.ok) continue;
       const data = await res.json();
       const audio = (data.audioStreams || []).slice().sort((a,b)=>(b.bitrate||0)-(a.bitrate||0));
       const muxed = (data.videoStreams || []).filter(v => v && !v.videoOnly && v.url);
-      const url = (audio[0] && audio[0].url) || (muxed.find(v=>/piped|videoplayback/i.test(v.url)) || muxed[0] || {}).url;
-      if (!url) continue;
-      await playUrlInElement(media, url, 7000);
-      return 'piped';
+      const candidates = [
+        ...audio.map(a => a && a.url),
+        ...(muxed.find(v=>/piped|videoplayback/i.test(v.url||'')) ? [muxed.find(v=>/piped|videoplayback/i.test(v.url||'')).url] : []),
+        ...(muxed[0] ? [muxed[0].url] : [])
+      ].filter(Boolean);
+      for (const url of candidates.slice(0, 3)) {
+        try {
+          await playUrlInElement(media, url, 6500);
+          return 'piped';
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+  // 2) Our audio proxy (pipes YouTube → stays in NOVA, fold-safe)
+  try {
+    await playUrlInElement(media, `${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`, 9000);
+    return 'proxy';
+  } catch (_) {}
+  // 3) Invidious from the phone (some instances work on residential IPs)
+  const inv = [
+    'https://inv.nadeko.net',
+    'https://yewtu.be',
+    'https://invidious.nerdvpn.de'
+  ];
+  for (const base of inv) {
+    try {
+      const res = await fetchTimeout(`${base}/api/v1/videos/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 4500);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const formats = [...(data.adaptiveFormats||[]), ...(data.formatStreams||[])];
+      const audio = formats.filter(f => /audio/i.test(String(f.type||f.mimeType||'')) && f.url)
+        .sort((a,b)=>(parseInt(b.bitrate||0,10)||0)-(parseInt(a.bitrate||0,10)||0));
+      for (const a of audio.slice(0, 2)) {
+        try {
+          await playUrlInElement(media, a.url, 6500);
+          return 'invidious';
+        } catch (_) {}
+      }
     } catch (_) {}
   }
   throw new Error('no-stream');
-}
-
-async function playAudiusMatchInApp(title, channel){
-  const q = String(title || '').replace(/\([^)]*\)/g,' ').replace(/\[[^\]]*\]/g,' ')
-    .replace(/official|video|audio|lyrics|hd|4k/ig,' ').replace(/\s+/g,' ').trim();
-  if (q.length < 2) return null;
-  const res = await fetchTimeout(
-    `https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`,
-    {},
-    3000
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  const list = (json.data || []).map(mapTrack);
-  return list[0] || null;
 }
 
 async function youtubeSearchOfficial(q, key){
@@ -695,20 +790,117 @@ async function youtubeSearch(q){
 }
 
 function ytRow(v){
+  const saved = isSavedYt(v.id);
   return `<div class="yt-row" data-yt="${v.id}">
     <div class="yt-thumb" style="background-image:url('${v.thumb}')"><span>${fmtDur(v.duration)}</span></div>
-    <div class="meta"><div class="t">${v.title}</div><div class="u">${v.channel}</div></div>
+    <div class="meta"><div class="t">${v.title}</div><div class="u">${v.channel}${v.cached ? ' · ოფლაინ' : ''}</div></div>
+    <button class="save ${saved?'on':''}" data-save="${v.id}" aria-label="ჩაწერა">${saved?'♥':'♡'}</button>
   </div>`;
 }
 
 function refreshYtKeyUI(){
   const has=!!getYtKey();
-  // Optional advanced key — keep collapsed unless user opens Settings.
   ytKeyBox.style.display = 'none';
   settingsYtKey.value = getYtKey();
   ytStatus.textContent = has
-    ? 'Using your YouTube Data API key when possible.'
-    : 'Search YouTube — in-app audio when possible (fold OK), else YouTube app.';
+    ? 'YouTube Data API ძებნა ჩართულია.'
+    : 'იპოვე YouTube სიმღერა — უკრავს აქვე, ჩაწერე, ჩაკეცვაზეც ისმის.';
+}
+
+function refreshSaveButtons(){
+  const on = currentYt && isSavedYt(currentYt.id);
+  const np = document.getElementById('npSave');
+  if (np) {
+    np.classList.toggle('on', !!on);
+    np.textContent = on ? '♥' : '♡';
+  }
+  document.querySelectorAll('[data-save]').forEach(btn => {
+    const saved = isSavedYt(btn.dataset.save);
+    btn.classList.toggle('on', saved);
+    btn.textContent = saved ? '♥' : '♡';
+  });
+}
+
+function bindYtList(listEl, results){
+  listEl.querySelectorAll('[data-yt]').forEach(el => {
+    el.onclick = (e) => {
+      if (e.target.closest('[data-save]')) return;
+      const v = results.find(x => x.id === el.dataset.yt);
+      if (v) openYtPlayer(v);
+    };
+  });
+  listEl.querySelectorAll('[data-save]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const v = results.find(x => x.id === btn.dataset.save);
+      if (!v) return;
+      const saved = toggleSavedYt(v);
+      btn.classList.toggle('on', saved);
+      btn.textContent = saved ? '♥' : '♡';
+      if (saved) cacheYtFromProxy(v.id).then(() => renderSavedUI()).catch(() => {});
+      renderSavedUI();
+      refreshSaveButtons();
+    };
+  });
+}
+
+function renderSavedUI(){
+  const saved = loadSavedYt();
+  const recent = loadRecentYt();
+  const liked = document.getElementById('liked');
+  const lib = document.getElementById('lib');
+  const libSearch = document.getElementById('libSearchList');
+  const pl = document.getElementById('plSaved');
+  const quick = document.getElementById('quick');
+  const recentEl = document.getElementById('recent');
+  const empty = '<div style="color:#b3b3b3;font-size:13px;padding:10px 0">ჯერ არაფერი გაქვს ჩაწერილი — Explore-ში მოძებნე და დააჭირე ♡</div>';
+  if (liked) {
+    liked.innerHTML = saved.length
+      ? saved.slice(0, 12).map(v => ytRow(v)).join('')
+      : empty;
+    bindYtList(liked, saved);
+  }
+  if (lib) {
+    lib.innerHTML = saved.length ? saved.map(v => ytRow(v)).join('') : empty;
+    bindYtList(lib, saved);
+  }
+  if (libSearch) {
+    libSearch.innerHTML = saved.length ? saved.map(v => ytRow(v)).join('') : empty;
+    bindYtList(libSearch, saved);
+  }
+  if (pl) {
+    pl.innerHTML = saved.length
+      ? `<div class="row"><div class="thumb" style="background:#282828;display:grid;place-items:center;font-size:20px">♥</div><div class="meta"><div class="t">ჩაწერილი</div><div class="u">${saved.length} სიმღერა</div></div></div>` +
+        saved.slice(0, 8).map(v => ytRow(v)).join('')
+      : empty;
+    bindYtList(pl, saved);
+  }
+  if (quick) {
+    const src = (saved.length ? saved : recent).slice(0, 4);
+    quick.innerHTML = src.map(v => `
+      <div class="q" data-ytq="${v.id}"><div class="c" style="background-image:url('${v.thumb||''}')"></div><div class="n">${v.title}</div></div>`).join('')
+      || '<div style="color:#b3b3b3;font-size:13px;grid-column:1/-1">მოძებნე YouTube სიმღერა Explore-ში</div>';
+    quick.querySelectorAll('[data-ytq]').forEach(el => {
+      el.onclick = () => {
+        const v = [...saved, ...recent].find(x => x.id === el.dataset.ytq);
+        if (v) openYtPlayer(v);
+      };
+    });
+  }
+  if (recentEl) {
+    const src = recent.length ? recent : saved;
+    recentEl.innerHTML = src.slice(0, 8).map(v => `
+      <div class="card" data-ytr="${v.id}"><div class="cover" style="background-image:url('${v.thumb||''}')"></div>
+      <div class="t">${v.title}</div><div class="u">${v.channel||''}</div></div>`).join('')
+      || '<div style="color:#b3b3b3;font-size:13px">ჯერ ცარიელია</div>';
+    recentEl.querySelectorAll('[data-ytr]').forEach(el => {
+      el.onclick = () => {
+        const v = [...recent, ...saved].find(x => x.id === el.dataset.ytr);
+        if (v) openYtPlayer(v);
+      };
+    });
+  }
+  refreshSaveButtons();
 }
 let currentYt = null;
 let ytPlaying = false;
@@ -835,7 +1027,7 @@ function stopYtPlayer(){
 async function openYtPlayer(v){
   const loader = document.getElementById('ytLoading');
   if (loader) {
-    loader.textContent = '…';
+    loader.textContent = 'იტვირთება…';
     loader.classList.add('on');
   }
   currentYt = v;
@@ -844,38 +1036,26 @@ async function openYtPlayer(v){
   try { audio.pause(); } catch (_) {}
   try {
     // Always stay inside NOVA — never open YouTube / YouTube Music apps.
-    try {
-      await playYouTubeAudioInApp(v.id);
-      ytPlayMode = 'audio';
-      mode = 'youtube';
-      wantPlaying = true;
-      ytPlaying = true;
-      playing = true;
-      progress = 0;
-      ensureSilentKeepAlive(true);
-      startKeepAliveLoop();
-      setMediaSession(v.title, v.channel, v.thumb);
-      openNP();
-      syncUI();
-      ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results` : '';
-      return;
-    } catch (_) {}
-
-    const match = await playAudiusMatchInApp(v.title, v.channel);
-    if (match) {
-      streamQueue = [match];
-      streamIndex = 0;
-      mode = 'stream';
-      ytPlayMode = 'audio';
-      ytPlaying = false;
-      playStreamAt(0);
-      ytStatus.textContent = 'უკრავს აპში · ჩაკეცვაზეც ისმის';
-      return;
-    }
-
-    ytStatus.textContent = 'ვერ ჩაირთო ამ ტრეკზე — სხვა აირჩიე (აპში რჩები)';
+    const via = await playYouTubeAudioInApp(v.id);
+    ytPlayMode = 'audio';
+    mode = 'youtube';
+    wantPlaying = true;
+    ytPlaying = true;
+    playing = true;
+    progress = 0;
+    pushRecentYt(v);
+    ensureSilentKeepAlive(true);
+    startKeepAliveLoop();
+    setMediaSession(v.title, v.channel, v.thumb);
+    openNP();
+    syncUI();
+    refreshSaveButtons();
+    renderSavedUI();
+    ytStatus.textContent = via === 'cache'
+      ? 'ოფლაინ · ჩაკეცვაზეც ისმის'
+      : 'უკრავს NOVA-ში · ჩაკეცვაზეც ისმის';
   } catch (_) {
-    ytStatus.textContent = 'ვერ ჩაირთო — სხვა ტრეკი სცადე';
+    ytStatus.textContent = 'ამ ვიდეოზე სტრიმი ვერ გაიხსნა — სხვა სიმღერა სცადე (აპში რჩები)';
   } finally {
     if (loader) loader.classList.remove('on');
   }
@@ -954,23 +1134,20 @@ async function runYtSearch(q){
     lastYtResults=await youtubeSearch(q);
     ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results` : 'No videos found';
     ytList.innerHTML = lastYtResults.map(ytRow).join('') || '';
-    ytList.querySelectorAll('[data-yt]').forEach(el=>{
-      el.onclick=()=>{
-        const v=lastYtResults.find(x=>x.id===el.dataset.yt);
-        if(v) openYtPlayer(v);
-      };
-    });
+    bindYtList(ytList, lastYtResults);
   }catch(e){
     ytList.innerHTML='';
-    ytStatus.textContent = 'Search failed: ' + (e.message || e);
+    ytStatus.textContent = 'ძებნა ვერ მოხერხდა: ' + (e.message || e);
   }
 }
 
 function setExploreSeg(name){
-  document.querySelectorAll('#exploreSeg button').forEach(x=>x.classList.toggle('on', x.dataset.seg===name));
-  ytPane.style.display = name==='youtube'?'block':'none';
-  freePane.style.display = name==='free'?'block':'none';
-  libPane.style.display = name==='library'?'block':'none';
+  const seg = name === 'library' || name === 'saved' ? 'saved' : (name === 'free' ? 'youtube' : name);
+  document.querySelectorAll('#exploreSeg button').forEach(x=>x.classList.toggle('on', x.dataset.seg===seg));
+  ytPane.style.display = seg==='youtube'?'block':'none';
+  freePane.style.display = 'none';
+  libPane.style.display = seg==='saved'?'block':'none';
+  if (seg === 'saved') renderSavedUI();
 }
 document.getElementById('exploreSeg').onclick = e => {
   const b=e.target.closest('[data-seg]'); if(!b) return;
@@ -981,15 +1158,9 @@ settingsYtSave.onclick = () => { setYtKey(settingsYtKey.value); refreshYtKeyUI()
 ytq.oninput = e => { clearTimeout(ytTimer); ytTimer=setTimeout(()=>runYtSearch(e.target.value), 320); };
 refreshYtKeyUI();
 
-const songs = [
-  { title: "Midnight Drive", artist: "Northline", album: "After Hours", dur: "3:42", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", liked: true },
-  { title: "Glass Harbor", artist: "Kinetic", album: "Harbor EP", dur: "4:11", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80", liked: false },
-  { title: "Soft Static", artist: "Lumen", album: "Soft Static", dur: "2:58", img: "https://images.unsplash.com/photo-1459749411175-04741767548d?w=800&q=80", liked: true },
-  { title: "Low Orbit", artist: "NOVA Session", album: "Singles", dur: "3:21", img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80", liked: false },
-  { title: "Amber Rooms", artist: "Corridor", album: "Rooms", dur: "5:02", img: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=800&q=80", liked: false },
-];
+const songs = [];
 let index = 0, playing = false, progress = 0;
-let streamQueue = [], streamIndex = 0, mode = 'library'; // library | stream
+let streamQueue = [], streamIndex = 0, mode = 'youtube'; // youtube | stream | library
 let searchTimer = null;
 const audio = document.getElementById('audio');
 
@@ -1020,47 +1191,15 @@ function current() {
 }
 
 function render() {
-  document.getElementById('quick').innerHTML = songs.slice(0,4).map((s,i)=>`
-    <div class="q" data-i="${i}"><div class="c" style="background-image:url('${s.img}')"></div><div class="n">${s.title}</div></div>`).join('');
-  document.getElementById('recent').innerHTML = songs.map((s,i)=>`
-    <div class="card" data-i="${i}"><div class="cover" style="background-image:url('${s.img}')"></div>
-    <div class="t">${s.title}</div><div class="u">${s.artist}</div></div>`).join('');
-  document.getElementById('liked').innerHTML = songs.filter(s=>s.liked).map(s=>row(s, songs.indexOf(s))).join('');
-  document.getElementById('lib').innerHTML = songs.map((s,i)=>row(s,i)).join('');
-  document.getElementById('pl1').style.backgroundImage = `url('${songs[0].img}')`;
-  document.getElementById('pl2').style.backgroundImage = `url('${songs[1].img}')`;
-  const cards = [
-    ['Top artists', artistsCount() + ' in library', 'linear-gradient(135deg,#1db954,#0a5c2a)', '👥', () => show('library')],
-    ['Recently added', songs.length + ' tracks', 'linear-gradient(135deg,#4c6ef5,#1b2a6b)', '⏱', () => playAt(0)],
-    ['Liked songs', songs.filter(s=>s.liked).length + ' favorites', 'linear-gradient(135deg,#e64980,#6b1d3a)', '♥', () => playAt(songs.findIndex(s=>s.liked))],
-    ['Albums', 'Browse covers', 'linear-gradient(135deg,#fd7e14,#6b3410)', '▤', () => show('library')],
-    ['Most played', 'Your hits', 'linear-gradient(135deg,#20c997,#0b4a3c)', '▮', () => playAt(0)],
-    ['Playlists', 'Your lists', 'linear-gradient(135deg,#7950f2,#2f1a6b)', '☰', () => show('playlists')],
-  ];
-  document.getElementById('exploreCards').innerHTML = cards.map((c,i)=>`
-    <div class="ex-card" data-card="${i}" style="background:${c[2]}"><div class="ic">${c[3]}</div>${c[0]}<span>${c[1]}</span></div>`).join('');
-  document.querySelectorAll('[data-card]').forEach(el => {
-    el.onclick = () => cards[+el.dataset.card][4]();
-  });
-  document.querySelectorAll('#page-home [data-i], #page-library [data-i], #page-playlists [data-i]').forEach(el => el.onclick = () => {
-    playAt(+el.dataset.i);
-  });
+  renderSavedUI();
   syncUI();
 }
-function artistsCount(){ return new Set(songs.map(s=>s.artist)).size; }
+function artistsCount(){ return new Set(loadSavedYt().map(s=>s.channel)).size; }
 function playAt(i){
-  // Demo library rows have no real files — play Free catalog instead (real audio + fold-safe).
-  if (streamQueue.length) {
-    playStreamAt(Math.max(0, Math.min(i, streamQueue.length - 1)));
-    return;
-  }
-  loadTrending().then(() => {
-    if (streamQueue.length) playStreamAt(0);
-    else {
-      show('search');
-      setExploreSeg('free');
-    }
-  });
+  const saved = loadSavedYt();
+  if (saved[i]) { openYtPlayer(saved[i]); return; }
+  show('search');
+  setExploreSeg('youtube');
 }
 
 function playStreamAt(i){
@@ -1088,65 +1227,8 @@ function playStreamAt(i){
   syncUI();
 }
 
-async function loadTrending(){
-  const box = document.getElementById('trendingBlock');
-  box.innerHTML = '<div style="color:#b3b3b3;font-size:13px;padding:8px 0">Loading music…</div>';
-  try {
-    const res = await fetch(`https://api.audius.co/v1/tracks/trending?limit=12&app_name=${APP}`);
-    const json = await res.json();
-    const list = (json.data||[]).map(mapTrack);
-    streamQueue = list;
-    box.innerHTML = `<div style="font-weight:700;font-size:18px;margin:8px 0 4px">Listen now</div>
-      <div style="color:#b3b3b3;font-size:12px;margin-bottom:10px">Free music — tap to play</div>` +
-      list.map((t,i)=>row(t,i,{src:'stream',on: mode==='stream'&&streamIndex===i})).join('');
-    box.querySelectorAll('[data-src="stream"]').forEach(el => {
-      el.onclick = () => { streamQueue = list; playStreamAt(+el.dataset.i); };
-    });
-  } catch (e) {
-    box.innerHTML = '<div style="color:#b3b3b3;padding:8px 0">Couldn’t load online catalog.</div>';
-  }
-}
-
-async function searchOnline(q){
-  const cards = document.getElementById('exploreCards');
-  const note = document.querySelector('.explore-note');
-  const trend = document.getElementById('trendingBlock');
-  if (!q || q.length < 2) {
-    cards.style.display = 'grid';
-    if (note) note.style.display = 'block';
-    if (trend) trend.style.display = 'block';
-    searchList.innerHTML = '';
-    return;
-  }
-  cards.style.display = 'none';
-  if (note) note.style.display = 'none';
-  if (trend) trend.style.display = 'none';
-  searchList.innerHTML = '<div style="color:#b3b3b3;padding:16px 0">Searching…</div>';
-  try {
-    const res = await fetch(`https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`);
-    const json = await res.json();
-    const online = (json.data||[]).map(mapTrack);
-    const local = songs.map((s,i)=>({s,i})).filter(({s})=>[s.title,s.artist,s.album].join(' ').toLowerCase().includes(q.toLowerCase()));
-    let html = '';
-    if (online.length) {
-      html += `<div style="font-weight:700;margin:8px 0">Online</div>` +
-        online.map((t,i)=>row(t,i,{src:'stream'})).join('');
-    }
-    if (local.length) {
-      html += `<div style="font-weight:700;margin:16px 0 8px">On this phone</div>` +
-        local.map(({s,i})=>row(s,i,{src:'lib'})).join('');
-    }
-    searchList.innerHTML = html || '<div style="color:#b3b3b3;padding:20px 0">No results</div>';
-    searchList.querySelectorAll('[data-src="stream"]').forEach(el => {
-      el.onclick = () => { streamQueue = online; playStreamAt(+el.dataset.i); };
-    });
-    searchList.querySelectorAll('[data-src="lib"]').forEach(el => {
-      el.onclick = () => playAt(+el.dataset.i);
-    });
-  } catch (e) {
-    searchList.innerHTML = '<div style="color:#b3b3b3;padding:20px 0">Search failed — check connection</div>';
-  }
-}
+async function loadTrending(){ /* Free catalog removed — YouTube only */ }
+async function searchOnline(){ /* Free catalog removed — YouTube only */ }
 
 function syncUI() {
   const s = mode === 'youtube' && currentYt
@@ -1217,11 +1299,18 @@ function togglePlay(){
   }
   syncUI();
 }
+function ytQueue(){
+  if (lastYtResults.length) return lastYtResults;
+  const saved = loadSavedYt();
+  if (saved.length) return saved;
+  return loadRecentYt();
+}
 async function nextTrack(){
   if (mode === 'youtube') {
-    if (!lastYtResults.length || !currentYt) return;
-    const i = lastYtResults.findIndex(x => x.id === currentYt.id);
-    const next = lastYtResults[(i + 1 + lastYtResults.length) % lastYtResults.length];
+    const q = ytQueue();
+    if (!q.length || !currentYt) return;
+    const i = q.findIndex(x => x.id === currentYt.id);
+    const next = q[(Math.max(i, 0) + 1) % q.length];
     await openYtPlayer(next);
     return;
   }
@@ -1234,11 +1323,12 @@ async function nextTrack(){
 }
 async function prevTrack(){
   if (mode === 'youtube') {
-    if (!lastYtResults.length || !currentYt) return;
+    const q = ytQueue();
+    if (!q.length || !currentYt) return;
     const media = ytMedia();
     if (media && media.currentTime > 3) { media.currentTime = 0; return; }
-    const i = lastYtResults.findIndex(x => x.id === currentYt.id);
-    const prev = lastYtResults[(i - 1 + lastYtResults.length) % lastYtResults.length];
+    const i = q.findIndex(x => x.id === currentYt.id);
+    const prev = q[(Math.max(i, 0) - 1 + q.length) % q.length];
     await openYtPlayer(prev);
     return;
   }
@@ -1263,13 +1353,35 @@ next.onclick = nextTrack;
 prev.onclick = prevTrack;
 shuf.onclick = e => e.currentTarget.classList.toggle('green');
 rep.onclick = e => e.currentTarget.classList.toggle('green');
-importBtn.onclick = () => show('empty');
-fillLib.onclick = () => { show('home'); openNP(); };
+const goExplore = document.getElementById('goExplore');
+if (goExplore) goExplore.onclick = () => { show('search'); setExploreSeg('youtube'); ytq.focus(); };
+const fillLib = document.getElementById('fillLib');
+if (fillLib) fillLib.onclick = () => { show('search'); setExploreSeg('youtube'); };
 document.querySelectorAll('[data-toggle]').forEach(t => t.onclick = () => t.classList.toggle('on'));
-q.oninput = e => {
-  clearTimeout(searchTimer);
-  const v = e.target.value.trim();
-  searchTimer = setTimeout(() => searchOnline(v), 320);
+
+const npSave = document.getElementById('npSave');
+if (npSave) npSave.onclick = () => {
+  if (!currentYt) return;
+  toggleSavedYt(currentYt);
+  refreshSaveButtons();
+  renderSavedUI();
+};
+const npCache = document.getElementById('npCache');
+if (npCache) npCache.onclick = async () => {
+  if (!currentYt) return;
+  if (!isSavedYt(currentYt.id)) toggleSavedYt(currentYt);
+  npCache.textContent = '…';
+  try {
+    await cacheYtFromProxy(currentYt.id);
+    npCache.textContent = 'შენახულია';
+    ytStatus.textContent = 'ჩაწერილია ოფლაინად · ჩაკეცვაზეც ისმის';
+    renderSavedUI();
+  } catch (_) {
+    npCache.textContent = 'ჩაწერა';
+    ytStatus.textContent = 'ოფლაინ ჩაწერა ვერ მოხერხდა — სიმღერა მაინც შენახულია სიაში';
+  }
+  refreshSaveButtons();
+  setTimeout(() => { if (npCache) npCache.textContent = 'ჩაწერა'; }, 1800);
 };
 
 function bindMediaProgress(el, modes){
@@ -1323,30 +1435,12 @@ setInterval(() => {
 enableBackgroundAudio();
 render(); syncUI();
 show('search');
-setExploreSeg('free');
-loadTrending().then(() => {
-  if (streamQueue.length) {
-    try {
-      document.getElementById('quick').innerHTML = streamQueue.slice(0,4).map((s,i)=>`
-        <div class="q" data-stream="${i}"><div class="c" style="background-image:url('${s.img||''}')"></div><div class="n">${s.title}</div></div>`).join('');
-      document.getElementById('recent').innerHTML = streamQueue.slice(0,8).map((s,i)=>`
-        <div class="card" data-stream="${i}"><div class="cover" style="background-image:url('${s.img||''}')"></div>
-        <div class="t">${s.title}</div><div class="u">${s.artist}</div></div>`).join('');
-      document.querySelectorAll('[data-stream]').forEach(el => {
-        el.onclick = () => playStreamAt(+el.dataset.stream);
-      });
-    } catch (_) {}
-    // Only auto-start when explicitly requested: ?auto=1
-    if (new URLSearchParams(location.search).get('auto') === '1') {
-      playStreamAt(0);
-    }
-  }
-});
+setExploreSeg('youtube');
 if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
 if (new URLSearchParams(location.search).get('np')==='1') openNP();
-if (new URLSearchParams(location.search).get('tab')==='youtube') {
+if (new URLSearchParams(location.search).get('tab')==='saved') {
   show('search');
-  setExploreSeg('youtube');
+  setExploreSeg('saved');
 }
 console.info('NOVA BUILD', BUILD);
 

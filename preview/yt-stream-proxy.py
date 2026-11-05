@@ -82,6 +82,14 @@ CLIENTS = [
 PIPED = [
     "https://api.piped.private.coffee",
     "https://pipedapi.ducks.party",
+    "https://pipedapi.reallyaweso.me",
+    "https://pipedapi.darkness.services",
+]
+
+INVIDIOUS = [
+    "https://inv.nadeko.net",
+    "https://invidious.nerdvpn.de",
+    "https://iv.ggtyler.dev",
 ]
 
 
@@ -188,6 +196,35 @@ def resolve_piped(video_id: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+def resolve_invidious(video_id: str) -> tuple[str | None, str | None]:
+    for base in INVIDIOUS:
+        try:
+            req = urllib.request.Request(
+                f"{base}/api/v1/videos/{video_id}",
+                headers={"User-Agent": "NovaMusicProxy/1.0", "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.load(resp)
+        except Exception:  # noqa: BLE001
+            continue
+        formats = list(data.get("adaptiveFormats") or []) + list(data.get("formatStreams") or [])
+        audio = [
+            f
+            for f in formats
+            if "audio" in str(f.get("type") or f.get("mimeType") or "").lower() and f.get("url")
+        ]
+        audio.sort(
+            key=lambda a: (
+                0 if "mp4" in str(a.get("type") or a.get("mimeType") or "") else 1,
+                -(int(a.get("bitrate") or 0) if str(a.get("bitrate") or "").isdigit() else 0),
+            )
+        )
+        if audio:
+            mime = audio[0].get("type") or audio[0].get("mimeType") or "audio/mp4"
+            return audio[0]["url"], mime
+    return None, None
+
+
 def resolve(video_id: str) -> tuple[str | None, str | None, str]:
     url, mime, via = resolve_innertube(video_id)
     if url:
@@ -195,6 +232,9 @@ def resolve(video_id: str) -> tuple[str | None, str | None, str]:
     url, mime = resolve_piped(video_id)
     if url:
         return url, mime, "piped"
+    url, mime = resolve_invidious(video_id)
+    if url:
+        return url, mime, "invidious"
     return None, None, via
 
 
