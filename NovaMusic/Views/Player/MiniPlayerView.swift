@@ -4,12 +4,13 @@ struct MiniPlayerView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        if appState.player.hasSomethingToPlay {
+        if appState.hasMiniPlayer {
             VStack(spacing: 0) {
                 GeometryReader { geo in
-                    let progress = appState.player.duration > 0
-                        ? appState.player.currentTime / appState.player.duration
-                        : 0
+                    let progress: Double = {
+                        guard appState.player.duration > 0 else { return 0 }
+                        return appState.player.currentTime / appState.player.duration
+                    }()
                     ZStack(alignment: .leading) {
                         Rectangle()
                             .fill(Color.novaSeparator)
@@ -29,11 +30,11 @@ struct MiniPlayerView: View {
                                 .frame(width: 44, height: 44)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(appState.player.nowPlayingTitle)
+                                Text(titleText)
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.novaTextPrimary)
                                     .lineLimit(1)
-                                Text(appState.player.nowPlayingArtist)
+                                Text(artistText)
                                     .font(.caption)
                                     .foregroundStyle(Color.novaTextSecondary)
                                     .lineLimit(1)
@@ -53,9 +54,13 @@ struct MiniPlayerView: View {
                     }
 
                     Button {
-                        appState.player.skipNext()
+                        if appState.player.currentStream?.isYouTube == true {
+                            appState.stopYouTube()
+                        } else {
+                            appState.player.skipNext()
+                        }
                     } label: {
-                        Image(systemName: "forward.fill")
+                        Image(systemName: appState.player.currentStream?.isYouTube == true ? "xmark" : "forward.fill")
                             .font(.title3)
                             .foregroundStyle(Color.novaTextPrimary)
                             .frame(width: 40, height: 40)
@@ -73,9 +78,27 @@ struct MiniPlayerView: View {
         }
     }
 
+    private var titleText: String {
+        appState.youtubeNowPlaying?.title ?? appState.player.nowPlayingTitle
+    }
+
+    private var artistText: String {
+        if let yt = appState.youtubeNowPlaying {
+            return yt.channelTitle
+        }
+        return appState.player.nowPlayingArtist
+    }
+
     @ViewBuilder
     private var artwork: some View {
-        if let song = appState.player.currentSong {
+        if let yt = appState.youtubeNowPlaying {
+            RemoteArtworkView(
+                url: yt.thumbnailURL,
+                title: yt.title,
+                artist: yt.channelTitle,
+                cornerRadius: 8
+            )
+        } else if let song = appState.player.currentSong {
             ArtworkView(song: song, cornerRadius: 8)
         } else if let stream = appState.player.currentStream {
             RemoteArtworkView(

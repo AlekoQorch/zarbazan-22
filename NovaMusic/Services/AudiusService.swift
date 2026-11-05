@@ -7,10 +7,33 @@ struct StreamTrack: Identifiable, Hashable, Sendable {
     let duration: Double
     let artworkURL: URL?
     let genre: String
+    /// When set (YouTube audio / HLS), plays this URL instead of the Audius stream.
+    let streamURLOverride: URL?
+
+    init(
+        id: String,
+        title: String,
+        artist: String,
+        duration: Double,
+        artworkURL: URL?,
+        genre: String,
+        streamURLOverride: URL? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.artist = artist
+        self.duration = duration
+        self.artworkURL = artworkURL
+        self.genre = genre
+        self.streamURLOverride = streamURLOverride
+    }
 
     var streamURL: URL {
-        URL(string: "https://api.audius.co/v1/tracks/\(id)/stream?app_name=NovaMusic")!
+        if let streamURLOverride { return streamURLOverride }
+        return URL(string: "https://api.audius.co/v1/tracks/\(id)/stream?app_name=NovaMusic")!
     }
+
+    var isYouTube: Bool { id.hasPrefix("yt-") || genre == "YouTube" }
 }
 
 enum AudiusService {

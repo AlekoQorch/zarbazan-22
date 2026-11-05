@@ -10,13 +10,16 @@
 
 https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/nova-music.html
 
-ან პირდაპირ Explore (ძებნა + მოსმენა):
+ან პირდაპირ Explore:
 
-https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/nova-music.html?tab=search
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?tab=search
 
-3. **Explore** → მოძებნე სიმღერა ან დააკლიკე **Listen now** — მუსიკა ირთვება
+3. **Explore → YouTube** — მოძებნე და დაუკარი **აუდიოდ** (API key **არ** სჭირდება). ჩაკეცვა/ლოქი აღარ აპაუზებს.
+   **Free** ტაბი = Audius სტრიმები
 4. ქვემოთ Share (**□↑**) → **Add to Home Screen** → **Add**
 5. Home Screen-ზე გამოჩნდება **NOVA**
+
+API key setup: `docs/YOUTUBE_SETUP.md`
 
 ## სრული native iOS აპი
 

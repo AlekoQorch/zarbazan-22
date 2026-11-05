@@ -267,6 +267,43 @@
   .ex-card span { font-size: 11px; font-weight: 500; opacity: 0.85; margin-top: 2px; }
   .ex-card .ic { position: absolute; top: 10px; right: 10px; font-size: 22px; opacity: 0.35; }
   .explore-note { color: var(--muted); font-size: 12px; margin: 8px 0 16px; line-height: 1.4; }
+  .seg {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+    background: #282828; border-radius: 10px; padding: 4px; margin: 4px 0 12px;
+  }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px;
+    font-weight: 600; padding: 8px 6px; border-radius: 8px;
+  }
+  .seg button.on { background: #3e3e3e; color: #fff; }
+  .yt-key {
+    background: #181818; border: 1px solid rgba(255,255,255,.1); border-radius: 12px;
+    padding: 12px; margin-bottom: 12px; color: var(--muted); font-size: 13px; line-height: 1.4;
+  }
+  .yt-key b { color: #fff; display: block; margin-bottom: 6px; }
+  .yt-key input {
+    width: 100%; margin-top: 8px; background: #2a2a2a; border: 0; border-radius: 8px;
+    padding: 10px 12px; color: #fff; font: inherit;
+  }
+  .yt-row {
+    display: flex; gap: 12px; padding: 8px 0; cursor: pointer; align-items: flex-start;
+  }
+  .yt-thumb {
+    width: 128px; height: 72px; border-radius: 8px; background: #282828 center/cover no-repeat;
+    position: relative; flex-shrink: 0;
+  }
+  .yt-thumb span {
+    position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff;
+    font-size: 11px; font-weight: 600; padding: 2px 5px; border-radius: 4px;
+  }
+  .yt-row .meta { min-width: 0; }
+  .yt-row .t { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .yt-row .u { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .yt-loading {
+    display: none; position: absolute; inset: 0; z-index: 55; background: rgba(0,0,0,.55);
+    align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 600;
+  }
+  .yt-loading.on { display: flex; }
   .cell {
     background: var(--elevated); border-radius: 10px; overflow: hidden; margin-bottom: 14px;
   }
@@ -349,18 +386,52 @@
     </section>
 
     <section class="page" id="page-search">
-      <div class="title" style="font-size:26px">Search for everything</div>
-      <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
-      <div id="trendingBlock"></div>
-      <div id="exploreCards" class="explore-grid"></div>
-      <div id="searchList"></div>
-      <p class="explore-note">Search free music online (Audius) and play it here. Also finds tracks in your library.</p>
+      <div class="seg" id="exploreSeg">
+        <button class="on" data-seg="youtube">YouTube</button>
+        <button data-seg="free">Free</button>
+        <button data-seg="library">Library</button>
+      </div>
+      <div id="ytPane">
+        <div class="title" style="font-size:26px">YouTube</div>
+        <p class="explore-note" style="margin-top:0">Search YouTube and play as audio — keeps going when you fold or lock the phone.</p>
+        <div id="ytKeyBox" class="yt-key" style="display:none">
+          <b>Optional: YouTube Data API key</b>
+          <p>Not required. Paste a Google key only if you want official Data API search.</p>
+          <input id="ytKeyInput" type="password" placeholder="AIza… (optional)" autocomplete="off" />
+          <button id="ytKeySave" class="btn btn-green" style="width:auto;margin-top:8px;padding:8px 16px">Save key</button>
+        </div>
+        <div class="search"><span>⌕</span><input id="ytq" placeholder="Song, artist, or music keyword…" autocomplete="off" /></div>
+        <div id="ytStatus" class="explore-note"></div>
+        <div id="ytList"></div>
+      </div>
+      <div id="freePane" style="display:none">
+        <div class="title" style="font-size:26px">Free music</div>
+        <p class="explore-note" style="margin-top:0">Audius streams — separate free catalog.</p>
+        <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
+        <div id="trendingBlock"></div>
+        <div id="exploreCards" class="explore-grid"></div>
+        <div id="searchList"></div>
+      </div>
+      <div id="libPane" style="display:none">
+        <div class="title" style="font-size:26px">Your library</div>
+        <div id="libSearchList"></div>
+      </div>
     </section>
-    <audio id="audio" preload="none" crossorigin="anonymous"></audio>
+    <audio id="audio" preload="auto" playsinline webkit-playsinline></audio>
+    <!-- Hidden video element: Piped often returns muxed MP4 which iOS <audio> rejects -->
+    <video id="ytAudio" playsinline webkit-playsinline preload="auto" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-100vw;top:0"></video>
+    <!-- Near-silent loop helps keep the iOS media session warm -->
+    <audio id="keepaliveAudio" preload="auto" loop playsinline webkit-playsinline></audio>
+    <div class="yt-loading" id="ytLoading">Loading audio…</div>
 
     <section class="page" id="page-settings">
       <div class="title">Settings</div>
       <div class="cell">
+        <div class="item" style="flex-direction:column;align-items:stretch;gap:8px">
+          <span>YouTube Data API key</span>
+          <input id="settingsYtKey" type="password" placeholder="AIza…" style="width:100%;background:#2a2a2a;border:0;border-radius:8px;padding:10px;color:#fff" />
+          <button id="settingsYtSave" class="btn btn-green" style="width:auto;padding:8px 14px">Save</button>
+        </div>
         <div class="item">Appearance <span>Dark</span></div>
         <div class="item">Resume playback <div class="toggle on" data-toggle></div></div>
         <div class="item">Remember position <div class="toggle on" data-toggle></div></div>
@@ -439,6 +510,401 @@
 
 <script>
 const APP = 'NovaMusic';
+const YT_KEY_STORE = 'nova.youtubeDataAPIKey';
+function getYtKey(){ return (localStorage.getItem(YT_KEY_STORE)||'').trim(); }
+function setYtKey(k){ localStorage.setItem(YT_KEY_STORE, (k||'').trim()); }
+function parseISO8601(iso){
+  let body=(iso||'').toUpperCase(); if(body.startsWith('PT')) body=body.slice(2);
+  let total=0, n='';
+  for (const ch of body){
+    if (/\d/.test(ch)){ n+=ch; continue; }
+    const v=parseFloat(n||'0'); n='';
+    if(ch==='H') total+=v*3600; else if(ch==='M') total+=v*60; else if(ch==='S') total+=v;
+  }
+  return total;
+}
+function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
+
+const PIPED_BASES = [
+  'https://api.piped.private.coffee',
+  'https://pipedapi.adminforge.de',
+  'https://pipedapi.reallyaweso.me',
+  'https://pipedapi.ducks.party',
+  'https://pipedapi.leptons.xyz'
+];
+
+function pickPipedAudioURL(data){
+  const audio = (data.audioStreams || []).slice().sort((a,b)=>{
+    const am = String(a.mimeType||'').includes('mp4') ? 1 : 0;
+    const bm = String(b.mimeType||'').includes('mp4') ? 1 : 0;
+    if (am !== bm) return bm - am;
+    return (b.bitrate||0) - (a.bitrate||0);
+  });
+  if (audio[0] && audio[0].url) return audio[0].url;
+  const muxed = (data.videoStreams || []).filter(v => v && v.videoOnly === false && v.url);
+  const preferred = muxed.find(v => /piped|videoplayback|googlevideo/i.test(v.url));
+  if (preferred) return preferred.url;
+  if (muxed[0]) return muxed[0].url;
+  if (data.hls) return data.hls;
+  return '';
+}
+
+async function resolveYouTubeStream(videoId){
+  let lastErr = new Error('No audio stream');
+  for (const base of PIPED_BASES) {
+    try {
+      const res = await fetch(base + '/streams/' + encodeURIComponent(videoId), {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const url = pickPipedAudioURL(data);
+      if (url) return url;
+      throw new Error('Empty streams');
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+async function youtubeSearchOfficial(q, key){
+  const base={ part:'snippet', type:'video', videoEmbeddable:'true', maxResults:'20', q, key };
+  let url='https://www.googleapis.com/youtube/v3/search?'+new URLSearchParams({...base, videoCategoryId:'10'});
+  let data=await fetch(url).then(r=>r.json());
+  if(data.error) throw new Error(data.error.message||'API error');
+  let items=data.items||[];
+  if(!items.length){
+    url='https://www.googleapis.com/youtube/v3/search?'+new URLSearchParams(base);
+    data=await fetch(url).then(r=>r.json());
+    if(data.error) throw new Error(data.error.message||'API error');
+    items=data.items||[];
+  }
+  const ids=items.map(i=>i.id&&i.id.videoId).filter(Boolean);
+  let durations={};
+  if(ids.length){
+    const vurl='https://www.googleapis.com/youtube/v3/videos?'+new URLSearchParams({part:'contentDetails', id:ids.join(','), key});
+    const vdata=await fetch(vurl).then(r=>r.json());
+    (vdata.items||[]).forEach(it=>{
+      durations[it.id]=parseISO8601((it.contentDetails||{}).duration||'');
+    });
+  }
+  return items.map(it=>{
+    const id=it.id.videoId;
+    const sn=it.snippet||{};
+    const thumbs=sn.thumbnails||{};
+    const thumb=(thumbs.high||thumbs.medium||thumbs.default||{}).url||'';
+    return { id, title: sn.title||'Untitled', channel: sn.channelTitle||'YouTube', thumb, duration: durations[id]||0 };
+  });
+}
+
+async function youtubeSearchPiped(q){
+  let lastErr = new Error('YouTube search unavailable');
+  for (const base of PIPED_BASES) {
+    try {
+      const url = base + '/search?' + new URLSearchParams({ q, filter: 'videos' });
+      const data = await fetch(url).then(r => {
+        if (!r.ok) throw new Error('HTTP '+r.status);
+        return r.json();
+      });
+      const items = (data.items || []).filter(it => !it.type || it.type === 'stream');
+      const mapped = items.map(it => {
+        const m = String(it.url || '').match(/[?&]v=([\w-]{6,})/);
+        const id = m && m[1];
+        if (!id) return null;
+        return {
+          id,
+          title: it.title || 'Untitled',
+          channel: it.uploaderName || 'YouTube',
+          thumb: 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg',
+          duration: it.duration || 0
+        };
+      }).filter(Boolean);
+      if (mapped.length) return mapped;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+async function youtubeSearch(q){
+  const key = getYtKey();
+  if (key) {
+    try {
+      const official = await youtubeSearchOfficial(q, key);
+      if (official.length) return official;
+    } catch (_) { /* fall through */ }
+  }
+  return youtubeSearchPiped(q);
+}
+
+function ytRow(v){
+  return `<div class="yt-row" data-yt="${v.id}">
+    <div class="yt-thumb" style="background-image:url('${v.thumb}')"><span>${fmtDur(v.duration)}</span></div>
+    <div class="meta"><div class="t">${v.title}</div><div class="u">${v.channel}</div></div>
+  </div>`;
+}
+
+function refreshYtKeyUI(){
+  const has=!!getYtKey();
+  // Optional advanced key — keep collapsed unless user opens Settings.
+  ytKeyBox.style.display = 'none';
+  settingsYtKey.value = getYtKey();
+  ytStatus.textContent = has
+    ? 'Using your YouTube Data API key when possible.'
+    : 'Type to search YouTube. Audio keeps playing when folded or locked.';
+}
+let currentYt = null;
+let ytPlaying = false;
+let wantPlaying = false; // user intent — auto-resume if system pauses on fold/lock
+let keepAliveTimer = null;
+let audioCtx = null;
+let silentNode = null;
+let wakeLock = null;
+
+// Tiny silent WAV (keeps media session / audio route alive on iOS)
+const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
+function ensureSilentKeepAlive(on){
+  const ka = document.getElementById('keepaliveAudio');
+  if (!ka) return;
+  if (on) {
+    if (!ka.src) ka.src = SILENT_WAV;
+    ka.volume = 0.01;
+    const p = ka.play();
+    if (p && p.catch) p.catch(() => {});
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!silentNode) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        gain.gain.value = 0.0001;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        silentNode = { osc, gain };
+      }
+    } catch (_) {}
+  } else {
+    try { ka.pause(); } catch (_) {}
+  }
+}
+
+async function requestWakeLock(){
+  try {
+    if ('wakeLock' in navigator && wantPlaying) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch (_) {}
+}
+
+function ytMedia(){ return document.getElementById('ytAudio'); }
+
+function startKeepAliveLoop(){
+  stopKeepAliveLoop();
+  keepAliveTimer = setInterval(() => {
+    if (!wantPlaying) return;
+    if (mode === 'youtube' && playing) {
+      const v = ytMedia();
+      if (v && v.paused) v.play().catch(() => {});
+      ensureSilentKeepAlive(true);
+    }
+    if (mode === 'stream' && playing) {
+      const a = document.getElementById('audio');
+      if (a && a.paused) a.play().catch(() => {});
+      ensureSilentKeepAlive(true);
+    }
+  }, 800);
+}
+
+function stopKeepAliveLoop(){
+  if (keepAliveTimer) { clearInterval(keepAliveTimer); keepAliveTimer = null; }
+}
+
+function forceResumePlayback(){
+  if (!wantPlaying) return;
+  ensureSilentKeepAlive(true);
+  if (mode === 'youtube') {
+    const v = ytMedia();
+    if (v) {
+      playing = true;
+      ytPlaying = true;
+      v.play().catch(() => {});
+    }
+  } else if (mode === 'stream') {
+    const a = document.getElementById('audio');
+    if (a) {
+      playing = true;
+      a.play().catch(() => {});
+    }
+  }
+  syncUI();
+}
+
+function stopYtPlayer(){
+  wantPlaying = false;
+  stopKeepAliveLoop();
+  ensureSilentKeepAlive(false);
+  currentYt = null;
+  ytPlaying = false;
+  if (mode === 'youtube') {
+    const v = ytMedia();
+    try { if (v) { v.pause(); v.removeAttribute('src'); v.load(); } } catch (_) {}
+    playing = false;
+  }
+  try { if (wakeLock) wakeLock.release(); } catch (_) {}
+  wakeLock = null;
+  const loader = document.getElementById('ytLoading');
+  if (loader) loader.classList.remove('on');
+}
+
+async function openYtPlayer(v){
+  const loader = document.getElementById('ytLoading');
+  if (loader) loader.classList.add('on');
+  currentYt = v;
+  ytStatus.textContent = 'Loading audio…';
+  try {
+    try { audio.pause(); } catch (_) {}
+    const streamURL = await resolveYouTubeStream(v.id);
+    streamQueue = lastYtResults.map(item => ({
+      id: 'yt-' + item.id,
+      title: item.title,
+      artist: item.channel,
+      img: item.thumb,
+      dur: fmtDur(item.duration || 0),
+      duration: item.duration || 0,
+      stream: item.id === v.id ? streamURL : '',
+      youtube: true,
+      videoId: item.id
+    }));
+    streamIndex = Math.max(0, streamQueue.findIndex(t => t.videoId === v.id));
+    mode = 'youtube';
+    wantPlaying = true;
+    ytPlaying = true;
+    progress = 0;
+    const media = ytMedia();
+    media.src = streamURL;
+    await media.play();
+    playing = true;
+    ensureSilentKeepAlive(true);
+    startKeepAliveLoop();
+    requestWakeLock();
+    setMediaSession(v.title, v.channel, v.thumb);
+    openNP();
+    syncUI();
+    ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results · audio` : '';
+  } catch (e) {
+    ytPlaying = false;
+    playing = false;
+    wantPlaying = false;
+    currentYt = null;
+    ytStatus.textContent = 'Couldn’t load audio for this track. Try another result.';
+    alert('Couldn’t start audio for this track. Try another result.');
+  } finally {
+    if (loader) loader.classList.remove('on');
+  }
+}
+
+function setMediaSession(title, artist, art){
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title || 'NOVA MUSIC',
+      artist: artist || '',
+      artwork: art ? [
+        { src: art, sizes: '96x96', type: 'image/jpeg' },
+        { src: art, sizes: '256x256', type: 'image/jpeg' },
+        { src: art, sizes: '512x512', type: 'image/jpeg' }
+      ] : []
+    });
+    navigator.mediaSession.playbackState = wantPlaying ? 'playing' : 'paused';
+    navigator.mediaSession.setActionHandler('play', () => {
+      wantPlaying = true;
+      playing = true;
+      ytPlaying = mode === 'youtube';
+      if (mode === 'youtube') ytMedia().play().catch(()=>{});
+      else audio.play().catch(()=>{});
+      startKeepAliveLoop();
+      syncUI();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      wantPlaying = false;
+      stopKeepAliveLoop();
+      playing = false;
+      ytPlaying = false;
+      if (mode === 'youtube') ytMedia().pause();
+      else audio.pause();
+      syncUI();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+    navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+    navigator.mediaSession.setActionHandler('stop', () => {
+      wantPlaying = false;
+      if (mode === 'youtube') stopYtPlayer();
+      else { audio.pause(); playing=false; }
+      syncUI();
+    });
+  } catch (_) {}
+}
+
+['visibilitychange','pageshow','focus','resume','orientationchange'].forEach(evt => {
+  window.addEventListener(evt, () => {
+    if (wantPlaying) forceResumePlayback();
+  });
+});
+document.addEventListener('visibilitychange', () => {
+  if (wantPlaying) {
+    forceResumePlayback();
+    startKeepAliveLoop();
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (wantPlaying) forceResumePlayback();
+});
+document.addEventListener('freeze', () => {
+  if (wantPlaying) forceResumePlayback();
+});
+
+let ytTimer=null, lastYtResults=[];
+async function runYtSearch(q){
+  q=(q||'').trim();
+  if(q.length<2){
+    ytList.innerHTML='';
+    ytStatus.textContent='Type to search YouTube. Audio keeps playing when folded or locked.';
+    return;
+  }
+  ytStatus.textContent='Searching YouTube…';
+  try{
+    lastYtResults=await youtubeSearch(q);
+    ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results` : 'No videos found';
+    ytList.innerHTML = lastYtResults.map(ytRow).join('') || '';
+    ytList.querySelectorAll('[data-yt]').forEach(el=>{
+      el.onclick=()=>{
+        const v=lastYtResults.find(x=>x.id===el.dataset.yt);
+        if(v) openYtPlayer(v);
+      };
+    });
+  }catch(e){
+    ytList.innerHTML='';
+    ytStatus.textContent = 'Search failed: ' + (e.message || e);
+  }
+}
+
+function setExploreSeg(name){
+  document.querySelectorAll('#exploreSeg button').forEach(x=>x.classList.toggle('on', x.dataset.seg===name));
+  ytPane.style.display = name==='youtube'?'block':'none';
+  freePane.style.display = name==='free'?'block':'none';
+  libPane.style.display = name==='library'?'block':'none';
+}
+document.getElementById('exploreSeg').onclick = e => {
+  const b=e.target.closest('[data-seg]'); if(!b) return;
+  setExploreSeg(b.dataset.seg);
+};
+ytKeySave.onclick = () => { setYtKey(ytKeyInput.value); ytKeyInput.value=''; refreshYtKeyUI(); };
+settingsYtSave.onclick = () => { setYtKey(settingsYtKey.value); refreshYtKeyUI(); alert('YouTube API key saved'); };
+ytq.oninput = e => { clearTimeout(ytTimer); ytTimer=setTimeout(()=>runYtSearch(e.target.value), 320); };
+refreshYtKeyUI();
+
 const songs = [
   { title: "Midnight Drive", artist: "Northline", album: "After Hours", dur: "3:42", img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", liked: true },
   { title: "Glass Harbor", artist: "Kinetic", album: "Harbor EP", dur: "4:11", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80", liked: false },
@@ -508,6 +974,7 @@ function render() {
 function artistsCount(){ return new Set(songs.map(s=>s.artist)).size; }
 function playAt(i){
   if(i<0)i=0;
+  if (mode === 'youtube') stopYtPlayer();
   mode='library'; index=i; progress=0;
   audio.pause(); audio.removeAttribute('src');
   playing=true; syncUI(); openNP();
@@ -515,12 +982,20 @@ function playAt(i){
 
 function playStreamAt(i){
   if (!streamQueue.length) return;
+  if (mode === 'youtube') stopYtPlayer();
   streamIndex = Math.max(0, Math.min(i, streamQueue.length-1));
   mode = 'stream';
+  wantPlaying = true;
   const t = streamQueue[streamIndex];
   progress = 0;
   audio.src = t.stream;
-  audio.play().then(()=>{ playing=true; syncUI(); }).catch(()=>{
+  audio.play().then(()=>{
+    playing=true;
+    ensureSilentKeepAlive(true);
+    startKeepAliveLoop();
+    setMediaSession(t.title, t.artist, t.img);
+    syncUI();
+  }).catch(()=>{
     playing=false; syncUI();
     alert('Could not start playback. Try another track.');
   });
@@ -589,17 +1064,21 @@ async function searchOnline(q){
 }
 
 function syncUI() {
-  const s = current();
+  const s = mode === 'youtube' && currentYt
+    ? { title: currentYt.title, artist: currentYt.channel, img: currentYt.thumb, dur: fmt(currentYt.duration||0) }
+    : current();
   if (!s) return;
   ['miniArt','npArt','npWash'].forEach(id => document.getElementById(id).style.backgroundImage = s.img ? `url('${s.img}')` : 'none');
   miniTitle.textContent = s.title; miniArtist.textContent = s.artist;
   npTitle.textContent = s.title; npArtist.textContent = s.artist;
   tDur.textContent = s.dur || fmt(s.duration);
-  play.textContent = playing ? '❚❚' : '▶';
-  miniPlay.textContent = playing ? '❚❚' : '▶';
-  npArt.classList.toggle('paused', !playing);
+  const isOn = playing || ytPlaying;
+  play.textContent = isOn ? '❚❚' : '▶';
+  miniPlay.textContent = isOn ? '❚❚' : '▶';
+  npArt.classList.toggle('paused', !isOn);
   seekFill.style.width = miniBar.style.width = (progress*100)+'%';
   mini.classList.add('show');
+  if (mode === 'youtube' && currentYt) setMediaSession(currentYt.title, currentYt.channel, currentYt.thumb);
 }
 
 function show(id) {
@@ -612,16 +1091,54 @@ function openNP(){ np.classList.add('on'); }
 function closeNP(){ np.classList.remove('on'); }
 
 function togglePlay(){
-  if (mode === 'stream') {
+  if (mode === 'youtube') {
+    const media = ytMedia();
+    if (!media || !media.src) {
+      if (currentYt) openYtPlayer(currentYt);
+      return;
+    }
+    if (media.paused) {
+      wantPlaying = true;
+      media.play();
+      playing = true;
+      ytPlaying = true;
+      ensureSilentKeepAlive(true);
+      startKeepAliveLoop();
+    } else {
+      wantPlaying = false;
+      stopKeepAliveLoop();
+      media.pause();
+      playing = false;
+      ytPlaying = false;
+    }
+  } else if (mode === 'stream') {
     if (!audio.src) { if (streamQueue.length) playStreamAt(streamIndex); return; }
-    if (audio.paused) { audio.play(); playing=true; }
-    else { audio.pause(); playing=false; }
+    if (audio.paused) {
+      wantPlaying = true;
+      audio.play();
+      playing = true;
+      ensureSilentKeepAlive(true);
+      startKeepAliveLoop();
+    } else {
+      wantPlaying = false;
+      stopKeepAliveLoop();
+      audio.pause();
+      playing = false;
+    }
   } else {
     playing = !playing;
+    wantPlaying = playing;
   }
   syncUI();
 }
-function nextTrack(){
+async function nextTrack(){
+  if (mode === 'youtube') {
+    if (!lastYtResults.length || !currentYt) return;
+    const i = lastYtResults.findIndex(x => x.id === currentYt.id);
+    const next = lastYtResults[(i + 1 + lastYtResults.length) % lastYtResults.length];
+    await openYtPlayer(next);
+    return;
+  }
   if (mode === 'stream') {
     if (streamIndex + 1 < streamQueue.length) playStreamAt(streamIndex+1);
     else { playing=false; syncUI(); }
@@ -629,7 +1146,16 @@ function nextTrack(){
     index=(index+1)%songs.length; progress=.02; playing=true; syncUI();
   }
 }
-function prevTrack(){
+async function prevTrack(){
+  if (mode === 'youtube') {
+    if (!lastYtResults.length || !currentYt) return;
+    const media = ytMedia();
+    if (media && media.currentTime > 3) { media.currentTime = 0; return; }
+    const i = lastYtResults.findIndex(x => x.id === currentYt.id);
+    const prev = lastYtResults[(i - 1 + lastYtResults.length) % lastYtResults.length];
+    await openYtPlayer(prev);
+    return;
+  }
   if (mode === 'stream') {
     if (audio.currentTime > 3) { audio.currentTime = 0; return; }
     if (streamIndex > 0) playStreamAt(streamIndex-1);
@@ -660,19 +1186,48 @@ q.oninput = e => {
   searchTimer = setTimeout(() => searchOnline(v), 320);
 };
 
-audio.addEventListener('timeupdate', () => {
-  if (mode !== 'stream' || !audio.duration) return;
-  progress = audio.currentTime / audio.duration;
-  seekFill.style.width = miniBar.style.width = (progress*100)+'%';
-  tCur.textContent = fmt(audio.currentTime);
-  tDur.textContent = fmt(audio.duration);
-});
-audio.addEventListener('ended', () => nextTrack());
-audio.addEventListener('play', () => { playing=true; syncUI(); });
-audio.addEventListener('pause', () => { if (mode==='stream') { playing=false; syncUI(); } });
+function bindMediaProgress(el, modes){
+  el.addEventListener('timeupdate', () => {
+    if (!modes.includes(mode) || !el.duration) return;
+    progress = el.currentTime / el.duration;
+    seekFill.style.width = miniBar.style.width = (progress*100)+'%';
+    tCur.textContent = fmt(el.currentTime);
+    tDur.textContent = fmt(el.duration);
+    if ('mediaSession' in navigator && el.duration) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: el.duration,
+          playbackRate: el.playbackRate || 1,
+          position: Math.min(el.currentTime, el.duration)
+        });
+      } catch (_) {}
+    }
+  });
+  el.addEventListener('ended', () => nextTrack());
+  el.addEventListener('play', () => {
+    playing=true;
+    ytPlaying = mode === 'youtube';
+    if (mode==='youtube' && currentYt) setMediaSession(currentYt.title, currentYt.channel, currentYt.thumb);
+    else if (mode==='stream' && streamQueue[streamIndex]) {
+      const t = streamQueue[streamIndex];
+      setMediaSession(t.title, t.artist, t.img);
+    }
+    syncUI();
+  });
+  el.addEventListener('pause', () => {
+    if (!modes.includes(mode)) return;
+    if (!wantPlaying) {
+      playing=false;
+      ytPlaying=false;
+      syncUI();
+    }
+  });
+}
+bindMediaProgress(audio, ['stream']);
+bindMediaProgress(ytMedia(), ['youtube']);
 
 setInterval(() => {
-  if (!playing || mode === 'stream') return;
+  if (!playing || mode === 'stream' || mode === 'youtube') return;
   progress = Math.min(.98, progress + 0.002);
   seekFill.style.width = miniBar.style.width = (progress*100)+'%';
   const total=222, cur=Math.floor(total*progress);
@@ -683,6 +1238,13 @@ render(); syncUI(); loadTrending();
 if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
 if (new URLSearchParams(location.search).get('np')==='1') openNP();
 if (new URLSearchParams(location.search).get('tab')==='search') show('search');
+(function(){
+  const playId=new URLSearchParams(location.search).get('play');
+  if(playId && /^[\w-]{6,}$/.test(playId)){
+    show('search');
+    openYtPlayer({id:playId, title:'YouTube · '+playId, channel:'YouTube', thumb:'https://i.ytimg.com/vi/'+playId+'/hqdefault.jpg', duration:0});
+  }
+})();
 
 // iPhone: show Add to Home Screen tip (Safari only; hide if already standalone)
 (function () {

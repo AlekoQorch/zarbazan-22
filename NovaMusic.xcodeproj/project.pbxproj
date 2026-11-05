@@ -39,6 +39,16 @@
 		50F82CC597D2480891CBAB8E /* SongRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F446298A3D45E9B0435CC3 /* SongRowView.swift */; };
 		F943788CCF1A4FC7A08B891A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 11DBB0F20D1643068950DB05 /* Assets.xcassets */; };
 		C8E41A2F7B9D4E6A91F0A3D2 /* AudiusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D52E1A4C8F4B3E9A1D6E70 /* AudiusService.swift */; };
+		F667DD4B8E6EF85201030C4C /* YouTubeConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170D5CF0E15FE7E6350AE556 /* YouTubeConfig.swift */; };
+		FD4BADA375251CB1081096B4 /* YouTubeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E37F2AFB1125AACE139789A9 /* YouTubeService.swift */; };
+		225968A8532190158E9446EC /* YouTubeVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334F619ABAD52F31EE507236 /* YouTubeVideo.swift */; };
+		29A24D846768B01B13FB5268 /* YouTubeLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E49D344C117DEB86DDC0859 /* YouTubeLibraryManager.swift */; };
+		72CDD9617AF07D9281FFC25C /* YouTubeSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95B9443CA91C34B3F7C4CB6 /* YouTubeSearchView.swift */; };
+		DC2CD49CF654C8339059FECE /* YouTubeVideoRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B401FD4D4E9EE3DD56C28B52 /* YouTubeVideoRow.swift */; };
+		A6E6BD597FD0D77F46547FE0 /* YouTubePlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F2E37DAA143142DAE29F05 /* YouTubePlayerView.swift */; };
+		1D21ECCE80AFF91A08145DBB /* AddToYouTubePlaylistSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92420926D91C710DD5DE617 /* AddToYouTubePlaylistSheet.swift */; };
+		A54168631D162017F6AC53B5 /* StreamRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F750A02D46E7F9E6266E3AE7 /* StreamRowView.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* BackgroundPlaybackKeeper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C4A3B2C1D0E9F876543210 /* BackgroundPlaybackKeeper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -77,6 +87,7 @@
 		B7D52E1A4C8F4B3E9A1D6E70 /* AudiusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiusService.swift; sourceTree = "<group>"; };
 		11DBB0F20D1643068950DB05 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DAA399A1B4B540ADAA9AE1F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B5C4A3B2C1D0E9F876543210 /* BackgroundPlaybackKeeper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundPlaybackKeeper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +122,7 @@
 			children = (
 				ABC7BB696F3A48B791FB32FB,
 				75AA67853CD34AFE886B1FF5,
+				C0F16A91B2E74D2A9C8D4E01 /* Config */,
 				A41B4282033E44CD8547E36A,
 				5D7A4EF36F3E41038E7EF673,
 				E4F91C2B8A6D4F5E9C3B7A10 /* Services */,
@@ -126,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				B7D52E1A4C8F4B3E9A1D6E70 /* AudiusService.swift */,
+				E37F2AFB1125AACE139789A9 /* YouTubeService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -157,6 +170,8 @@
 				A56F263638BC4D558215F579,
 				0B3703BDD92D4EF08BAAD18E,
 				B3B92C7FEF6F43F6BCF8BA91,
+				5E49D344C117DEB86DDC0859 /* YouTubeLibraryManager.swift */,
+				B5C4A3B2C1D0E9F876543210 /* BackgroundPlaybackKeeper.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -167,6 +182,7 @@
 				5D65EB5950084E7DB68EF025,
 				56865CC98F244708B234A2BC,
 				65F2DDEBBF77490093E6001A,
+				334F619ABAD52F31EE507236 /* YouTubeVideo.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -186,6 +202,7 @@
 			isa = PBXGroup;
 			children = (
 				A6503615ACEF437BABA6EE66,
+				D00715E61B2E74D2A9C8D4E02 /* YouTube */,
 				1450E5E54D2A4C2F9992DE1B,
 				4D0B8430C2704C7395432AFE,
 				0D40D6CCEF314A0DB0EDC5F5,
@@ -271,8 +288,29 @@
 			children = (
 				D325E215DB0441159EFEDFCF,
 				D1F446298A3D45E9B0435CC3,
+				F750A02D46E7F9E6266E3AE7 /* StreamRowView.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+
+		C0F16A91B2E74D2A9C8D4E01 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				170D5CF0E15FE7E6350AE556 /* YouTubeConfig.swift */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		D00715E61B2E74D2A9C8D4E02 /* YouTube */ = {
+			isa = PBXGroup;
+			children = (
+				C95B9443CA91C34B3F7C4CB6 /* YouTubeSearchView.swift */,
+				B401FD4D4E9EE3DD56C28B52 /* YouTubeVideoRow.swift */,
+				30F2E37DAA143142DAE29F05 /* YouTubePlayerView.swift */,
+				A92420926D91C710DD5DE617 /* AddToYouTubePlaylistSheet.swift */,
+			);
+			path = YouTube;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -376,6 +414,16 @@
 				682D2CE5407D467B895D175A /* ArtworkView.swift in Sources */,
 				50F82CC597D2480891CBAB8E /* SongRowView.swift in Sources */,
 				C8E41A2F7B9D4E6A91F0A3D2 /* AudiusService.swift in Sources */,
+				F667DD4B8E6EF85201030C4C /* YouTubeConfig.swift in Sources */,
+				FD4BADA375251CB1081096B4 /* YouTubeService.swift in Sources */,
+				225968A8532190158E9446EC /* YouTubeVideo.swift in Sources */,
+				29A24D846768B01B13FB5268 /* YouTubeLibraryManager.swift in Sources */,
+				72CDD9617AF07D9281FFC25C /* YouTubeSearchView.swift in Sources */,
+				DC2CD49CF654C8339059FECE /* YouTubeVideoRow.swift in Sources */,
+				A6E6BD597FD0D77F46547FE0 /* YouTubePlayerView.swift in Sources */,
+				1D21ECCE80AFF91A08145DBB /* AddToYouTubePlaylistSheet.swift in Sources */,
+				A54168631D162017F6AC53B5 /* StreamRowView.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* BackgroundPlaybackKeeper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
