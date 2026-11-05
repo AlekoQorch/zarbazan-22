@@ -399,13 +399,13 @@
 
     <section class="page" id="page-search">
       <div class="seg" id="exploreSeg">
-        <button class="on" data-seg="youtube">YouTube</button>
-        <button data-seg="free">Free</button>
+        <button class="on" data-seg="free">Music</button>
+        <button data-seg="youtube">YouTube</button>
         <button data-seg="library">Library</button>
       </div>
-      <div id="ytPane">
+      <div id="ytPane" style="display:none">
         <div class="title" style="font-size:26px">YouTube</div>
-        <p class="explore-note" style="margin-top:0">დაატაპე — აუდიო ჩაკეცვაზეც გრძელდება.</p>
+        <p class="explore-note" style="margin-top:0">დაატაპე — უკრავს აქვე (არ გადაგიყვანს სხვა აპში). ჩაკეცვაზეც ისმის.</p>
         <div id="ytKeyBox" class="yt-key" style="display:none">
           <b>Optional: YouTube Data API key</b>
           <p>Not required. Paste a Google key only if you want official Data API search.</p>
@@ -416,9 +416,9 @@
         <div id="ytStatus" class="explore-note"></div>
         <div id="ytList"></div>
       </div>
-      <div id="freePane" style="display:none">
-        <div class="title" style="font-size:26px">Free music</div>
-        <p class="explore-note" style="margin-top:0">Separate free catalog (Audius). Also keeps playing when folded.</p>
+      <div id="freePane">
+        <div class="title" style="font-size:26px">Music</div>
+        <p class="explore-note" style="margin-top:0">დაატაპე სიმღერას — ჩაკეცვაზეც გაგრძელდება. სხვა აპში არ გადაგიყვანს.</p>
         <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
         <div id="trendingBlock"></div>
         <div id="exploreCards" class="explore-grid"></div>
@@ -433,19 +433,7 @@
     <!-- Real HTML5 audio = iOS keeps playing when folded (iframe cannot) -->
     <audio id="ytAudio" preload="auto" playsinline webkit-playsinline></audio>
     <audio id="keepaliveAudio" preload="auto" loop playsinline webkit-playsinline></audio>
-    <div class="yt-loading" id="ytLoading">Starting…</div>
-
-    <div class="yt-player" id="ytPlayerSheet">
-      <div class="yt-frame-wrap" id="ytFrameWrap">
-        <iframe id="ytFrame" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-      </div>
-      <div class="yt-meta">
-        <h2 id="ytTitle"></h2>
-        <div class="a" id="ytChannel"></div>
-        <p class="yt-legal" id="ytLegal">Playing via YouTube player.</p>
-        <button class="btn btn-dark" id="ytClose">Minimize</button>
-      </div>
-    </div>
+    <div class="yt-loading" id="ytLoading">…</div>
 
     <section class="page" id="page-settings">
       <div class="title">Settings</div>
@@ -549,8 +537,8 @@ function parseISO8601(iso){
 function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
   return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
 
-const BUILD = '20261105e';
-// YouTube audio proxy — HTML5 <audio> so fold/lock does NOT pause.
+const BUILD = '20261105f';
+// In-app YouTube audio proxy (HTML5 <audio> → fold does not pause). Never leaves NOVA.
 const YT_STREAM_PROXY = 'https://rabbit-empirical-pixels-mba.trycloudflare.com';
 const PIPED_BASES = [
   'https://api.piped.private.coffee',
@@ -570,28 +558,71 @@ function enableBackgroundAudio(){
   } catch (_) {}
 }
 
+function playUrlInElement(el, url, ms=8000){
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const done = (ok, err) => {
+      if (settled) return;
+      settled = true;
+      el.removeEventListener('playing', onOk);
+      el.removeEventListener('error', onErr);
+      clearTimeout(timer);
+      ok ? resolve(url) : reject(err || new Error('fail'));
+    };
+    const onOk = () => done(true);
+    const onErr = () => done(false, new Error('media-error'));
+    const timer = setTimeout(() => done(false, new Error('timeout')), ms);
+    el.addEventListener('playing', onOk);
+    el.addEventListener('error', onErr);
+    try {
+      el.pause();
+      el.src = url;
+      el.load();
+      el.play().then(() => {}).catch(() => {});
+    } catch (e) {
+      done(false, e);
+    }
+  });
+}
+
 async function playYouTubeAudioInApp(videoId){
   enableBackgroundAudio();
   const media = ytMedia();
-  try { media.pause(); media.removeAttribute('src'); media.load(); } catch (_) {}
-  // Direct proxy stream URL (server pipes YouTube audio → fold-safe)
-  media.src = `${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`;
-  const onReady = new Promise((resolve, reject) => {
-    const ok = () => { cleanup(); resolve(); };
-    const bad = () => { cleanup(); reject(new Error('media-error')); };
-    const cleanup = () => {
-      media.removeEventListener('playing', ok);
-      media.removeEventListener('error', bad);
-    };
-    media.addEventListener('playing', ok, { once: true });
-    media.addEventListener('error', bad, { once: true });
-  });
-  const playPromise = media.play();
-  await Promise.race([
-    Promise.all([playPromise, onReady]),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
-  ]);
-  return media.src;
+  // 1) Our audio proxy (pipes YouTube → stays in NOVA, fold-safe)
+  try {
+    await playUrlInElement(media, `${YT_STREAM_PROXY}/stream/${encodeURIComponent(videoId)}`, 7000);
+    return 'proxy';
+  } catch (_) {}
+  // 2) Piped stream URLs (still in-app <audio>, never leave NOVA)
+  for (const base of PIPED_BASES) {
+    try {
+      const res = await fetchTimeout(`${base}/streams/${encodeURIComponent(videoId)}`, { headers:{Accept:'application/json'} }, 3500);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const audio = (data.audioStreams || []).slice().sort((a,b)=>(b.bitrate||0)-(a.bitrate||0));
+      const muxed = (data.videoStreams || []).filter(v => v && !v.videoOnly && v.url);
+      const url = (audio[0] && audio[0].url) || (muxed.find(v=>/piped|videoplayback/i.test(v.url)) || muxed[0] || {}).url;
+      if (!url) continue;
+      await playUrlInElement(media, url, 7000);
+      return 'piped';
+    } catch (_) {}
+  }
+  throw new Error('no-stream');
+}
+
+async function playAudiusMatchInApp(title, channel){
+  const q = String(title || '').replace(/\([^)]*\)/g,' ').replace(/\[[^\]]*\]/g,' ')
+    .replace(/official|video|audio|lyrics|hd|4k/ig,' ').replace(/\s+/g,' ').trim();
+  if (q.length < 2) return null;
+  const res = await fetchTimeout(
+    `https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`,
+    {},
+    3000
+  );
+  if (!res.ok) return null;
+  const json = await res.json();
+  const list = (json.data || []).map(mapTrack);
+  return list[0] || null;
 }
 
 async function youtubeSearchOfficial(q, key){
@@ -790,10 +821,6 @@ function stopYtPlayer(){
   currentYt = null;
   ytPlaying = false;
   ytPlayMode = 'audio';
-  const sheet = document.getElementById('ytPlayerSheet');
-  if (sheet) sheet.classList.remove('on');
-  const frame = document.getElementById('ytFrame');
-  if (frame) frame.src = '';
   if (mode === 'youtube') {
     const v = ytMedia();
     try { if (v) { v.pause(); v.removeAttribute('src'); v.load(); } } catch (_) {}
@@ -813,30 +840,42 @@ async function openYtPlayer(v){
   }
   currentYt = v;
   ytStatus.textContent = '';
-  document.getElementById('ytPlayerSheet')?.classList.remove('on');
   enableBackgroundAudio();
   try { audio.pause(); } catch (_) {}
   try {
-    await playYouTubeAudioInApp(v.id);
-    ytPlayMode = 'audio';
-    mode = 'youtube';
-    wantPlaying = true;
-    ytPlaying = true;
-    playing = true;
-    progress = 0;
-    ensureSilentKeepAlive(true);
-    startKeepAliveLoop();
-    setMediaSession(v.title, v.channel, v.thumb);
-    openNP();
-    syncUI();
-    ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results` : '';
+    // Always stay inside NOVA — never open YouTube / YouTube Music apps.
+    try {
+      await playYouTubeAudioInApp(v.id);
+      ytPlayMode = 'audio';
+      mode = 'youtube';
+      wantPlaying = true;
+      ytPlaying = true;
+      playing = true;
+      progress = 0;
+      ensureSilentKeepAlive(true);
+      startKeepAliveLoop();
+      setMediaSession(v.title, v.channel, v.thumb);
+      openNP();
+      syncUI();
+      ytStatus.textContent = lastYtResults.length ? `${lastYtResults.length} results` : '';
+      return;
+    } catch (_) {}
+
+    const match = await playAudiusMatchInApp(v.title, v.channel);
+    if (match) {
+      streamQueue = [match];
+      streamIndex = 0;
+      mode = 'stream';
+      ytPlayMode = 'audio';
+      ytPlaying = false;
+      playStreamAt(0);
+      ytStatus.textContent = 'უკრავს აპში · ჩაკეცვაზეც ისმის';
+      return;
+    }
+
+    ytStatus.textContent = 'ვერ ჩაირთო ამ ტრეკზე — სხვა აირჩიე (აპში რჩები)';
   } catch (_) {
-    // Stream blocked by YouTube — only remaining fold-safe path is the YouTube app.
-    ytStatus.textContent = 'YouTube აპი…';
-    window.location.href = 'youtube://www.youtube.com/watch?v=' + encodeURIComponent(v.id);
-    setTimeout(() => {
-      window.location.href = 'https://music.youtube.com/watch?v=' + encodeURIComponent(v.id);
-    }, 500);
+    ytStatus.textContent = 'ვერ ჩაირთო — სხვა ტრეკი სცადე';
   } finally {
     if (loader) loader.classList.remove('on');
   }
@@ -859,8 +898,7 @@ function setMediaSession(title, artist, art){
       wantPlaying = true;
       playing = true;
       ytPlaying = mode === 'youtube';
-      if (mode === 'youtube' && ytPlayMode === 'embed') ytCommand('playVideo');
-      else if (mode === 'youtube') ytMedia().play().catch(()=>{});
+      if (mode === 'youtube') ytMedia().play().catch(()=>{});
       else audio.play().catch(()=>{});
       startKeepAliveLoop();
       syncUI();
@@ -870,8 +908,7 @@ function setMediaSession(title, artist, art){
       stopKeepAliveLoop();
       playing = false;
       ytPlaying = false;
-      if (mode === 'youtube' && ytPlayMode === 'embed') ytCommand('pauseVideo');
-      else if (mode === 'youtube') ytMedia().pause();
+      if (mode === 'youtube') ytMedia().pause();
       else audio.pause();
       syncUI();
     });
@@ -942,14 +979,6 @@ document.getElementById('exploreSeg').onclick = e => {
 ytKeySave.onclick = () => { setYtKey(ytKeyInput.value); ytKeyInput.value=''; refreshYtKeyUI(); };
 settingsYtSave.onclick = () => { setYtKey(settingsYtKey.value); refreshYtKeyUI(); alert('YouTube API key saved'); };
 ytq.oninput = e => { clearTimeout(ytTimer); ytTimer=setTimeout(()=>runYtSearch(e.target.value), 320); };
-document.getElementById('ytClose').onclick = () => {
-  document.getElementById('ytPlayerSheet').classList.remove('on');
-  wantPlaying = true;
-  ytPlaying = playing = true;
-  startKeepAliveLoop();
-  forceResumePlayback();
-  syncUI();
-};
 refreshYtKeyUI();
 
 const songs = [
@@ -1148,22 +1177,6 @@ function closeNP(){ np.classList.remove('on'); }
 
 function togglePlay(){
   if (mode === 'youtube') {
-    if (ytPlayMode === 'embed') {
-      if (ytPlaying) {
-        wantPlaying = false;
-        stopKeepAliveLoop();
-        ytCommand('pauseVideo');
-        ytPlaying = playing = false;
-      } else {
-        wantPlaying = true;
-        ytCommand('playVideo');
-        ytPlaying = playing = true;
-        ensureSilentKeepAlive(true);
-        startKeepAliveLoop();
-      }
-      syncUI();
-      return;
-    }
     const media = ytMedia();
     if (!media || !media.src) {
       if (currentYt) openYtPlayer(currentYt);
@@ -1171,6 +1184,7 @@ function togglePlay(){
     }
     if (media.paused) {
       wantPlaying = true;
+      enableBackgroundAudio();
       media.play();
       playing = true;
       ytPlaying = true;
@@ -1308,8 +1322,9 @@ setInterval(() => {
 
 enableBackgroundAudio();
 render(); syncUI();
+show('search');
+setExploreSeg('free');
 loadTrending().then(() => {
-  // Warm Home with real Free tracks so taps play actual audio
   if (streamQueue.length) {
     try {
       document.getElementById('quick').innerHTML = streamQueue.slice(0,4).map((s,i)=>`
@@ -1321,15 +1336,19 @@ loadTrending().then(() => {
         el.onclick = () => playStreamAt(+el.dataset.stream);
       });
     } catch (_) {}
+    // Auto-start first track so fold can be tested immediately (stays in NOVA)
+    if (new URLSearchParams(location.search).get('auto') !== '0') {
+      playStreamAt(0);
+    }
   }
 });
 if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
 if (new URLSearchParams(location.search).get('np')==='1') openNP();
-if (new URLSearchParams(location.search).get('tab')==='search' || new URLSearchParams(location.search).get('tab')==='youtube') {
+if (new URLSearchParams(location.search).get('tab')==='youtube') {
   show('search');
   setExploreSeg('youtube');
 }
-console.info('NOVA BUILD', BUILD, 'proxy', YT_STREAM_PROXY);
+console.info('NOVA BUILD', BUILD);
 
 // iPhone: show Add to Home Screen tip (Safari only; hide if already standalone)
 (function () {

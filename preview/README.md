@@ -1,11 +1,15 @@
-# NOVA — YouTube ჩაკეცვაზე
+# NOVA MUSIC
 
-გახსენი (ახალი):
+მუსიკა **აპში** ირთება (YouTube/YouTube Music-ზე აღარ გადაგიყვანს).  
+ჩაკეცვაზეც ისმის.
 
-https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?v=5&tab=youtube
+## გახსენი ახლა
 
-1. **YouTube** → მოძებნე → დაატაპე  
-2. აუდიო ჩაირთვის აპში → **ჩაკეცე** — უნდა გაგრძელდეს  
-3. თუ YouTube აპი გაიხსნა — იქაც ჩაკეცვაზე ისმის  
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?v=6
 
-Share → **Add to Home Screen**. ძველი ხატულა წაშალე.
+1. გაიხსნება **Music** — სიმღერა თავისით ჩაირთება  
+2. დარჩი NOVA-ში (სხვა აპი არ გაიხსნება)  
+3. ჩაკეცე ტელეფონი — მუსიკა უნდა გაგრძელდეს  
+4. Share → **Add to Home Screen** (უკეთესია)
+
+ძველი Home Screen ხატულა წაშალე თუ ძველი ვერსია ჩანს.
