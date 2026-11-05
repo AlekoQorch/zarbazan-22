@@ -1,21 +1,18 @@
-# NOVA MUSIC — ტელეფონზე გახსნა
+# NOVA MUSIC — YouTube ჩაკეცვაზე
 
-## მნიშვნელოვანი (ფონური მუსიკა)
+iOS Safari **ვიდეო embed-ს აპაუზებს** ჩაკეცვისას. ამიტომ NOVA YouTube-ს ასე უკრავს:
 
-Safari/ბრაუზერში **YouTube embed ვერ აგრძელებს** დაკვრას ჩაკეცვისას — ეს iOS-ის შეზღუდვაა.
+1. **ჯერ** ცდილობს **აპში YouTube აუდიო სტრიმს** (HTML5) — ჩაკეცვაზე გრძელდება  
+2. თუ YouTube დაბლოკავს ამ გზას → ხსნის **YouTube / YouTube Music აპს**, სადაც ჩაკეცვა ყოველთვის მუშაობს  
 
-**რა მუშაობს ჩაკეცვაზე:**
-1. **Explore → Free** — ნამდვილი აუდიო სტრიმი (რეკომენდებული, აპში რჩები)
-2. **Explore → YouTube** — იხსნება YouTube აპში (იქაც ჩაკეცვაზე ისმის)
+## გახსენი (ახალი build)
 
-## გახსენი ახლა (ახალი빌დი — ქეში არ აიღო)
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?v=4&tab=youtube
 
-Safari → ეს ლინკი (ბოლოში `v=3`):
+1. Explore → **YouTube** → მოძებნე → დაატაპე  
+2. თუ აპში ჩაირთო — ჩაკეცე, მუსიკა უნდა გაგრძელდეს  
+3. თუ YouTube აპი გაიხსნა — იქაც ჩაკეცვაზე ისმის  
 
-https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?v=3&tab=search
+**Home Screen-ზე დაამატე** (Share → Add to Home Screen). ძველი ხატულა წაშალე თუ Loading რჩება.
 
-1. **Explore → Free** → აირჩიე სიმღერა  
-2. Share (**□↑**) → **Add to Home Screen**  
-3. ჩაკეცე ტელეფონი — მუსიკა უნდა გაგრძელდეს  
-
-თუ ძველი „Loading audio…“ მაინც ჩანს: Safari-ში გვერდი refresh / ქეშის გასუფთავება, ან Home Screen-ის ძველი ხატულა წაშალე და თავიდან დაამატე.
+სტრიმ პროქსი მუშაობს cloud agent-ის გაშვებისას (`preview/yt-stream-proxy.py` + Cloudflare tunnel).

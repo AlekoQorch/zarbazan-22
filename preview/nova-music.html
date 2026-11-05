@@ -399,13 +399,13 @@
 
     <section class="page" id="page-search">
       <div class="seg" id="exploreSeg">
-        <button class="on" data-seg="free">Free</button>
-        <button data-seg="youtube">YouTube</button>
+        <button class="on" data-seg="youtube">YouTube</button>
+        <button data-seg="free">Free</button>
         <button data-seg="library">Library</button>
       </div>
-      <div id="ytPane" style="display:none">
+      <div id="ytPane">
         <div class="title" style="font-size:26px">YouTube</div>
-        <p class="explore-note" style="margin-top:0">Tap a result → opens in the YouTube app (keeps playing when folded). For in-app background audio use <b>Free</b>.</p>
+        <p class="explore-note" style="margin-top:0">Tap to play. Tries in-app YouTube audio (keeps going when folded); if blocked, opens the YouTube app where fold always works.</p>
         <div id="ytKeyBox" class="yt-key" style="display:none">
           <b>Optional: YouTube Data API key</b>
           <p>Not required. Paste a Google key only if you want official Data API search.</p>
@@ -416,9 +416,9 @@
         <div id="ytStatus" class="explore-note"></div>
         <div id="ytList"></div>
       </div>
-      <div id="freePane">
+      <div id="freePane" style="display:none">
         <div class="title" style="font-size:26px">Free music</div>
-        <p class="explore-note" style="margin-top:0">Real audio streams — keeps playing when you fold or lock. Add to Home Screen for best results.</p>
+        <p class="explore-note" style="margin-top:0">Separate free catalog (Audius). Also keeps playing when folded.</p>
         <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
         <div id="trendingBlock"></div>
         <div id="exploreCards" class="explore-grid"></div>
@@ -549,7 +549,10 @@ function parseISO8601(iso){
 function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
   return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
 
-const BUILD = '20261105c';
+const BUILD = '20261105d';
+// Live audio proxy — pipes YouTube audio so iOS can keep playing when folded.
+// (Ephemeral tunnel while the cloud agent is up; falls back to YouTube app.)
+const YT_STREAM_PROXY = 'https://rabbit-empirical-pixels-mba.trycloudflare.com';
 const PIPED_BASES = [
   'https://api.piped.private.coffee',
   'https://pipedapi.ducks.party',
@@ -570,39 +573,43 @@ function enableBackgroundAudio(){
 
 function openYouTubeExternally(videoId){
   const id = encodeURIComponent(videoId);
-  // Universal / app links — YouTube app keeps audio when the phone is folded.
-  const appUrl = `youtube://www.youtube.com/watch?v=${id}`;
-  const webUrl = `https://www.youtube.com/watch?v=${id}`;
-  try {
-    const a = document.createElement('a');
-    a.href = appUrl;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } catch (_) {}
-  setTimeout(() => {
-    window.location.href = webUrl;
-  }, 400);
+  // Native YouTube / YouTube Music apps continue when the phone is folded.
+  const targets = [
+    `youtube://www.youtube.com/watch?v=${id}`,
+    `youtubemusic://watch?v=${id}`,
+    `https://music.youtube.com/watch?v=${id}`,
+    `https://youtu.be/${id}`
+  ];
+  let i = 0;
+  const go = () => {
+    if (i >= targets.length) return;
+    const href = targets[i++];
+    try { window.location.href = href; } catch (_) {}
+    if (i < targets.length) setTimeout(go, 450);
+  };
+  go();
 }
 
-async function tryAudiusMatch(title){
-  const q = String(title || '').replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ')
-    .replace(/official|video|audio|lyrics|hd|4k/ig, ' ').replace(/\s+/g, ' ').trim();
-  if (q.length < 2) return null;
+async function playYouTubeAudioInApp(videoId){
+  enableBackgroundAudio();
+  // Fast resolve — avoid long Loading…
+  let proxyPath = `/stream/${encodeURIComponent(videoId)}`;
   try {
-    const res = await fetchTimeout(
-      `https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`,
-      {},
-      2500
-    );
-    if (!res.ok) return null;
-    const json = await res.json();
-    const list = (json.data || []).map(mapTrack);
-    return list[0] || null;
-  } catch (_) {
-    return null;
+    const res = await fetchTimeout(`${YT_STREAM_PROXY}/resolve/${encodeURIComponent(videoId)}`, {}, 3500);
+    const data = await res.json();
+    if (!data || !data.ok || !data.proxy) throw new Error(data && data.via || 'unavailable');
+    proxyPath = data.proxy;
+  } catch (e) {
+    throw e;
   }
+  const media = ytMedia();
+  try { media.pause(); } catch (_) {}
+  media.src = YT_STREAM_PROXY + proxyPath;
+  await Promise.race([
+    media.play(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('play-timeout')), 5000))
+  ]);
+  return media.src;
 }
 
 async function youtubeSearchOfficial(q, key){
@@ -688,7 +695,7 @@ function refreshYtKeyUI(){
   settingsYtKey.value = getYtKey();
   ytStatus.textContent = has
     ? 'Using your YouTube Data API key when possible.'
-    : 'Search YouTube → opens in YouTube app (fold-safe). Use Free for in-app audio.';
+    : 'Search YouTube — in-app audio when possible (fold OK), else YouTube app.';
 }
 let currentYt = null;
 let ytPlaying = false;
@@ -818,39 +825,36 @@ function stopYtPlayer(){
 }
 
 async function openYtPlayer(v){
-  // No long "Loading audio…" — browser YouTube streams are unreliable.
-  // 1) Quick Free match for in-app background audio
-  // 2) Otherwise open the YouTube app (fold/lock keeps playing there)
   const loader = document.getElementById('ytLoading');
   if (loader) {
-    loader.textContent = 'Starting…';
+    loader.textContent = 'YouTube audio…';
     loader.classList.add('on');
   }
   currentYt = v;
-  ytStatus.textContent = 'Starting…';
+  ytStatus.textContent = 'YouTube audio…';
   document.getElementById('ytPlayerSheet')?.classList.remove('on');
   enableBackgroundAudio();
+  try { audio.pause(); } catch (_) {}
   try {
-    try { audio.pause(); } catch (_) {}
-    const match = await Promise.race([
-      tryAudiusMatch((v.title || '') + ' ' + (v.channel || '')),
-      new Promise(resolve => setTimeout(() => resolve(null), 1200))
-    ]);
-    if (match) {
-      streamQueue = [match];
-      streamIndex = 0;
-      mode = 'stream';
-      ytPlayMode = 'audio';
-      ytPlaying = false;
-      playStreamAt(0);
-      ytStatus.textContent = 'Playing Free audio (OK when folded)';
-      return;
-    }
-    ytStatus.textContent = 'Opening YouTube app — keeps playing when folded';
-    openYouTubeExternally(v.id);
+    // 1) In-app YouTube audio via stream proxy → fold/lock keeps playing in NOVA
+    await playYouTubeAudioInApp(v.id);
+    ytPlayMode = 'audio';
+    mode = 'youtube';
+    wantPlaying = true;
+    ytPlaying = true;
+    playing = true;
+    progress = 0;
+    ensureSilentKeepAlive(true);
+    startKeepAliveLoop();
+    requestWakeLock();
+    setMediaSession(v.title, v.channel, v.thumb);
+    openNP();
+    syncUI();
+    ytStatus.textContent = 'YouTube audio · OK when folded';
   } catch (_) {
+    // 2) YouTube / YouTube Music app — fold always works there
+    ytStatus.textContent = 'Opening YouTube app (fold-safe)…';
     openYouTubeExternally(v.id);
-    ytStatus.textContent = 'Opening YouTube…';
   } finally {
     if (loader) loader.classList.remove('on');
   }
@@ -1339,15 +1343,11 @@ loadTrending().then(() => {
 });
 if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
 if (new URLSearchParams(location.search).get('np')==='1') openNP();
-if (new URLSearchParams(location.search).get('tab')==='search') {
-  show('search');
-  setExploreSeg('free');
-}
-if (new URLSearchParams(location.search).get('tab')==='youtube') {
+if (new URLSearchParams(location.search).get('tab')==='search' || new URLSearchParams(location.search).get('tab')==='youtube') {
   show('search');
   setExploreSeg('youtube');
 }
-console.info('NOVA BUILD', BUILD);
+console.info('NOVA BUILD', BUILD, 'proxy', YT_STREAM_PROXY);
 
 // iPhone: show Add to Home Screen tip (Safari only; hide if already standalone)
 (function () {
