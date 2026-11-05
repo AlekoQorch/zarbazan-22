@@ -9,9 +9,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="NOVA" />
-<link rel="manifest" href="https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/manifest.webmanifest" />
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/icon.svg" />
-<link rel="icon" href="https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/icon.svg" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<link rel="manifest" href="https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/manifest.webmanifest?v=3" />
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/icon.svg?v=3" />
+<link rel="icon" href="https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/icon.svg?v=3" />
 <style>
   :root {
     --bg: #000;
@@ -398,13 +399,13 @@
 
     <section class="page" id="page-search">
       <div class="seg" id="exploreSeg">
-        <button class="on" data-seg="youtube">YouTube</button>
-        <button data-seg="free">Free</button>
+        <button class="on" data-seg="free">Free</button>
+        <button data-seg="youtube">YouTube</button>
         <button data-seg="library">Library</button>
       </div>
-      <div id="ytPane">
+      <div id="ytPane" style="display:none">
         <div class="title" style="font-size:26px">YouTube</div>
-        <p class="explore-note" style="margin-top:0">Search YouTube. Prefers background audio; falls back to the player if needed.</p>
+        <p class="explore-note" style="margin-top:0">Tap a result → opens in the YouTube app (keeps playing when folded). For in-app background audio use <b>Free</b>.</p>
         <div id="ytKeyBox" class="yt-key" style="display:none">
           <b>Optional: YouTube Data API key</b>
           <p>Not required. Paste a Google key only if you want official Data API search.</p>
@@ -415,9 +416,9 @@
         <div id="ytStatus" class="explore-note"></div>
         <div id="ytList"></div>
       </div>
-      <div id="freePane" style="display:none">
+      <div id="freePane">
         <div class="title" style="font-size:26px">Free music</div>
-        <p class="explore-note" style="margin-top:0">Audius streams — separate free catalog.</p>
+        <p class="explore-note" style="margin-top:0">Real audio streams — keeps playing when you fold or lock. Add to Home Screen for best results.</p>
         <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
         <div id="trendingBlock"></div>
         <div id="exploreCards" class="explore-grid"></div>
@@ -432,7 +433,7 @@
     <!-- Hidden video element for direct audio/muxed streams (background-capable) -->
     <video id="ytAudio" playsinline webkit-playsinline preload="auto" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-100vw;top:0"></video>
     <audio id="keepaliveAudio" preload="auto" loop playsinline webkit-playsinline></audio>
-    <div class="yt-loading" id="ytLoading">Loading audio…</div>
+    <div class="yt-loading" id="ytLoading">Starting…</div>
 
     <div class="yt-player" id="ytPlayerSheet">
       <div class="yt-frame-wrap" id="ytFrameWrap">
@@ -548,16 +549,11 @@ function parseISO8601(iso){
 function fmtDur(s){ s=Math.max(0,Math.floor(s||0)); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
   return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
 
+const BUILD = '20261105c';
 const PIPED_BASES = [
   'https://api.piped.private.coffee',
-  'https://pipedapi.ducks.party'
-];
-
-const INVIDIOUS_LATEST = [
-  'https://yewtu.be',
-  'https://invidious.slipfox.xyz',
-  'https://inv.nadeko.net',
-  'https://invidious.protokolla.fi'
+  'https://pipedapi.ducks.party',
+  'https://pipedapi.adminforge.de'
 ];
 
 function fetchTimeout(url, opts={}, ms=3500){
@@ -566,94 +562,28 @@ function fetchTimeout(url, opts={}, ms=3500){
   return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
 }
 
-function pickPipedAudioURL(data){
-  const audio = (data.audioStreams || []).slice().sort((a,b)=>{
-    const am = String(a.mimeType||'').includes('mp4') ? 1 : 0;
-    const bm = String(b.mimeType||'').includes('mp4') ? 1 : 0;
-    if (am !== bm) return bm - am;
-    return (b.bitrate||0) - (a.bitrate||0);
-  });
-  if (audio[0] && audio[0].url) return audio[0].url;
-  const muxed = (data.videoStreams || []).filter(v => v && v.videoOnly === false && v.url);
-  const preferred = muxed.find(v => /piped|videoplayback|googlevideo/i.test(v.url));
-  if (preferred) return preferred.url;
-  if (muxed[0]) return muxed[0].url;
-  if (data.hls) return data.hls;
-  return '';
-}
-
-async function resolvePipedStream(videoId){
-  for (const base of PIPED_BASES) {
-    try {
-      const res = await fetchTimeout(base + '/streams/' + encodeURIComponent(videoId), {
-        headers: { 'Accept': 'application/json' }
-      }, 3500);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const url = pickPipedAudioURL(data);
-      if (url) return url;
-    } catch (_) {}
-  }
-  return '';
-}
-
-function invidiousStreamCandidates(videoId){
-  const itags = [140, 251, 139, 18];
-  const urls = [];
-  for (const host of INVIDIOUS_LATEST) {
-    for (const itag of itags) {
-      urls.push(`${host}/latest_version?id=${encodeURIComponent(videoId)}&itag=${itag}`);
-    }
-  }
-  return urls;
-}
-
-async function tryPlayMediaUrl(url, ms=5000){
-  const media = ytMedia();
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    const done = (ok, err) => {
-      if (settled) return;
-      settled = true;
-      media.removeEventListener('loadeddata', onOk);
-      media.removeEventListener('canplay', onOk);
-      media.removeEventListener('error', onErr);
-      clearTimeout(timer);
-      ok ? resolve(url) : reject(err || new Error('play failed'));
-    };
-    const onOk = () => {
-      media.play().then(() => done(true)).catch(e => done(false, e));
-    };
-    const onErr = () => done(false, new Error('media error'));
-    const timer = setTimeout(() => done(false, new Error('timeout')), ms);
-    media.addEventListener('loadeddata', onOk);
-    media.addEventListener('canplay', onOk);
-    media.addEventListener('error', onErr);
-    try {
-      media.pause();
-      media.src = url;
-      media.load();
-      // Some WebKits fire play before loadeddata for proxied streams
-      media.play().then(() => done(true)).catch(() => {});
-    } catch (e) {
-      done(false, e);
-    }
-  });
-}
-
-async function resolveAndPlayYouTubeAudio(videoId){
-  const piped = await resolvePipedStream(videoId);
-  if (piped) {
-    try { await tryPlayMediaUrl(piped, 5000); return { url: piped, via: 'stream' }; }
-    catch (_) {}
-  }
-  // Race a few Invidious redirects — first one that actually plays wins (max ~5s).
-  const candidates = invidiousStreamCandidates(videoId).slice(0, 6);
+function enableBackgroundAudio(){
   try {
-    const url = await Promise.any(candidates.map(u => tryPlayMediaUrl(u, 5000)));
-    return { url, via: 'stream' };
+    if (navigator.audioSession) navigator.audioSession.type = 'playback';
   } catch (_) {}
-  throw new Error('No playable audio stream');
+}
+
+function openYouTubeExternally(videoId){
+  const id = encodeURIComponent(videoId);
+  // Universal / app links — YouTube app keeps audio when the phone is folded.
+  const appUrl = `youtube://www.youtube.com/watch?v=${id}`;
+  const webUrl = `https://www.youtube.com/watch?v=${id}`;
+  try {
+    const a = document.createElement('a');
+    a.href = appUrl;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (_) {}
+  setTimeout(() => {
+    window.location.href = webUrl;
+  }, 400);
 }
 
 async function tryAudiusMatch(title){
@@ -664,7 +594,7 @@ async function tryAudiusMatch(title){
     const res = await fetchTimeout(
       `https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=${APP}`,
       {},
-      5000
+      2500
     );
     if (!res.ok) return null;
     const json = await res.json();
@@ -710,7 +640,7 @@ async function youtubeSearchPiped(q){
   for (const base of PIPED_BASES) {
     try {
       const url = base + '/search?' + new URLSearchParams({ q, filter: 'videos' });
-      const data = await fetch(url).then(r => {
+      const data = await fetchTimeout(url, {}, 4000).then(r => {
         if (!r.ok) throw new Error('HTTP '+r.status);
         return r.json();
       });
@@ -758,7 +688,7 @@ function refreshYtKeyUI(){
   settingsYtKey.value = getYtKey();
   ytStatus.textContent = has
     ? 'Using your YouTube Data API key when possible.'
-    : 'Type to search YouTube, then tap a result to play.';
+    : 'Search YouTube → opens in YouTube app (fold-safe). Use Free for in-app audio.';
 }
 let currentYt = null;
 let ytPlaying = false;
@@ -887,96 +817,40 @@ function stopYtPlayer(){
   if (loader) loader.classList.remove('on');
 }
 
-function startYtEmbedFallback(v){
-  ytPlayMode = 'embed';
-  mode = 'youtube';
-  currentYt = v;
-  wantPlaying = true;
-  ytPlaying = true;
-  playing = true;
-  const vEl = ytMedia();
-  try { if (vEl) { vEl.pause(); vEl.removeAttribute('src'); vEl.load(); } } catch (_) {}
-  document.getElementById('ytTitle').textContent = v.title;
-  document.getElementById('ytChannel').textContent = v.channel;
-  document.getElementById('ytLegal').textContent =
-    'Direct audio unavailable — using YouTube player. Fold/lock may pause this one.';
-  const origin = encodeURIComponent(location.origin || 'https://htmlpreview.github.io');
-  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?playsinline=1&rel=0&modestbranding=1&autoplay=1&enablejsapi=1&origin=${origin}`;
-  const frame = document.getElementById('ytFrame');
-  frame.src = src;
-  document.getElementById('ytPlayerSheet').classList.add('on');
-  ensureSilentKeepAlive(true);
-  startKeepAliveLoop();
-  requestWakeLock();
-  setMediaSession(v.title, v.channel, v.thumb);
-  syncUI();
-  ytStatus.textContent = (lastYtResults.length ? `${lastYtResults.length} results · ` : '') + 'YouTube player';
-}
-
 async function openYtPlayer(v){
+  // No long "Loading audio…" — browser YouTube streams are unreliable.
+  // 1) Quick Free match for in-app background audio
+  // 2) Otherwise open the YouTube app (fold/lock keeps playing there)
   const loader = document.getElementById('ytLoading');
   if (loader) {
-    loader.textContent = 'Loading audio…';
+    loader.textContent = 'Starting…';
     loader.classList.add('on');
   }
   currentYt = v;
-  ytStatus.textContent = 'Loading audio…';
+  ytStatus.textContent = 'Starting…';
   document.getElementById('ytPlayerSheet')?.classList.remove('on');
+  enableBackgroundAudio();
   try {
     try { audio.pause(); } catch (_) {}
-    // 1) Direct stream (background-safe)
-    try {
-      const played = await resolveAndPlayYouTubeAudio(v.id);
-      ytPlayMode = 'audio';
-      mode = 'youtube';
-      wantPlaying = true;
-      ytPlaying = true;
-      playing = true;
-      progress = 0;
-      ensureSilentKeepAlive(true);
-      startKeepAliveLoop();
-      requestWakeLock();
-      setMediaSession(v.title, v.channel, v.thumb);
-      openNP();
-      syncUI();
-      ytStatus.textContent = lastYtResults.length
-        ? `${lastYtResults.length} results · background audio`
-        : 'Background audio';
-      return;
-    } catch (_) {}
-
-    // 2) Free catalog match (also background-safe)
-    if (loader) loader.textContent = 'Trying Free match…';
-    const match = await tryAudiusMatch(v.title + ' ' + (v.channel || ''));
+    const match = await Promise.race([
+      tryAudiusMatch((v.title || '') + ' ' + (v.channel || '')),
+      new Promise(resolve => setTimeout(() => resolve(null), 1200))
+    ]);
     if (match) {
-      ytPlayMode = 'audio';
-      currentYt = { ...v, title: match.title, channel: match.artist + ' · Free match', thumb: match.img };
       streamQueue = [match];
       streamIndex = 0;
       mode = 'stream';
-      wantPlaying = true;
+      ytPlayMode = 'audio';
       ytPlaying = false;
-      progress = 0;
-      audio.src = match.stream;
-      await audio.play();
-      playing = true;
-      ensureSilentKeepAlive(true);
-      startKeepAliveLoop();
-      setMediaSession(match.title, match.artist, match.img);
-      openNP();
-      syncUI();
-      ytStatus.textContent = 'Playing Free audio match (background OK)';
+      playStreamAt(0);
+      ytStatus.textContent = 'Playing Free audio (OK when folded)';
       return;
     }
-
-    // 3) Official embed — plays now; lock may still pause
-    startYtEmbedFallback(v);
-  } catch (e) {
-    ytPlaying = false;
-    playing = false;
-    wantPlaying = false;
-    currentYt = null;
-    ytStatus.textContent = 'Couldn’t start this track. Try another, or use Free.';
+    ytStatus.textContent = 'Opening YouTube app — keeps playing when folded';
+    openYouTubeExternally(v.id);
+  } catch (_) {
+    openYouTubeExternally(v.id);
+    ytStatus.textContent = 'Opening YouTube…';
   } finally {
     if (loader) loader.classList.remove('on');
   }
@@ -1160,11 +1034,18 @@ function render() {
 }
 function artistsCount(){ return new Set(songs.map(s=>s.artist)).size; }
 function playAt(i){
-  if(i<0)i=0;
-  if (mode === 'youtube') stopYtPlayer();
-  mode='library'; index=i; progress=0;
-  audio.pause(); audio.removeAttribute('src');
-  playing=true; syncUI(); openNP();
+  // Demo library rows have no real files — play Free catalog instead (real audio + fold-safe).
+  if (streamQueue.length) {
+    playStreamAt(Math.max(0, Math.min(i, streamQueue.length - 1)));
+    return;
+  }
+  loadTrending().then(() => {
+    if (streamQueue.length) playStreamAt(0);
+    else {
+      show('search');
+      setExploreSeg('free');
+    }
+  });
 }
 
 function playStreamAt(i){
@@ -1173,8 +1054,10 @@ function playStreamAt(i){
   streamIndex = Math.max(0, Math.min(i, streamQueue.length-1));
   mode = 'stream';
   wantPlaying = true;
+  enableBackgroundAudio();
   const t = streamQueue[streamIndex];
   progress = 0;
+  try { ytMedia().pause(); } catch (_) {}
   audio.src = t.stream;
   audio.play().then(()=>{
     playing=true;
@@ -1437,17 +1320,34 @@ setInterval(() => {
   tCur.textContent = `${Math.floor(cur/60)}:${String(cur%60).padStart(2,'0')}`;
 }, 400);
 
-render(); syncUI(); loadTrending();
+enableBackgroundAudio();
+render(); syncUI();
+loadTrending().then(() => {
+  // Warm Home with real Free tracks so taps play actual audio
+  if (streamQueue.length) {
+    try {
+      document.getElementById('quick').innerHTML = streamQueue.slice(0,4).map((s,i)=>`
+        <div class="q" data-stream="${i}"><div class="c" style="background-image:url('${s.img||''}')"></div><div class="n">${s.title}</div></div>`).join('');
+      document.getElementById('recent').innerHTML = streamQueue.slice(0,8).map((s,i)=>`
+        <div class="card" data-stream="${i}"><div class="cover" style="background-image:url('${s.img||''}')"></div>
+        <div class="t">${s.title}</div><div class="u">${s.artist}</div></div>`).join('');
+      document.querySelectorAll('[data-stream]').forEach(el => {
+        el.onclick = () => playStreamAt(+el.dataset.stream);
+      });
+    } catch (_) {}
+  }
+});
 if (new URLSearchParams(location.search).get('empty')==='1') show('empty');
 if (new URLSearchParams(location.search).get('np')==='1') openNP();
-if (new URLSearchParams(location.search).get('tab')==='search') show('search');
-(function(){
-  const playId=new URLSearchParams(location.search).get('play');
-  if(playId && /^[\w-]{6,}$/.test(playId)){
-    show('search');
-    openYtPlayer({id:playId, title:'YouTube · '+playId, channel:'YouTube', thumb:'https://i.ytimg.com/vi/'+playId+'/hqdefault.jpg', duration:0});
-  }
-})();
+if (new URLSearchParams(location.search).get('tab')==='search') {
+  show('search');
+  setExploreSeg('free');
+}
+if (new URLSearchParams(location.search).get('tab')==='youtube') {
+  show('search');
+  setExploreSeg('youtube');
+}
+console.info('NOVA BUILD', BUILD);
 
 // iPhone: show Add to Home Screen tip (Safari only; hide if already standalone)
 (function () {

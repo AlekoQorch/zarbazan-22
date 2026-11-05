@@ -1,26 +1,21 @@
-# NOVA MUSIC — ტელეფონზე გახსნა (Mac-ის გარეშე)
+# NOVA MUSIC — ტელეფონზე გახსნა
 
-ნამდვილი App Store / Xcode აპი **Mac-ს** საჭიროებს.
-თუ მხოლოდ iPhone გაქვს — გახსენი ეს **ვებ-აპი** Safari-ში და დაამატე Home Screen-ზე.
+## მნიშვნელოვანი (ფონური მუსიკა)
 
-## გახსენი ტელეფონზე ახლა
+Safari/ბრაუზერში **YouTube embed ვერ აგრძელებს** დაკვრას ჩაკეცვისას — ეს iOS-ის შეზღუდვაა.
 
-1. iPhone-ზე გახსენი **Safari** (Chrome-ში Add to Home Screen სრულად არ მუშაობს)
-2. გადადი ამ ლინკზე:
+**რა მუშაობს ჩაკეცვაზე:**
+1. **Explore → Free** — ნამდვილი აუდიო სტრიმი (რეკომენდებული, აპში რჩები)
+2. **Explore → YouTube** — იხსნება YouTube აპში (იქაც ჩაკეცვაზე ისმის)
 
-https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/nova-music-player-b486/preview/nova-music.html
+## გახსენი ახლა (ახალი빌დი — ქეში არ აიღო)
 
-ან პირდაპირ Explore:
+Safari → ეს ლინკი (ბოლოში `v=3`):
 
-https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?tab=search
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/cursor/youtube-search-player-b486/preview/nova-music.html?v=3&tab=search
 
-3. **Explore → YouTube** — მოძებნე და დაუკარი **აუდიოდ** (API key **არ** სჭირდება). ჩაკეცვა/ლოქი აღარ აპაუზებს.
-   **Free** ტაბი = Audius სტრიმები
-4. ქვემოთ Share (**□↑**) → **Add to Home Screen** → **Add**
-5. Home Screen-ზე გამოჩნდება **NOVA**
+1. **Explore → Free** → აირჩიე სიმღერა  
+2. Share (**□↑**) → **Add to Home Screen**  
+3. ჩაკეცე ტელეფონი — მუსიკა უნდა გაგრძელდეს  
 
-API key setup: `docs/YOUTUBE_SETUP.md`
-
-## სრული native iOS აპი
-
-`NovaMusic.xcodeproj` — მხოლოდ Mac + Xcode-ით იშლება ტელეფონზე.
+თუ ძველი „Loading audio…“ მაინც ჩანს: Safari-ში გვერდი refresh / ქეშის გასუფთავება, ან Home Screen-ის ძველი ხატულა წაშალე და თავიდან დაამატე.
