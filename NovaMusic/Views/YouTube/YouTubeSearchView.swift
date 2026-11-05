@@ -8,7 +8,6 @@ struct YouTubeSearchView: View {
     @State private var isSearching = false
     @State private var errorMessage: String?
     @State private var searchTask: Task<Void, Never>?
-    @State private var selectedVideo: YouTubeVideo?
     @State private var playlistTarget: YouTubeVideo?
     @State private var segment: YouTubeSegment = .search
     @FocusState private var searchFocused: Bool
@@ -53,10 +52,6 @@ struct YouTubeSearchView: View {
             } else {
                 playlistsBody
             }
-        }
-        .sheet(item: $selectedVideo) { video in
-            YouTubePlayerView(video: video)
-                .environment(appState)
         }
         .sheet(item: $playlistTarget) { video in
             AddToYouTubePlaylistSheet(video: video)
@@ -290,7 +285,7 @@ struct YouTubeSearchView: View {
 
     private func play(_ video: YouTubeVideo) {
         appState.addSearchHistory(trimmedQuery.isEmpty ? video.title : trimmedQuery)
-        selectedVideo = video
+        appState.playYouTube(video)
     }
 
     private func scheduleSearch(immediate: Bool = false) {

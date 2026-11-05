@@ -74,8 +74,15 @@ struct YouTubePlayerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
+                    Button("Minimize") {
+                        // Keep audio/video session alive in RootView keep-alive embed.
                         onClose?()
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Stop", role: .destructive) {
+                        appState.stopYouTube()
                         dismiss()
                     }
                 }

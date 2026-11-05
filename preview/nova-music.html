@@ -306,6 +306,13 @@
   .yt-player.on { display: flex; }
   .yt-frame-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #111; border-radius: 12px; overflow: hidden; }
   .yt-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  /* Off-screen keep-alive host so collapsing the UI does not stop audio */
+  .yt-keep {
+    position: fixed; width: 1px; height: 1px; left: -100vw; top: 0; overflow: hidden;
+    opacity: 0; pointer-events: none; z-index: 0;
+  }
+  .yt-keep.has-player { width: 220px; height: 124px; }
+  .yt-keep iframe { width: 220px; height: 124px; border: 0; }
   .yt-meta { padding: 14px 4px 0; }
   .yt-meta h2 { font-size: 18px; line-height: 1.3; margin-bottom: 6px; }
   .yt-meta .a { color: var(--muted); font-size: 14px; }
@@ -423,17 +430,20 @@
         <div id="libSearchList"></div>
       </div>
     </section>
-    <audio id="audio" preload="none" crossorigin="anonymous"></audio>
+    <audio id="audio" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></audio>
+
+    <!-- Keeps YouTube audio alive when the full player is collapsed -->
+    <div id="ytKeepAlive" class="yt-keep" aria-hidden="true"></div>
 
     <div class="yt-player" id="ytPlayerSheet">
-      <div class="yt-frame-wrap">
+      <div class="yt-frame-wrap" id="ytFrameWrap">
         <iframe id="ytFrame" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
       <div class="yt-meta">
         <h2 id="ytTitle"></h2>
         <div class="a" id="ytChannel"></div>
-        <p class="yt-legal">Official YouTube embedded player — not downloaded.</p>
-        <button class="btn btn-dark" id="ytClose">Close</button>
+        <p class="yt-legal">Minimize — music keeps playing. Official YouTube player (not downloaded).</p>
+        <button class="btn btn-dark" id="ytClose">Minimize</button>
       </div>
     </div>
 
@@ -630,21 +640,85 @@ function refreshYtKeyUI(){
     ? 'Using your YouTube Data API key when possible.'
     : 'Type to search YouTube. Playback uses the official embed.';
 }
+let currentYt = null;
+let ytPlaying = false;
+
+function ytCommand(func, args){
+  try {
+    const win = ytFrame.contentWindow;
+    if (!win) return;
+    win.postMessage(JSON.stringify({ event: 'command', func, args: args || [] }), '*');
+  } catch (_) {}
+}
+
+function parkYtFrame(toKeepAlive){
+  const frame = document.getElementById('ytFrame');
+  const wrap = document.getElementById('ytFrameWrap');
+  const keep = document.getElementById('ytKeepAlive');
+  if (!frame || !wrap || !keep) return;
+  if (toKeepAlive) {
+    keep.appendChild(frame);
+    keep.classList.add('has-player');
+  } else {
+    wrap.appendChild(frame);
+    keep.classList.remove('has-player');
+  }
+}
+
 function openYtPlayer(v){
   try {
     const a = document.getElementById('audio');
     if (a && !a.paused) a.pause();
   } catch (_) {}
-  playing=false;
-  try { syncUI(); } catch (_) {}
-  ytTitle.textContent=v.title;
-  ytChannel.textContent=v.channel;
-  ytFrame.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?playsinline=1&rel=0&modestbranding=1&autoplay=1&enablejsapi=1`;
+  mode = 'youtube';
+  currentYt = v;
+  ytPlaying = true;
+  playing = true;
+  ytTitle.textContent = v.title;
+  ytChannel.textContent = v.channel;
+  parkYtFrame(false);
+  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?playsinline=1&rel=0&modestbranding=1&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+  if (!ytFrame.src || !ytFrame.src.includes(v.id)) {
+    ytFrame.src = src;
+  } else {
+    ytCommand('playVideo');
+  }
   ytPlayerSheet.classList.add('on');
+  syncUI();
+  setMediaSession(v.title, v.channel, v.thumb);
 }
 function closeYtPlayer(){
+  // Collapse UI only — keep official embed playing in the background host.
   ytPlayerSheet.classList.remove('on');
-  ytFrame.src='';
+  parkYtFrame(true);
+  ytPlaying = true;
+  playing = true;
+  mode = 'youtube';
+  syncUI();
+}
+function stopYtPlayer(){
+  ytPlayerSheet.classList.remove('on');
+  parkYtFrame(false);
+  ytFrame.src = '';
+  currentYt = null;
+  ytPlaying = false;
+  document.getElementById('ytKeepAlive').classList.remove('has-player');
+}
+
+function setMediaSession(title, artist, art){
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title || 'NOVA MUSIC',
+      artist: artist || '',
+      artwork: art ? [{ src: art, sizes: '512x512', type: 'image/jpeg' }] : []
+    });
+    navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+    navigator.mediaSession.setActionHandler('play', () => { if (mode==='youtube') { ytCommand('playVideo'); ytPlaying=playing=true; } else togglePlay(); syncUI(); });
+    navigator.mediaSession.setActionHandler('pause', () => { if (mode==='youtube') { ytCommand('pauseVideo'); ytPlaying=playing=false; } else togglePlay(); syncUI(); });
+    navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+    navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+  } catch (_) {}
 }
 
 let ytTimer=null, lastYtResults=[];
@@ -757,6 +831,7 @@ function render() {
 function artistsCount(){ return new Set(songs.map(s=>s.artist)).size; }
 function playAt(i){
   if(i<0)i=0;
+  if (mode === 'youtube') stopYtPlayer();
   mode='library'; index=i; progress=0;
   audio.pause(); audio.removeAttribute('src');
   playing=true; syncUI(); openNP();
@@ -764,12 +839,17 @@ function playAt(i){
 
 function playStreamAt(i){
   if (!streamQueue.length) return;
+  if (mode === 'youtube') stopYtPlayer();
   streamIndex = Math.max(0, Math.min(i, streamQueue.length-1));
   mode = 'stream';
   const t = streamQueue[streamIndex];
   progress = 0;
   audio.src = t.stream;
-  audio.play().then(()=>{ playing=true; syncUI(); }).catch(()=>{
+  audio.play().then(()=>{
+    playing=true;
+    setMediaSession(t.title, t.artist, t.img);
+    syncUI();
+  }).catch(()=>{
     playing=false; syncUI();
     alert('Could not start playback. Try another track.');
   });
@@ -838,17 +918,21 @@ async function searchOnline(q){
 }
 
 function syncUI() {
-  const s = current();
+  const s = mode === 'youtube' && currentYt
+    ? { title: currentYt.title, artist: currentYt.channel, img: currentYt.thumb, dur: fmt(currentYt.duration||0) }
+    : current();
   if (!s) return;
   ['miniArt','npArt','npWash'].forEach(id => document.getElementById(id).style.backgroundImage = s.img ? `url('${s.img}')` : 'none');
   miniTitle.textContent = s.title; miniArtist.textContent = s.artist;
   npTitle.textContent = s.title; npArtist.textContent = s.artist;
   tDur.textContent = s.dur || fmt(s.duration);
-  play.textContent = playing ? '❚❚' : '▶';
-  miniPlay.textContent = playing ? '❚❚' : '▶';
-  npArt.classList.toggle('paused', !playing);
+  const isOn = mode === 'youtube' ? ytPlaying : playing;
+  play.textContent = isOn ? '❚❚' : '▶';
+  miniPlay.textContent = isOn ? '❚❚' : '▶';
+  npArt.classList.toggle('paused', !isOn);
   seekFill.style.width = miniBar.style.width = (progress*100)+'%';
   mini.classList.add('show');
+  if (mode === 'youtube' && currentYt) setMediaSession(currentYt.title, currentYt.channel, currentYt.thumb);
 }
 
 function show(id) {
@@ -861,7 +945,10 @@ function openNP(){ np.classList.add('on'); }
 function closeNP(){ np.classList.remove('on'); }
 
 function togglePlay(){
-  if (mode === 'stream') {
+  if (mode === 'youtube') {
+    if (ytPlaying) { ytCommand('pauseVideo'); ytPlaying = playing = false; }
+    else { ytCommand('playVideo'); ytPlaying = playing = true; }
+  } else if (mode === 'stream') {
     if (!audio.src) { if (streamQueue.length) playStreamAt(streamIndex); return; }
     if (audio.paused) { audio.play(); playing=true; }
     else { audio.pause(); playing=false; }
@@ -871,6 +958,13 @@ function togglePlay(){
   syncUI();
 }
 function nextTrack(){
+  if (mode === 'youtube') {
+    if (!lastYtResults.length || !currentYt) return;
+    const i = lastYtResults.findIndex(x => x.id === currentYt.id);
+    const next = lastYtResults[(i + 1 + lastYtResults.length) % lastYtResults.length];
+    openYtPlayer(next);
+    return;
+  }
   if (mode === 'stream') {
     if (streamIndex + 1 < streamQueue.length) playStreamAt(streamIndex+1);
     else { playing=false; syncUI(); }
@@ -879,6 +973,13 @@ function nextTrack(){
   }
 }
 function prevTrack(){
+  if (mode === 'youtube') {
+    if (!lastYtResults.length || !currentYt) return;
+    const i = lastYtResults.findIndex(x => x.id === currentYt.id);
+    const prev = lastYtResults[(i - 1 + lastYtResults.length) % lastYtResults.length];
+    openYtPlayer(prev);
+    return;
+  }
   if (mode === 'stream') {
     if (audio.currentTime > 3) { audio.currentTime = 0; return; }
     if (streamIndex > 0) playStreamAt(streamIndex-1);
@@ -892,6 +993,7 @@ tabs.onclick = e => { const b = e.target.closest('[data-tab]'); if (b) show(b.da
 mini.onclick = e => {
   if (e.target.closest('#miniPlay')) { togglePlay(); e.stopPropagation(); return; }
   if (e.target.closest('#miniNext')) { nextTrack(); e.stopPropagation(); return; }
+  if (mode === 'youtube' && currentYt) { openYtPlayer(currentYt); return; }
   openNP();
 };
 npClose.onclick = closeNP;
@@ -915,10 +1017,37 @@ audio.addEventListener('timeupdate', () => {
   seekFill.style.width = miniBar.style.width = (progress*100)+'%';
   tCur.textContent = fmt(audio.currentTime);
   tDur.textContent = fmt(audio.duration);
+  if ('mediaSession' in navigator && audio.duration) {
+    try {
+      navigator.mediaSession.setPositionState({
+        duration: audio.duration,
+        playbackRate: audio.playbackRate || 1,
+        position: Math.min(audio.currentTime, audio.duration)
+      });
+    } catch (_) {}
+  }
 });
 audio.addEventListener('ended', () => nextTrack());
-audio.addEventListener('play', () => { playing=true; syncUI(); });
+audio.addEventListener('play', () => {
+  playing=true;
+  if (mode==='stream') {
+    const t = streamQueue[streamIndex];
+    if (t) setMediaSession(t.title, t.artist, t.img);
+  }
+  syncUI();
+});
 audio.addEventListener('pause', () => { if (mode==='stream') { playing=false; syncUI(); } });
+
+// Keep streaming when the phone is locked / tab backgrounded (best-effort on iOS).
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (mode === 'stream' && playing && audio.paused) {
+    audio.play().catch(() => {});
+  }
+  if (mode === 'youtube' && ytPlaying) {
+    ytCommand('playVideo');
+  }
+});
 
 setInterval(() => {
   if (!playing || mode === 'stream') return;

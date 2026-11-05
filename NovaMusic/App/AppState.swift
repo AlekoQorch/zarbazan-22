@@ -19,6 +19,29 @@ final class AppState {
     var librarySegment: LibrarySegment = .songs
     /// YouTube search works without a Google key (Piped fallback + official embed).
     var exploreSegment: ExploreSegment = .youtube
+    /// Keeps the current YouTube video alive after the full player is dismissed.
+    var youtubeNowPlaying: YouTubeVideo?
+    var showsYouTubePlayer = false
+
+    var hasMiniPlayer: Bool {
+        player.hasSomethingToPlay || youtubeNowPlaying != nil
+    }
+
+    func playYouTube(_ video: YouTubeVideo) {
+        player.pause()
+        youtubeNowPlaying = video
+        showsYouTubePlayer = true
+    }
+
+    func dismissYouTubePlayer() {
+        // Collapse UI only — embed keep-alive continues in RootView.
+        showsYouTubePlayer = false
+    }
+
+    func stopYouTube() {
+        youtubeNowPlaying = nil
+        showsYouTubePlayer = false
+    }
 
     init() {
         let persistence = PersistenceManager.shared
