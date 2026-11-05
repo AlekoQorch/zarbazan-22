@@ -40,6 +40,8 @@ struct YouTubeSearchView: View {
             }
             .pickerStyle(.segmented)
 
+            freeAlternativeBanner
+
             if !YouTubeConfig.isConfigured {
                 apiKeyBanner
             }
@@ -67,12 +69,40 @@ struct YouTubeSearchView: View {
         }
     }
 
+    private var freeAlternativeBanner: some View {
+        Button {
+            appState.exploreSegment = .streaming
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "music.note.list")
+                    .font(.title2)
+                    .foregroundStyle(Color.novaAccent)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Listen free — no API key")
+                        .font(.headline)
+                        .foregroundStyle(Color.novaTextPrimary)
+                    Text("Open the Free tab to search & play music now (Audius).")
+                        .font(.footnote)
+                        .foregroundStyle(Color.novaTextSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(Color.novaTextSecondary)
+            }
+            .padding(14)
+            .background(Color.novaSurfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
     private var apiKeyBanner: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("YouTube API key required")
                 .font(.headline)
                 .foregroundStyle(Color.novaTextPrimary)
-            Text("Enable YouTube Data API v3 in Google Cloud, create an API key, then paste it in Settings → YouTube. See docs/YOUTUBE_SETUP.md.")
+            Text("Google Cloud + MFA needed. Until then, use Free. Or add a key in Settings → YouTube.")
                 .font(.footnote)
                 .foregroundStyle(Color.novaTextSecondary)
             Button("Open Settings") {

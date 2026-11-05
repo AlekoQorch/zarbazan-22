@@ -393,12 +393,25 @@
 
     <section class="page" id="page-search">
       <div class="seg" id="exploreSeg">
-        <button class="on" data-seg="youtube">YouTube</button>
-        <button data-seg="free">Free</button>
+        <button class="on" data-seg="free">Free</button>
+        <button data-seg="youtube">YouTube</button>
         <button data-seg="library">Library</button>
       </div>
-      <div id="ytPane">
+      <div id="freePane">
+        <div class="title" style="font-size:26px">Free music</div>
+        <p class="explore-note" style="margin-top:0">No Google key — search any song and play now.</p>
+        <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
+        <div id="trendingBlock"></div>
+        <div id="exploreCards" class="explore-grid"></div>
+        <div id="searchList"></div>
+      </div>
+      <div id="ytPane" style="display:none">
         <div class="title" style="font-size:26px">YouTube</div>
+        <div class="yt-key">
+          <b>Prefer free?</b>
+          <p>Use the <b style="color:#fff">Free</b> tab — works without Google Cloud / MFA.</p>
+          <button id="goFreeBtn" class="btn btn-green" style="width:auto;margin-top:8px;padding:8px 16px">Open Free tab</button>
+        </div>
         <div id="ytKeyBox" class="yt-key" style="display:none">
           <b>YouTube Data API v3 key required</b>
           <p>Paste your Google Cloud API key (YouTube Data API v3 enabled). Saved only in this browser.</p>
@@ -408,14 +421,6 @@
         <div class="search"><span>⌕</span><input id="ytq" placeholder="Song, artist, or music keyword…" autocomplete="off" /></div>
         <div id="ytStatus" class="explore-note"></div>
         <div id="ytList"></div>
-      </div>
-      <div id="freePane" style="display:none">
-        <div class="title" style="font-size:26px">Free music</div>
-        <div class="search"><span>⌕</span><input id="q" placeholder="Song, artist, mood…" autocomplete="off" /></div>
-        <div id="trendingBlock"></div>
-        <div id="exploreCards" class="explore-grid"></div>
-        <div id="searchList"></div>
-        <p class="explore-note">Audius free streams — not YouTube download.</p>
       </div>
       <div id="libPane" style="display:none">
         <div class="title" style="font-size:26px">Your library</div>
@@ -622,13 +627,17 @@ async function runYtSearch(q){
   }
 }
 
+function setExploreSeg(name){
+  document.querySelectorAll('#exploreSeg button').forEach(x=>x.classList.toggle('on', x.dataset.seg===name));
+  ytPane.style.display = name==='youtube'?'block':'none';
+  freePane.style.display = name==='free'?'block':'none';
+  libPane.style.display = name==='library'?'block':'none';
+}
 document.getElementById('exploreSeg').onclick = e => {
   const b=e.target.closest('[data-seg]'); if(!b) return;
-  document.querySelectorAll('#exploreSeg button').forEach(x=>x.classList.toggle('on', x===b));
-  ytPane.style.display = b.dataset.seg==='youtube'?'block':'none';
-  freePane.style.display = b.dataset.seg==='free'?'block':'none';
-  libPane.style.display = b.dataset.seg==='library'?'block':'none';
+  setExploreSeg(b.dataset.seg);
 };
+document.getElementById('goFreeBtn').onclick = () => setExploreSeg('free');
 ytKeySave.onclick = () => { setYtKey(ytKeyInput.value); ytKeyInput.value=''; refreshYtKeyUI(); };
 settingsYtSave.onclick = () => { setYtKey(settingsYtKey.value); refreshYtKeyUI(); alert('YouTube API key saved'); };
 ytq.oninput = e => { clearTimeout(ytTimer); ytTimer=setTimeout(()=>runYtSearch(e.target.value), 320); };

@@ -53,6 +53,9 @@ private struct AudiusExploreContent: View {
             Text(trimmedQuery.isEmpty ? "Free music" : "Results")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(Color.novaTextPrimary)
+            Text("No Google key needed — search and play instantly.")
+                .font(.footnote)
+                .foregroundStyle(Color.novaTextSecondary)
 
             searchField
 
