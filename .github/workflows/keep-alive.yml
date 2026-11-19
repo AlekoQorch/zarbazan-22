@@ -2,7 +2,7 @@ name: Keep public tunnel alive
 
 on:
   schedule:
-    - cron: "0 */3 * * *"
+    - cron: "5 */2 * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -34,10 +34,10 @@ jobs:
           python3 server.py > server.log 2>&1 &
           echo $! > server.pid
           for i in $(seq 1 30); do
-            curl -sf http://127.0.0.1:8765/ >/dev/null && break
+            curl -sf http://127.0.0.1:8765/ >/dev/null && exit 0
             sleep 1
           done
-          curl -sf http://127.0.0.1:8765/ >/dev/null
+          echo "server failed"; cat server.log || true; exit 1
 
       - name: Install cloudflared
         run: |
@@ -52,50 +52,82 @@ jobs:
           GIT_COMMITTER_EMAIL: bot@users.noreply.github.com
         run: |
           set -e
-          ./cloudflared tunnel --url http://127.0.0.1:8765 > cf.log 2>&1 &
-          echo $! > cf.pid
-          URL=""
-          for i in $(seq 1 40); do
-            URL=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' cf.log | head -1 || true)
-            if [ -n "$URL" ]; then break; fi
-            sleep 1
-          done
-          if [ -z "$URL" ]; then
-            echo "Tunnel URL not found"
-            cat cf.log || true
-            exit 1
-          fi
-          echo "Public URL: $URL"
-          echo "$URL" > public-url.txt
-          git add public-url.txt
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update public tunnel URL"
-            git push origin HEAD:main || true
-          fi
 
-          end=$((SECONDS + 330*60))
+          start_tunnel() {
+            ./cloudflared tunnel --url http://127.0.0.1:8765 > cf.log 2>&1 &
+            echo $! > cf.pid
+            URL=""
+            for i in $(seq 1 60); do
+              URL=$(grep -aoE 'https://[a-z0-9-]+\.trycloudflare\.com' cf.log 2>/dev/null | head -1 || true)
+              if [ -n "$URL" ]; then break; fi
+              sleep 1
+            done
+            if [ -z "$URL" ]; then
+              echo "Tunnel URL not found"
+              cat cf.log || true
+              return 1
+            fi
+            echo "Candidate URL: $URL"
+            ok=0
+            for i in $(seq 1 40); do
+              if curl -sf --max-time 20 "$URL/" >/dev/null; then
+                ok=1
+                break
+              fi
+              sleep 3
+            done
+            if [ "$ok" != "1" ]; then
+              echo "URL never became healthy: $URL"
+              return 1
+            fi
+            echo "$URL" > /tmp/live.url
+            echo "Healthy URL: $URL"
+            return 0
+          }
+
+          publish_url() {
+            URL=$(cat /tmp/live.url)
+            echo "$URL" > public-url.txt
+            git add public-url.txt
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: update public tunnel URL"
+              git pull --rebase origin main || true
+              git push origin HEAD:main || true
+            fi
+          }
+
+          start_tunnel
+          publish_url
+          URL=$(cat /tmp/live.url)
+
+          end=$((SECONDS + 320*60))
+          fail=0
           while [ $SECONDS -lt $end ]; do
             if ! kill -0 "$(cat server.pid)" 2>/dev/null; then
               echo "server died"; exit 1
             fi
             if ! kill -0 "$(cat cf.pid)" 2>/dev/null; then
-              echo "tunnel died"; exit 1
+              echo "cloudflared process died; restarting"
+              start_tunnel
+              publish_url
+              URL=$(cat /tmp/live.url)
+              fail=0
+              continue
             fi
-            if ! curl -sf --max-time 20 "$URL/" >/dev/null; then
-              echo "public URL unhealthy: $URL"
-              # restart tunnel
-              kill "$(cat cf.pid)" 2>/dev/null || true
-              ./cloudflared tunnel --url http://127.0.0.1:8765 > cf.log 2>&1 &
-              echo $! > cf.pid
-              sleep 8
-              URL=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' cf.log | head -1 || true)
-              if [ -z "$URL" ]; then exit 1; fi
-              echo "$URL" > public-url.txt
-              git add public-url.txt
-              if ! git diff --cached --quiet; then
-                git commit -m "chore: refresh public tunnel URL"
-                git push origin HEAD:main || true
+            if curl -sf --max-time 25 "$URL/" >/dev/null; then
+              fail=0
+            else
+              fail=$((fail + 1))
+              echo "health miss $fail for $URL"
+              if [ "$fail" -ge 3 ]; then
+                echo "restarting unhealthy tunnel"
+                kill "$(cat cf.pid)" 2>/dev/null || true
+                sleep 2
+                start_tunnel
+                publish_url
+                URL=$(cat /tmp/live.url)
+                fail=0
               fi
             fi
-            sleep 45
+            sleep 40
           done

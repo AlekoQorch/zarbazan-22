@@ -2,14 +2,10 @@
 
 დეკლარაციები + CompanyInfo ქსელის ძიება და რუკა.
 
-## გაზიარება მეგობართან
+## მუდმივი გაზიარების ლინკი
 
-გაუგზავნე ეს ლინკი (საჯაროა, პაროლი არ სჭირდება):
+მეგობარს **ეს** ჩაუგდე (ლინკი არ იცვლება):
 
-**https://val-ability-prince-princess.trycloudflare.com**
+https://raw.githack.com/AlekoQorch/zarbazan-22/main/go.html
 
-ტელეფონიდანაც იხსნება.
-
-## კოდი
-
-https://github.com/AlekoQorch/zarbazan-22
+გვერდი ავტომატურად გადაგიყვანთ ცოცხალ საიტზე.
