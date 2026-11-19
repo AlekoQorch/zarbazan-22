@@ -49,29 +49,115 @@
     return /^\d{11}$/.test(q.trim());
   }
 
+  let peopleIndex = null;
+  let peopleIndexPromise = null;
+
+  function loadPeopleIndex() {
+    if (peopleIndex) return Promise.resolve(peopleIndex);
+    if (peopleIndexPromise) return peopleIndexPromise;
+    peopleIndexPromise = fetch("./people-index.json")
+      .then((r) => r.json())
+      .then((items) => {
+        peopleIndex = (items || []).map((it) => ({
+          id: it.id || null,
+          name: String(it.name || "").replace(/^:\s*/, "").trim(),
+          idNumber: String(it.idNumber || "").trim(),
+        }));
+        return peopleIndex;
+      })
+      .catch((err) => {
+        console.error(err);
+        peopleIndex = [];
+        return peopleIndex;
+      });
+    return peopleIndexPromise;
+  }
+
+  // Prefetch index immediately
+  loadPeopleIndex();
+
+  function rankLocalMatch(person, q) {
+    const name = person.name;
+    const nameL = name.toLowerCase();
+    const qL = q.toLowerCase();
+    const pid = person.idNumber;
+    if (pid && pid.startsWith(q)) return 0;
+    if (name.startsWith(q) || nameL.startsWith(qL)) return 1;
+    const parts = name.split(/\s+/);
+    if (parts.some((p) => p.startsWith(q) || p.toLowerCase().startsWith(qL))) return 2;
+    if (name.includes(q) || nameL.includes(qL)) return 3;
+    return 99;
+  }
+
   async function searchPeople(query) {
     const q = query.trim();
     if (q.length < 1) return [];
+
+    const index = await loadPeopleIndex();
+
+    // Instant local search from our dataset (max 5)
+    const scored = [];
+    for (const person of index) {
+      const rank = rankLocalMatch(person, q);
+      if (rank < 99) scored.push({ rank, person });
+    }
+    scored.sort(
+      (a, b) => a.rank - b.rank || a.person.name.localeCompare(b.person.name, "ka")
+    );
+    const local = scored.slice(0, 5).map(({ person }) => ({
+      id: person.id,
+      name: person.name,
+      idNumber: person.idNumber,
+    }));
+    if (local.length) return local;
+
+    // Fallback to live API only if local has nothing (e.g. brand-new name)
     if (isPersonalId(q)) {
       const params = new URLSearchParams({ page: "1", idNumber: q });
       const data = await apiGet(`people/search?${params}`);
       return (data.items || []).slice(0, 5);
     }
     if (q.length < 2) return [];
-
-    let suggestions = await apiGet(`person/${encodeURIComponent(q)}`);
-    if (!Array.isArray(suggestions) || !suggestions.length) {
-      const params = new URLSearchParams({ page: "1", name: q });
-      const data = await apiGet(`people/search?${params}`);
-      suggestions = data.items || [];
+    try {
+      let suggestions = await apiGet(`person/${encodeURIComponent(q)}`);
+      if (!Array.isArray(suggestions) || !suggestions.length) {
+        const params = new URLSearchParams({ page: "1", name: q });
+        const data = await apiGet(`people/search?${params}`);
+        suggestions = data.items || [];
+      }
+      return suggestions.slice(0, 5).map((it) => ({
+        id: it.id,
+        name: String(it.name || "").replace(/^:\s*/, "").trim(),
+        idNumber: it.idNumber,
+        nationality: it.nationality,
+        compCnt: it.compCnt,
+      }));
+    } catch (err) {
+      console.error(err);
+      return [];
     }
-    return suggestions.slice(0, 5).map((it) => ({
-      id: it.id,
-      name: it.name,
-      idNumber: it.idNumber,
-      nationality: it.nationality,
-      compCnt: it.compCnt,
-    }));
+  }
+
+  async function resolvePersonId(person) {
+    if (person && person.id && typeof person.id === "number") return person;
+    if (person && person.id && /^\d+$/.test(String(person.id))) {
+      return { ...person, id: Number(person.id) };
+    }
+    const idNumber = (person && person.idNumber) || "";
+    if (!/^\d{11}$/.test(idNumber)) {
+      throw new Error("პირის იდენტიფიკატორი ვერ მოიძებნა");
+    }
+    const params = new URLSearchParams({ page: "1", idNumber });
+    const data = await apiGet(`people/search?${params}`);
+    const hit = (data.items || [])[0];
+    if (!hit || !hit.id) throw new Error("CompanyInfo-ში ვერ მოიძებნა");
+    return {
+      id: hit.id,
+      name: hit.name || person.name,
+      idNumber: hit.idNumber || idNumber,
+      nationality: hit.nationality,
+      compCnt: hit.compCnt,
+    };
   }
 
   function analyzeGraph(graph, seedId) {
@@ -238,15 +324,15 @@
     els.clearBtn.classList.toggle("hidden", !q);
     clearTimeout(state.searchTimer);
 
-    if (q.length < 2 && !isPersonalId(q)) {
+    if (q.length < 1) {
       state.results = [];
       renderResults([]);
       setStatus("");
       return;
     }
 
-    setStatus("იძებნება…");
     const requestId = ++state.searchRequestId;
+    // Local index is instant — tiny debounce only to avoid work on every key
     state.searchTimer = setTimeout(async () => {
       try {
         const items = await searchPeople(q);
@@ -254,14 +340,18 @@
         if (els.searchInput.value.trim() !== q) return;
         state.results = items.slice(0, 5);
         renderResults(state.results);
-        setStatus(state.results.length ? `${state.results.length} შემოთავაზება` : "ვერ მოიძებნა");
+        setStatus(
+          state.results.length
+            ? `${state.results.length} შემოთავაზება`
+            : "ვერ მოიძებნა"
+        );
       } catch (err) {
         if (requestId !== state.searchRequestId) return;
         console.error(err);
         setStatus("ძიება ვერ მოხერხდა");
         renderResults([]);
       }
-    }, 160);
+    }, 40);
   }
 
   function renderPersonBanner(name, person, stats) {
@@ -297,10 +387,9 @@
   }
 
   async function selectPerson(person) {
-    state.selected = person;
     els.results.classList.add("hidden");
     els.workspace.classList.remove("hidden");
-    const name = String(person.name || "").replace(/^:\s*/, "").trim();
+    let name = String(person.name || "").replace(/^:\s*/, "").trim();
     renderPersonBanner(name, person, null);
     renderStats(null);
     els.detail.innerHTML = `<p class="detail-empty">აირჩიეთ პირი ან კომპანია სიიდან / რუკიდან დეტალებისთვის</p>`;
@@ -308,24 +397,29 @@
     setStatus("");
 
     try {
+      const resolved = await resolvePersonId(person);
+      state.selected = resolved;
+      name = String(resolved.name || name).replace(/^:\s*/, "").trim();
+      renderPersonBanner(name, resolved, null);
+
       const level = state.circles.has(2) ? 4 : 2;
-      const graph = await apiGet(`relationship-graph?person=${person.id}&level=${level}`);
-      state.networkData = analyzeGraph(graph, person.id);
-      const seedKey = person.idNumber ? `pid:${person.idNumber}` : `name:${name}`;
+      const graph = await apiGet(`relationship-graph?person=${resolved.id}&level=${level}`);
+      state.networkData = analyzeGraph(graph, resolved.id);
+      const seedKey = resolved.idNumber ? `pid:${resolved.idNumber}` : `name:${name}`;
       if (!state.networkData.people[seedKey]) {
         state.networkData.people[seedKey] = {
           id: seedKey,
           name,
-          personalId: person.idNumber || "",
+          personalId: resolved.idNumber || "",
           circle: 0,
         };
       } else {
         state.networkData.people[seedKey].circle = 0;
         state.networkData.people[seedKey].name = name;
         state.networkData.people[seedKey].personalId =
-          person.idNumber || state.networkData.people[seedKey].personalId;
+          resolved.idNumber || state.networkData.people[seedKey].personalId;
       }
-      renderPersonBanner(name, person, state.networkData.stats);
+      renderPersonBanner(name, resolved, state.networkData.stats);
       renderStats(state.networkData.stats);
       try {
         refreshViews();
