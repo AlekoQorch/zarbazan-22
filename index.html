@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F2F2F7" />
+  <title>კავშირები</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css?v=22" />
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="hero-text">
+        <p class="eyebrow">CompanyInfo · დეკლარაციები</p>
+        <h1>კავშირები</h1>
+        <p class="lede">მოძებნეთ პიროვნება და ნახეთ ყველა თანამეწილე (წრე I), მათი სხვა კომპანიების მეწილეები (წრე II), სია და ქსელის რუკა ერთად.</p>
+      </div>
+
+      <div class="search-wrap">
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true"></span>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="სახელი, გვარი ან პირადი ნომერი"
+            autocomplete="off"
+            enterkeyhint="search"
+          />
+          <button type="button" id="clearBtn" class="clear-btn hidden" aria-label="გასუფთავება">✕</button>
+        </div>
+        <div id="searchStatus" class="search-status" aria-live="polite"></div>
+        <div id="results" class="results hidden" role="listbox"></div>
+      </div>
+    </header>
+
+    <main id="workspace" class="workspace hidden">
+      <section class="profile" id="personBanner"></section>
+
+      <section class="toolbar">
+        <div class="toolbar-block">
+          <p class="label">კავშირის სიღრმე</p>
+          <div class="segmented" id="circleFilter" role="group">
+            <button type="button" data-circles="1" class="is-active">წრე I</button>
+            <button type="button" data-circles="1,2">წრე I + II</button>
+          </div>
+        </div>
+        <div class="toolbar-block">
+          <p class="label">ხედი</p>
+          <div class="segmented" role="group">
+            <button type="button" class="nav-link is-active" data-view="graph">რუკა</button>
+            <button type="button" class="nav-link" data-view="list">სია</button>
+            <button type="button" class="nav-link" data-view="split">ორივე</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats" id="stats"></section>
+
+      <section class="board mode-graph" id="board">
+        <div class="panel list-panel" id="listPanel">
+          <div class="panel-head">
+            <h2>კავშირების სია</h2>
+            <p id="listHint">თანამეწილეები და კომპანიები</p>
+          </div>
+          <div id="connectionList" class="connection-list"></div>
+        </div>
+
+        <div class="panel graph-panel" id="graphPanel">
+          <div class="panel-head">
+            <h2>რუკა</h2>
+            <p>ზემოდან ქვემოთ: არჩეული → კომპანიები → თანამეწილეები. დააკლიკეთ კვანძს.</p>
+          </div>
+          <div class="graph-wrap map-wrap">
+            <div id="graphView" class="graph-canvas map-canvas"></div>
+            <div id="graphNote" class="graph-note hidden"></div>
+            <div class="map-legend">
+              <span><i class="lg seed"></i>არჩეული</span>
+              <span><i class="lg co"></i>კომპანია</span>
+              <span><i class="lg c1"></i>წრე I</span>
+              <span><i class="lg c2"></i>წრე II</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="loadingOverlay" class="loading-overlay hidden">
+          <div class="spinner"></div>
+          <p>კავშირები იტვირთება…</p>
+        </div>
+      </section>
+
+      <section class="detail-card" id="detail">
+        <p class="detail-empty">აირჩიეთ პირი ან კომპანია სიიდან / რუკიდან დეტალებისთვის</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js?v=22"></script>
+</body>
+</html>
