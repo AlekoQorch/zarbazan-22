@@ -46,20 +46,29 @@
       const msg = document.getElementById("msg");
       const spin = document.getElementById("spin");
       const fallback = document.getElementById("fallback");
-      const urlFile = "https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/main/public-url.txt?t=" + Date.now();
-      try {
-        const res = await fetch(urlFile, { cache: "no-store" });
-        if (!res.ok) throw new Error("status " + res.status);
-        const live = (await res.text()).trim().split(/\s+/)[0];
-        if (!/^https:\/\//.test(live)) throw new Error("bad url");
-        msg.textContent = "იხსნება…";
-        location.replace(live);
-      } catch (e) {
+      const t = Date.now();
+      const sources = [
+        "https://cdn.jsdelivr.net/gh/AlekoQorch/zarbazan-22@main/public-url.txt?t=" + t,
+        "https://raw.githubusercontent.com/AlekoQorch/zarbazan-22/main/public-url.txt?t=" + t
+      ];
+      let live = "";
+      for (const urlFile of sources) {
+        try {
+          const res = await fetch(urlFile, { cache: "no-store" });
+          if (!res.ok) continue;
+          const text = (await res.text()).trim().split(/\s+/)[0];
+          if (/^https:\/\//.test(text)) { live = text; break; }
+        } catch (_) {}
+      }
+      if (!live) {
         spin.style.display = "none";
         msg.textContent = "ცოცხალი ლინკი ამ წუთას მიუწვდომელია.";
         fallback.style.display = "block";
-        fallback.innerHTML = 'სცადე თავიდან, ან გახსენი<br><a href="https://github.com/AlekoQorch/zarbazan-22">GitHub რეპო</a>';
+        fallback.innerHTML = 'განაახლე გვერდი, ან გახსენი<br><a href="https://github.com/AlekoQorch/zarbazan-22">GitHub რეპო</a>';
+        return;
       }
+      msg.textContent = "იხსნება…";
+      location.replace(live);
     })();
   </script>
 </body>
