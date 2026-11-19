@@ -2,17 +2,14 @@
 
 დეკლარაციები + CompanyInfo ქსელის ძიება და რუკა.
 
-## გაზიარების ლინკი (ცოცხალი)
+## გაზიარება მეგობართან
 
-https://lfkmzp-ip-54-161-91-42.tunnelmole.net
+გაუგზავნე ეს ლინკი (საჯაროა, პაროლი არ სჭირდება):
 
-ეს ლინკი საჯაროა — მეგობარსაც გაუხსნის ტელეფონიდან/კომპიუტერიდან.
+**https://val-ability-prince-princess.trycloudflare.com**
 
-რეპო: https://github.com/AlekoQorch/zarbazan-22
+ტელეფონიდანაც იხსნება.
 
-## ლოკალურად
+## კოდი
 
-```bash
-python3 server.py
-# http://127.0.0.1:8765
-```
+https://github.com/AlekoQorch/zarbazan-22
